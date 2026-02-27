@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KATVR AliMail Auto Reply Activator
 // @namespace    https://yjli-new.github.io/autoresponder-editor/
-// @version      1.1.0
+// @version      1.1.1
 // @description  Read activation payload from URL and apply auto-reply settings in AliMail enterprise web.
 // @match        https://qiye.aliyun.com/*
 // @match        https://mail.aliyun.com/*
@@ -52,7 +52,6 @@
         version: 2,
         mode: payload.mode === "all" ? "all" : "current",
         targetMailbox: String(payload.targetMailbox || "").trim(),
-        requireSmsVerification: true,
         activeTemplate: payload.activeTemplate,
         templates: Array.isArray(payload.templates) ? payload.templates : [payload.activeTemplate],
       };
@@ -63,7 +62,6 @@
         version: 2,
         mode: "current",
         targetMailbox: "",
-        requireSmsVerification: true,
         activeTemplate: payload,
         templates: [payload],
       };
@@ -80,16 +78,6 @@
 
   async function run(envelope) {
     showNotice("AliMail 激活器：开始处理激活请求...");
-
-    if (envelope.requireSmsVerification) {
-      const pass = window.confirm(
-        "请确认你已在阿里企业邮箱完成“手机号短信验证码”登录校验，再点击“确定”继续激活。",
-      );
-      if (!pass) {
-        showNotice("已取消激活：未确认短信验证码登录。", true);
-        return;
-      }
-    }
 
     if (envelope.targetMailbox) {
       const matched = await detectMailbox(envelope.targetMailbox, 12000);

@@ -79,7 +79,6 @@ const state = {
   activationPrefs: {
     targetMailbox: "",
     mode: "current",
-    requireSmsVerification: true,
   },
 };
 
@@ -749,7 +748,6 @@ function restoreActivationPrefs() {
     state.activationPrefs = {
       targetMailbox: String(prefs.targetMailbox || ""),
       mode: prefs.mode === "all" ? "all" : "current",
-      requireSmsVerification: true,
     };
   } catch (_error) {
     // Ignore invalid local prefs.
@@ -764,7 +762,6 @@ function renderActivationPrefs() {
 function onActivationPrefChange() {
   state.activationPrefs.targetMailbox = String(appEls.targetMailboxInput.value || "").trim();
   state.activationPrefs.mode = appEls.activateModeSelect.value === "all" ? "all" : "current";
-  state.activationPrefs.requireSmsVerification = true;
   localStorage.setItem(STORAGE_KEYS.activationPrefs, JSON.stringify(state.activationPrefs));
 }
 
@@ -890,14 +887,6 @@ async function activateInAliMail() {
   const validation = validateActivationEntries(activationEntries);
   if (validation.errors.length > 0) {
     setStatus(appEls.status, `格式校验失败：${validation.errors.join("；")}`, true);
-    return;
-  }
-
-  const smsConfirmed = window.confirm(
-    "激活前请先在阿里企业邮箱完成手机号短信验证码登录校验，再点击“确定”继续。",
-  );
-  if (!smsConfirmed) {
-    setStatus(appEls.status, "已取消激活：未确认短信验证码登录。", true);
     return;
   }
 
@@ -1031,7 +1020,6 @@ function buildAliMailActivationEnvelope(config) {
     source: "katvr-autoreply-studio",
     mode: config.mode,
     targetMailbox: config.targetMailbox,
-    requireSmsVerification: true,
     generatedAt: new Date().toISOString(),
     activeTemplate,
     templates,
