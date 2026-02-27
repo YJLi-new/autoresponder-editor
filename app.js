@@ -9,7 +9,7 @@ const LOCALE_LABELS = {
   "zh-CN": "中文",
   "en-US": "English",
 };
-const ALIMAIL_ACTIVATE_URL = "https://qiye.aliyun.com/";
+const ALIMAIL_WEBMAIL_URL = "https://qiye.aliyun.com/alimail/entries/v5.1/mail/inbox/all";
 
 const fields = {
   category: document.getElementById("categoryInput"),
@@ -47,6 +47,11 @@ const appEls = {
   copyTextBtn: document.getElementById("copyTextBtn"),
   copyHtmlBtn: document.getElementById("copyHtmlBtn"),
   activateAliMailBtn: document.getElementById("activateAliMailBtn"),
+  manualGuideBox: document.getElementById("manualGuideBox"),
+  manualGuideList: document.getElementById("manualGuideList"),
+  copyManualSubjectBtn: document.getElementById("copyManualSubjectBtn"),
+  copyManualBodyBtn: document.getElementById("copyManualBodyBtn"),
+  copyManualPacketBtn: document.getElementById("copyManualPacketBtn"),
   targetMailboxInput: document.getElementById("targetMailboxInput"),
   activateModeSelect: document.getElementById("activateModeSelect"),
   chips: Array.from(document.querySelectorAll(".chip")),
@@ -70,6 +75,7 @@ const state = {
   selectedGroupId: null,
   selectedLocale: "zh-CN",
   focusedField: null,
+  activationGuide: null,
   activationPrefs: {
     targetMailbox: "",
     mode: "current",
@@ -164,6 +170,9 @@ function bindEvents() {
   appEls.copyTextBtn.addEventListener("click", copyPreviewText);
   appEls.copyHtmlBtn.addEventListener("click", copyPreviewHtml);
   appEls.activateAliMailBtn.addEventListener("click", activateInAliMail);
+  appEls.copyManualSubjectBtn?.addEventListener("click", copyManualSubject);
+  appEls.copyManualBodyBtn?.addEventListener("click", copyManualBody);
+  appEls.copyManualPacketBtn?.addEventListener("click", copyManualPacket);
   appEls.targetMailboxInput.addEventListener("input", onActivationPrefChange);
   appEls.activateModeSelect.addEventListener("change", onActivationPrefChange);
 
@@ -833,6 +842,33 @@ async function copyPreviewHtml() {
   await copyToClipboard(html, "已复制 HTML。", "复制失败，请检查浏览器权限。");
 }
 
+async function copyManualSubject() {
+  const subject = String(state.activationGuide?.subject || "").trim();
+  if (!subject) {
+    setStatus(appEls.status, "请先点击“一键在 AliMail 激活”，再复制当前主题。", true);
+    return;
+  }
+  await copyToClipboard(subject, "已复制当前主题。", "复制失败，请检查浏览器权限。");
+}
+
+async function copyManualBody() {
+  const body = String(state.activationGuide?.bodyText || "").trim();
+  if (!body) {
+    setStatus(appEls.status, "请先点击“一键在 AliMail 激活”，再复制当前正文。", true);
+    return;
+  }
+  await copyToClipboard(body, "已复制当前正文。", "复制失败，请检查浏览器权限。");
+}
+
+async function copyManualPacket() {
+  const packetText = String(state.activationGuide?.packetText || "").trim();
+  if (!packetText) {
+    setStatus(appEls.status, "请先点击“一键在 AliMail 激活”，再复制完整激活包。", true);
+    return;
+  }
+  await copyToClipboard(packetText, "已复制完整激活包。", "复制失败，请检查浏览器权限。");
+}
+
 async function activateInAliMail() {
   onActivationPrefChange();
   persistLocalGroups();
@@ -872,43 +908,47 @@ async function activateInAliMail() {
     targetMailbox,
     mode: state.activationPrefs.mode,
   });
-  const encodedPayload = utf8ToBase64Url(JSON.stringify(envelope));
-  const targetUrl = `${ALIMAIL_ACTIVATE_URL}?alimailActivate=${encodeURIComponent(encodedPayload)}`;
+  const packetText = buildManualActivationPacket(envelope, validation.warnings);
+  state.activationGuide = {
+    subject: envelope.activeTemplate.subject || "",
+    bodyText: envelope.activeTemplate.bodyText || "",
+    packetText,
+  };
+  renderManualGuide(targetMailbox, envelope.mode, validation.warnings);
 
-  const opened = window.open(targetUrl, "_blank", "noopener,noreferrer");
+  let copiedPacket = false;
+  try {
+    await navigator.clipboard.writeText(packetText);
+    copiedPacket = true;
+  } catch (_error) {
+    copiedPacket = false;
+  }
+
+  const opened = window.open(ALIMAIL_WEBMAIL_URL, "_blank", "noopener,noreferrer");
   if (!opened) {
     const useCurrentTab = window.confirm(
       "浏览器拦截了新窗口。是否在当前页打开 AliMail 并继续激活？（当前页内容已自动保存）",
     );
     if (useCurrentTab) {
-      window.location.assign(targetUrl);
+      window.location.assign(ALIMAIL_WEBMAIL_URL);
       return;
     }
     setStatus(appEls.status, "无法打开 AliMail，请允许该站点弹窗后重试。", true);
     return;
   }
 
-  navigator.clipboard.writeText(JSON.stringify(envelope, null, 2)).catch(() => {
-    // Ignore clipboard failure because activation can still continue.
-  });
-
   const modeMessage =
     state.activationPrefs.mode === "all"
-      ? "已同步全部模板并激活当前模板（AliMail 同一邮箱同一时刻仅能启用一套自动回复）。"
-      : "已激活当前模板。";
-
-  if (validation.warnings.length > 0) {
-    setStatus(
-      appEls.status,
-      `${modeMessage} 注意：${validation.warnings.join("；")}。若 AliMail 页面未自动填充，请先安装 alimail-activator.user.js。`,
-      false,
-    );
-    return;
-  }
+      ? "已生成全部模板激活包，并定位到当前模板。"
+      : "已生成当前模板激活包。";
+  const copyMessage = copiedPacket
+    ? "完整激活包已复制到剪贴板。"
+    : "自动复制失败，请使用下方按钮手动复制主题/正文。";
+  const warningMessage = validation.warnings.length > 0 ? ` 注意：${validation.warnings.join("；")}。` : "";
 
   setStatus(
     appEls.status,
-    `${modeMessage} 若 AliMail 页面未自动填充，请先安装 alimail-activator.user.js。`,
+    `${modeMessage}${copyMessage} 请按下方“无插件激活步骤”在 AliMail 保存规则。${warningMessage}`,
     false,
   );
 }
@@ -1017,6 +1057,69 @@ function buildAliMailActivationPayload(group, version) {
   };
 }
 
+function renderManualGuide(targetMailbox, mode, warnings) {
+  if (!appEls.manualGuideBox || !appEls.manualGuideList) {
+    return;
+  }
+
+  const steps = [
+    `确认当前登录邮箱为 ${targetMailbox}。`,
+    "进入 AliMail 设置页，找到“收信规则 / 邮件规则 / 过滤器规则”。",
+    "新建规则并选择动作“自动回复/回复邮件”（若没有此动作，请联系管理员开通权限）。",
+    "把“当前主题”和“当前正文”粘贴进去后保存启用。",
+    "用外部邮箱发送测试邮件，确认收到自动回复。",
+  ];
+
+  if (mode === "all") {
+    steps.splice(4, 0, "你选择了“全部模板”：请使用“完整激活包”按类别逐条建立规则。");
+  }
+  if (warnings.length > 0) {
+    steps.push(`注意：${warnings.join("；")}。`);
+  }
+
+  appEls.manualGuideList.innerHTML = "";
+  steps.forEach((text) => {
+    const item = document.createElement("li");
+    item.textContent = text;
+    appEls.manualGuideList.appendChild(item);
+  });
+  appEls.manualGuideBox.classList.remove("hidden");
+}
+
+function buildManualActivationPacket(envelope, warnings) {
+  const lines = [];
+  const active = envelope.activeTemplate;
+
+  lines.push("[AliMail 无插件激活包]");
+  lines.push(`生成时间：${new Date().toLocaleString("zh-CN")}`);
+  lines.push(`目标邮箱：${envelope.targetMailbox}`);
+  lines.push(`激活范围：${envelope.mode === "all" ? "全部模板（逐条建立规则）" : "仅当前模板"}`);
+  lines.push(`当前模板：${active.templateId} / ${active.locale}`);
+  lines.push("");
+  lines.push("【当前主题】");
+  lines.push(active.subject || "(无主题)");
+  lines.push("");
+  lines.push("【当前正文】");
+  lines.push(active.bodyText || "(空)");
+
+  if (envelope.mode === "all") {
+    lines.push("");
+    lines.push("【全部模板索引】");
+    envelope.templates.forEach((item, index) => {
+      lines.push(
+        `${index + 1}. ${item.templateId} / ${item.locale} / ${truncateText(item.subject || "(无主题)", 80)}`,
+      );
+    });
+  }
+
+  if (warnings.length > 0) {
+    lines.push("");
+    lines.push(`注意：${warnings.join("；")}`);
+  }
+
+  return lines.join("\n");
+}
+
 function isValidEmail(text) {
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(text || "").trim());
 }
@@ -1044,6 +1147,12 @@ function getFieldValue(element) {
   return String(element?.value || "");
 }
 
+function truncateText(text, maxLength) {
+  const value = String(text || "");
+  if (value.length <= maxLength) return value;
+  return `${value.slice(0, maxLength - 3)}...`;
+}
+
 function bytesToHex(bytes) {
   return Array.from(bytes)
     .map((item) => item.toString(16).padStart(2, "0"))
@@ -1057,15 +1166,6 @@ function base64ToBytes(base64Text) {
     bytes[index] = binary.charCodeAt(index);
   }
   return bytes;
-}
-
-function utf8ToBase64Url(text) {
-  const bytes = new TextEncoder().encode(text);
-  let binary = "";
-  bytes.forEach((byte) => {
-    binary += String.fromCharCode(byte);
-  });
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
 function escapeHtml(raw) {
