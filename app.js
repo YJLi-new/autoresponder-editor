@@ -8,6 +8,7 @@ const LOCALE_LABELS = {
   "zh-CN": "中文",
   "en-US": "English",
 };
+const ALIMAIL_ACTIVATE_URL = "https://mail.aliyun.com/";
 
 const fields = {
   category: document.getElementById("categoryInput"),
@@ -45,6 +46,7 @@ const appEls = {
   status: document.getElementById("appStatus"),
   copyTextBtn: document.getElementById("copyTextBtn"),
   copyHtmlBtn: document.getElementById("copyHtmlBtn"),
+  activateAliMailBtn: document.getElementById("activateAliMailBtn"),
   chips: Array.from(document.querySelectorAll(".chip")),
   localeButtons: Array.from(document.querySelectorAll("#editorLocaleSwitch .locale-btn")),
   meta: {
@@ -152,6 +154,7 @@ function bindEvents() {
   appEls.logoutBtn.addEventListener("click", logout);
   appEls.copyTextBtn.addEventListener("click", copyPreviewText);
   appEls.copyHtmlBtn.addEventListener("click", copyPreviewHtml);
+  appEls.activateAliMailBtn.addEventListener("click", activateInAliMail);
 
   appEls.chips.forEach((chip) => {
     chip.addEventListener("click", () => {
@@ -800,6 +803,107 @@ async function copyPreviewHtml() {
   await copyToClipboard(html, "已复制 HTML。", "复制失败，请检查浏览器权限。");
 }
 
+async function activateInAliMail() {
+  const group = getSelectedGroup();
+  const version = getSelectedVersion(group, state.selectedLocale);
+  if (!group || !version) {
+    setStatus(appEls.status, "未找到可激活的模板。", true);
+    return;
+  }
+
+  const check = validateAliMailFormat(version);
+  if (check.errors.length > 0) {
+    setStatus(appEls.status, `格式校验失败：${check.errors.join("；")}`, true);
+    return;
+  }
+
+  const payload = buildAliMailActivationPayload(group, version);
+  const encodedPayload = utf8ToBase64Url(JSON.stringify(payload));
+  const targetUrl = `${ALIMAIL_ACTIVATE_URL}?alimailActivate=${encodeURIComponent(encodedPayload)}`;
+
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+  } catch (_error) {
+    // Ignore clipboard failure because activation can still continue.
+  }
+
+  const opened = window.open(targetUrl, "_blank", "noopener,noreferrer");
+  if (!opened) {
+    setStatus(appEls.status, "无法打开 AliMail，请检查浏览器弹窗拦截设置。", true);
+    return;
+  }
+
+  if (check.warnings.length > 0) {
+    setStatus(
+      appEls.status,
+      `已触发一键激活，并复制激活载荷。注意：${check.warnings.join("；")}。若 AliMail 页面未自动填充，请先安装 alimail-activator.user.js。`,
+      false,
+    );
+    return;
+  }
+
+  setStatus(
+    appEls.status,
+    "已触发一键激活，并复制激活载荷。若 AliMail 页面未自动填充，请先安装 alimail-activator.user.js。",
+    false,
+  );
+}
+
+function validateAliMailFormat(version) {
+  const errors = [];
+  const warnings = [];
+
+  const subject = String(version.subject || "").trim();
+  const body = buildMailText(version);
+
+  if (!subject) {
+    errors.push("主题不能为空");
+  }
+  if (subject.length > 255) {
+    warnings.push("主题超过 255 字符，可能被 AliMail 截断");
+  }
+  if (!body) {
+    errors.push("正文不能为空");
+  }
+  if (body.length > 5000) {
+    warnings.push("正文较长，建议在 AliMail 页面确认显示效果");
+  }
+  if ((version.startAt && !version.endAt) || (!version.startAt && version.endAt)) {
+    warnings.push("建议同时设置开始和结束时间");
+  }
+  if (version.startAt && version.endAt && version.startAt >= version.endAt) {
+    errors.push("结束时间必须晚于开始时间");
+  }
+
+  const placeholderMatches = body.match(/\{\{[^}]+\}\}/g) || [];
+  if (placeholderMatches.length > 0) {
+    warnings.push("检测到占位符，AliMail 不会自动替换变量");
+  }
+
+  return { errors, warnings };
+}
+
+function buildAliMailActivationPayload(group, version) {
+  const plainBody = buildMailText(version);
+  return {
+    version: 1,
+    source: "katvr-autoreply-studio",
+    templateId: group.groupId,
+    locale: version.locale,
+    category: group.category,
+    scope: version.scope || "external",
+    subject: version.subject || "",
+    bodyText: plainBody,
+    bodyHtml: plainBody
+      .split("\n")
+      .map((line) => escapeHtml(line))
+      .join("<br>"),
+    startAt: version.startAt || null,
+    endAt: version.endAt || null,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
 async function copyToClipboard(content, okMessage, errorMessage) {
   try {
     await navigator.clipboard.writeText(content);
@@ -827,6 +931,15 @@ function base64ToBytes(base64Text) {
     bytes[index] = binary.charCodeAt(index);
   }
   return bytes;
+}
+
+function utf8ToBase64Url(text) {
+  const bytes = new TextEncoder().encode(text);
+  let binary = "";
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
 function escapeHtml(raw) {
