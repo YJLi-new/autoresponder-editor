@@ -1,11 +1,17 @@
 const STORAGE_KEYS = {
-  localTemplates: "ali_editor_local_templates",
+  localTemplateGroups: "ali_editor_local_template_groups",
   unlockMarker: "ali_editor_unlock_marker",
 };
 
+const LOCALE_ORDER = ["zh-CN", "en-US"];
+const LOCALE_LABELS = {
+  "zh-CN": "中文",
+  "en-US": "English",
+};
+
 const fields = {
+  category: document.getElementById("categoryInput"),
   name: document.getElementById("nameInput"),
-  locale: document.getElementById("localeInput"),
   startAt: document.getElementById("startInput"),
   endAt: document.getElementById("endInput"),
   scope: document.getElementById("scopeInput"),
@@ -40,12 +46,25 @@ const appEls = {
   copyTextBtn: document.getElementById("copyTextBtn"),
   copyHtmlBtn: document.getElementById("copyHtmlBtn"),
   chips: Array.from(document.querySelectorAll(".chip")),
+  localeButtons: Array.from(document.querySelectorAll("#editorLocaleSwitch .locale-btn")),
+  meta: {
+    templateId: document.getElementById("metaTemplateId"),
+    rule: document.getElementById("metaRule"),
+    routing: document.getElementById("metaRouting"),
+    sla: document.getElementById("metaSla"),
+    matchFields: document.getElementById("metaMatchFields"),
+    keywords: document.getElementById("metaKeywords"),
+    exclusions: document.getElementById("metaExclusions"),
+    placeholders: document.getElementById("metaPlaceholders"),
+    note: document.getElementById("metaNote"),
+  },
 };
 
 const state = {
   accessConfig: null,
-  templates: [],
-  selectedId: null,
+  groups: [],
+  selectedGroupId: null,
+  selectedLocale: "zh-CN",
   focusedField: null,
 };
 
@@ -55,10 +74,10 @@ async function boot() {
   bindEvents();
   setStatus(authEls.status, "正在加载访问配置...");
 
-  await Promise.all([loadInitialTemplates(), loadAccessConfig()]);
+  await Promise.all([loadInitialGroups(), loadAccessConfig()]);
 
   renderList();
-  selectTemplate(state.selectedId || state.templates[0]?.id || null);
+  selectGroup(state.selectedGroupId || state.groups[0]?.groupId || null, state.selectedLocale);
 
   const unlockMarker = sessionStorage.getItem(STORAGE_KEYS.unlockMarker);
   if (unlockMarker && state.accessConfig && unlockMarker === state.accessConfig.hash) {
@@ -71,38 +90,40 @@ function bindEvents() {
   authEls.form.addEventListener("submit", onAuthSubmit);
 
   appEls.addBtn.addEventListener("click", () => {
-    const template = createTemplate();
-    state.templates.unshift(template);
-    state.selectedId = template.id;
-    persistLocalTemplates();
+    const created = createGroup();
+    state.groups.unshift(created);
+    state.selectedGroupId = created.groupId;
+    state.selectedLocale = "zh-CN";
+    persistLocalGroups();
     renderList();
-    selectTemplate(template.id);
+    selectGroup(created.groupId, "zh-CN");
   });
 
   appEls.deleteBtn.addEventListener("click", () => {
-    if (!state.selectedId) return;
-    if (state.templates.length === 1) {
-      setStatus(appEls.status, "至少保留一个模板。", true);
+    if (!state.selectedGroupId) return;
+
+    if (state.groups.length <= 1) {
+      setStatus(appEls.status, "至少保留一个模板类别。", true);
       return;
     }
 
-    state.templates = state.templates.filter((item) => item.id !== state.selectedId);
-    state.selectedId = state.templates[0]?.id || null;
-    persistLocalTemplates();
+    state.groups = state.groups.filter((group) => group.groupId !== state.selectedGroupId);
+    state.selectedGroupId = state.groups[0]?.groupId || null;
+    persistLocalGroups();
     renderList();
-    selectTemplate(state.selectedId);
+    selectGroup(state.selectedGroupId, state.selectedLocale);
   });
 
   appEls.form.addEventListener("input", () => {
-    const active = getSelectedTemplate();
-    if (!active) return;
+    const group = getSelectedGroup();
+    const version = getSelectedVersion(group, state.selectedLocale);
+    if (!group || !version) return;
 
-    writeFormToTemplate(active);
-    active.updatedAt = new Date().toISOString();
-
-    persistLocalTemplates();
+    writeFormToState(group, version);
+    persistLocalGroups();
     renderList();
     renderPreview();
+    renderMeta();
   });
 
   Object.entries(fields).forEach(([key, element]) => {
@@ -113,6 +134,15 @@ function bindEvents() {
         state.focusedField = element;
       });
     }
+  });
+
+  appEls.localeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const locale = button.dataset.locale;
+      if (!locale) return;
+      if (!state.selectedGroupId) return;
+      selectGroup(state.selectedGroupId, locale);
+    });
   });
 
   appEls.exportBtn.addEventListener("click", exportTemplatesAsFile);
@@ -281,21 +311,21 @@ function hideApp() {
   setStatus(appEls.status, "");
 }
 
-async function loadInitialTemplates() {
-  const cached = loadLocalTemplates();
+async function loadInitialGroups() {
+  const cached = loadLocalGroups();
   if (cached.length > 0) {
-    state.templates = cached;
-    state.selectedId = cached[0].id;
+    state.groups = cached;
+    state.selectedGroupId = cached[0].groupId;
     return;
   }
 
-  const starter = await readStarterTemplates();
-  state.templates = starter.length > 0 ? starter : [createTemplate()];
-  state.selectedId = state.templates[0]?.id || null;
-  persistLocalTemplates();
+  const starter = await readStarterGroups();
+  state.groups = starter.length > 0 ? starter : [createGroup()];
+  state.selectedGroupId = state.groups[0]?.groupId || null;
+  persistLocalGroups();
 }
 
-async function readStarterTemplates() {
+async function readStarterGroups() {
   try {
     const response = await fetch("data/auto-reply-templates.json", { cache: "no-store" });
     if (!response.ok) {
@@ -303,187 +333,394 @@ async function readStarterTemplates() {
     }
 
     const payload = await response.json();
-    return parseTemplatesPayload(payload);
+    return parseTemplateGroupsPayload(payload);
   } catch (_error) {
     return [];
   }
 }
 
 async function resetTemplatesFromStarter() {
-  const starter = await readStarterTemplates();
+  const starter = await readStarterGroups();
   if (starter.length === 0) {
     setStatus(appEls.status, "恢复失败：默认模板文件不可用。", true);
     return;
   }
 
-  state.templates = starter;
-  state.selectedId = starter[0].id;
-  persistLocalTemplates();
+  state.groups = starter;
+  state.selectedGroupId = starter[0].groupId;
+  state.selectedLocale = "zh-CN";
+  persistLocalGroups();
   renderList();
-  selectTemplate(state.selectedId);
+  selectGroup(state.selectedGroupId, state.selectedLocale);
   setStatus(appEls.status, "已恢复默认模板。", false);
 }
 
-function parseTemplatesPayload(payload) {
-  const list = Array.isArray(payload)
-    ? payload
-    : Array.isArray(payload?.templates)
-      ? payload.templates
-      : [];
+function parseTemplateGroupsPayload(payload) {
+  if (Array.isArray(payload)) {
+    return normalizeLegacyTemplates(payload);
+  }
 
-  return list.map((item) => normalizeTemplate(item)).filter(Boolean);
+  if (Array.isArray(payload?.groups)) {
+    return payload.groups.map((group) => normalizeGroup(group)).filter(Boolean);
+  }
+
+  if (Array.isArray(payload?.templates)) {
+    return normalizeLegacyTemplates(payload.templates);
+  }
+
+  return [];
 }
 
-function normalizeTemplate(item) {
-  if (!item || typeof item !== "object") return null;
+function normalizeLegacyTemplates(list) {
+  const groupsMap = new Map();
 
+  list.forEach((item) => {
+    if (!item || typeof item !== "object") return;
+
+    const groupId = String(item.groupId || item.templateId || item.id || uid());
+    const locale = String(item.locale || "zh-CN");
+
+    if (!groupsMap.has(groupId)) {
+      groupsMap.set(groupId, {
+        groupId,
+        category: String(item.category || item.name || "未命名类别"),
+        direction: String(item.direction || "inbox"),
+        ruleId: String(item.ruleId || ""),
+        priority: Number.isFinite(Number(item.priority)) ? Number(item.priority) : null,
+        matchFields: String(item.matchFields || ""),
+        keywords: String(item.keywords || ""),
+        exclusions: String(item.exclusions || ""),
+        routing: String(item.routing || ""),
+        sla: String(item.sla || ""),
+        placeholders: normalizePlaceholders(item.placeholders),
+        note: String(item.note || ""),
+        versions: {},
+        updatedAt: String(item.updatedAt || new Date().toISOString()),
+      });
+    }
+
+    const group = groupsMap.get(groupId);
+    group.versions[locale] = normalizeVersion(item, locale);
+  });
+
+  return Array.from(groupsMap.values()).map((group) => normalizeGroup(group));
+}
+
+function normalizeGroup(input) {
+  if (!input || typeof input !== "object") return null;
+
+  const groupId = String(input.groupId || input.templateId || input.id || uid());
+  const category = String(input.category || input.name || "未命名类别");
+
+  const normalized = {
+    groupId,
+    category,
+    direction: String(input.direction || "inbox"),
+    ruleId: String(input.ruleId || ""),
+    priority: Number.isFinite(Number(input.priority)) ? Number(input.priority) : null,
+    matchFields: String(input.matchFields || ""),
+    keywords: String(input.keywords || ""),
+    exclusions: String(input.exclusions || ""),
+    routing: String(input.routing || ""),
+    sla: String(input.sla || ""),
+    placeholders: normalizePlaceholders(input.placeholders),
+    note: String(input.note || ""),
+    versions: {},
+    updatedAt: String(input.updatedAt || new Date().toISOString()),
+  };
+
+  const versions = input.versions && typeof input.versions === "object" ? input.versions : null;
+
+  if (versions) {
+    LOCALE_ORDER.forEach((locale) => {
+      if (versions[locale]) {
+        normalized.versions[locale] = normalizeVersion(versions[locale], locale);
+      }
+    });
+  }
+
+  if (input.locale && input.subject && !normalized.versions[input.locale]) {
+    normalized.versions[input.locale] = normalizeVersion(input, input.locale);
+  }
+
+  const firstVersion = normalized.versions[LOCALE_ORDER[0]] || normalized.versions[LOCALE_ORDER[1]] || null;
+
+  LOCALE_ORDER.forEach((locale) => {
+    if (!normalized.versions[locale]) {
+      normalized.versions[locale] = firstVersion
+        ? cloneVersionForLocale(firstVersion, locale)
+        : createDefaultVersion(locale, category);
+    }
+  });
+
+  return normalized;
+}
+
+function normalizeVersion(input, locale) {
+  const safeLocale = LOCALE_ORDER.includes(locale) ? locale : "zh-CN";
   return {
-    id: item.id || uid(),
-    name: String(item.name || "未命名模板"),
-    locale: String(item.locale || "zh-CN"),
-    startAt: String(item.startAt || ""),
-    endAt: String(item.endAt || ""),
-    scope: String(item.scope || "all"),
-    subject: String(item.subject || "自动回复通知"),
-    opening: String(item.opening || "您好，"),
-    body: String(item.body || "感谢来信，我目前暂时不在办公室。"),
-    fallbackContact: String(item.fallbackContact || ""),
-    signature: String(item.signature || "此致\n{{company_name}} 团队"),
-    updatedAt: String(item.updatedAt || new Date().toISOString()),
+    locale: safeLocale,
+    name: String(input.name || (safeLocale === "zh-CN" ? "中文模板" : "English Template")),
+    startAt: String(input.startAt || ""),
+    endAt: String(input.endAt || ""),
+    scope: String(input.scope || "external"),
+    subject: String(input.subject || ""),
+    opening: String(input.opening || ""),
+    body: String(input.body || ""),
+    fallbackContact: String(input.fallbackContact || ""),
+    signature: String(input.signature || ""),
+    updatedAt: String(input.updatedAt || new Date().toISOString()),
   };
 }
 
-function createTemplate() {
-  const now = new Date();
-  const inSevenDays = new Date(now.getTime() + 7 * 24 * 3600 * 1000);
+function cloneVersionForLocale(base, locale) {
+  const cloned = { ...base };
+  cloned.locale = locale;
+  if (locale === "zh-CN" && !/中文/.test(cloned.name)) {
+    cloned.name = `${cloned.name}（中文）`;
+  }
+  if (locale === "en-US" && !/English/.test(cloned.name)) {
+    cloned.name = `${cloned.name} (English)`;
+  }
+  return cloned;
+}
+
+function normalizePlaceholders(input) {
+  if (Array.isArray(input)) {
+    return input.map((entry) => String(entry).trim()).filter(Boolean);
+  }
+
+  if (typeof input === "string") {
+    return input
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+function createGroup() {
+  const now = new Date().toISOString();
+  const label = `新类别 ${new Date().toLocaleDateString("zh-CN")}`;
 
   return {
-    id: uid(),
-    name: `新模板 ${now.toLocaleDateString("zh-CN")}`,
-    locale: "zh-CN",
-    startAt: toDateTimeLocal(now),
-    endAt: toDateTimeLocal(inSevenDays),
-    scope: "all",
-    subject: "自动回复：我已收到您的邮件",
-    opening: "您好，{{sender_name}}：",
-    body: "感谢您的来信。我目前不在办公室，将在 {{return_date}} 后尽快回复。",
-    fallbackContact: "support@example.com",
-    signature: "祝好\n{{company_name}}",
+    groupId: `T_CUSTOM_${Date.now()}`,
+    category: label,
+    direction: "inbox",
+    ruleId: "",
+    priority: null,
+    matchFields: "",
+    keywords: "",
+    exclusions: "",
+    routing: "",
+    sla: "",
+    placeholders: [],
+    note: "",
+    versions: {
+      "zh-CN": createDefaultVersion("zh-CN", label),
+      "en-US": createDefaultVersion("en-US", label),
+    },
+    updatedAt: now,
+  };
+}
+
+function createDefaultVersion(locale, category) {
+  return {
+    locale,
+    name: locale === "zh-CN" ? `${category}（中文）` : `${category} (English)`,
+    startAt: "",
+    endAt: "",
+    scope: "external",
+    subject: locale === "zh-CN" ? "自动回复：您的邮件已收到" : "Auto Reply: We Have Received Your Email",
+    opening: locale === "zh-CN" ? "您好 {{Name}}，" : "Hello {{Name}},",
+    body:
+      locale === "zh-CN"
+        ? "感谢您的来信，我们已经收到并会尽快回复。"
+        : "Thank you for your email. We have received your message and will respond soon.",
+    fallbackContact: "business@katvr.com",
+    signature:
+      locale === "zh-CN"
+        ? "此致\nKAT VR 团队\nbusiness@katvr.com"
+        : "Best regards,\nKAT VR Team\nbusiness@katvr.com",
     updatedAt: new Date().toISOString(),
   };
-}
-
-function toDateTimeLocal(date) {
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function renderList() {
   appEls.list.innerHTML = "";
 
-  state.templates.forEach((template) => {
+  state.groups.forEach((group) => {
     const li = document.createElement("li");
-    li.className = `template-item${template.id === state.selectedId ? " active" : ""}`;
-    li.dataset.id = template.id;
-    li.innerHTML = `<strong>${escapeHtml(template.name)}</strong><span>${escapeHtml(template.subject)}</span>`;
+    li.className = `template-item${group.groupId === state.selectedGroupId ? " active" : ""}`;
 
-    li.addEventListener("click", () => {
-      selectTemplate(template.id);
+    const openBtn = document.createElement("button");
+    openBtn.type = "button";
+    openBtn.className = "template-main-btn";
+    openBtn.innerHTML = `<strong>${escapeHtml(group.category)}</strong><span>${escapeHtml(
+      `${group.groupId}${group.ruleId ? ` · ${group.ruleId}` : ""}`,
+    )}</span>`;
+
+    openBtn.addEventListener("click", () => {
+      selectGroup(group.groupId, state.selectedLocale);
     });
 
+    const localeSwitch = document.createElement("div");
+    localeSwitch.className = "template-locale-switch";
+
+    LOCALE_ORDER.forEach((locale) => {
+      const localeBtn = document.createElement("button");
+      localeBtn.type = "button";
+      localeBtn.className = `template-locale-btn${
+        group.groupId === state.selectedGroupId && locale === state.selectedLocale ? " active" : ""
+      }`;
+      localeBtn.textContent = LOCALE_LABELS[locale];
+      localeBtn.addEventListener("click", () => {
+        selectGroup(group.groupId, locale);
+      });
+      localeSwitch.appendChild(localeBtn);
+    });
+
+    li.appendChild(openBtn);
+    li.appendChild(localeSwitch);
     appEls.list.appendChild(li);
   });
 }
 
-function selectTemplate(id) {
-  if (!id) return;
+function selectGroup(groupId, locale) {
+  if (!groupId) return;
 
-  state.selectedId = id;
-  const active = getSelectedTemplate();
-  if (!active) return;
+  const group = state.groups.find((entry) => entry.groupId === groupId);
+  if (!group) return;
 
-  fields.name.value = active.name;
-  fields.locale.value = active.locale;
-  fields.startAt.value = active.startAt;
-  fields.endAt.value = active.endAt;
-  fields.scope.value = active.scope;
-  fields.subject.value = active.subject;
-  fields.opening.value = active.opening;
-  fields.body.value = active.body;
-  fields.fallbackContact.value = active.fallbackContact;
-  fields.signature.value = active.signature;
+  const targetLocale = LOCALE_ORDER.includes(locale) ? locale : state.selectedLocale;
+  if (!group.versions[targetLocale]) {
+    group.versions[targetLocale] = createDefaultVersion(targetLocale, group.category);
+  }
 
+  state.selectedGroupId = groupId;
+  state.selectedLocale = targetLocale;
+
+  const version = getSelectedVersion(group, targetLocale);
+  if (!version) return;
+
+  fields.category.value = group.category;
+  fields.name.value = version.name;
+  fields.startAt.value = version.startAt;
+  fields.endAt.value = version.endAt;
+  fields.scope.value = version.scope || "external";
+  fields.subject.value = version.subject;
+  fields.opening.value = version.opening;
+  fields.body.value = version.body;
+  fields.fallbackContact.value = version.fallbackContact;
+  fields.signature.value = version.signature;
+
+  renderLocaleSwitch();
   renderList();
+  renderMeta();
   renderPreview();
 }
 
-function getSelectedTemplate() {
-  return state.templates.find((item) => item.id === state.selectedId) || null;
+function renderLocaleSwitch() {
+  appEls.localeButtons.forEach((button) => {
+    const locale = button.dataset.locale;
+    const active = locale === state.selectedLocale;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
 }
 
-function writeFormToTemplate(template) {
-  template.name = fields.name.value;
-  template.locale = fields.locale.value;
-  template.startAt = fields.startAt.value;
-  template.endAt = fields.endAt.value;
-  template.scope = fields.scope.value;
-  template.subject = fields.subject.value;
-  template.opening = fields.opening.value;
-  template.body = fields.body.value;
-  template.fallbackContact = fields.fallbackContact.value;
-  template.signature = fields.signature.value;
+function renderMeta() {
+  const group = getSelectedGroup();
+  if (!group) return;
+
+  appEls.meta.templateId.textContent = group.groupId || "-";
+  appEls.meta.rule.textContent =
+    group.ruleId || (group.direction === "sendbox" ? "发件类模板（人工发送）" : "未关联规则");
+  appEls.meta.routing.textContent = group.routing || "未指定";
+  appEls.meta.sla.textContent = group.sla || "未指定";
+  appEls.meta.matchFields.textContent = group.matchFields || "未指定";
+  appEls.meta.keywords.textContent = group.keywords || "未指定";
+  appEls.meta.exclusions.textContent = group.exclusions || "无";
+  appEls.meta.placeholders.textContent = group.placeholders.length > 0 ? group.placeholders.join("，") : "无";
+  appEls.meta.note.textContent = group.note || "无";
 }
 
-function buildMailText(template) {
+function getSelectedGroup() {
+  return state.groups.find((group) => group.groupId === state.selectedGroupId) || null;
+}
+
+function getSelectedVersion(group, locale) {
+  if (!group) return null;
+  return group.versions?.[locale] || null;
+}
+
+function writeFormToState(group, version) {
+  group.category = fields.category.value;
+  version.name = fields.name.value;
+  version.startAt = fields.startAt.value;
+  version.endAt = fields.endAt.value;
+  version.scope = fields.scope.value;
+  version.subject = fields.subject.value;
+  version.opening = fields.opening.value;
+  version.body = fields.body.value;
+  version.fallbackContact = fields.fallbackContact.value;
+  version.signature = fields.signature.value;
+  version.updatedAt = new Date().toISOString();
+  group.updatedAt = version.updatedAt;
+}
+
+function buildMailText(version) {
   const lines = [];
 
-  lines.push(template.opening || "");
+  lines.push(version.opening || "");
   lines.push("");
-  lines.push(template.body || "");
+  lines.push(version.body || "");
 
-  if (template.startAt || template.endAt) {
+  if (version.startAt || version.endAt) {
     lines.push("");
-    lines.push(`生效时段：${template.startAt || "未设置"} ~ ${template.endAt || "未设置"}`);
+    lines.push(`生效时段：${version.startAt || "未设置"} ~ ${version.endAt || "未设置"}`);
   }
 
-  if (template.fallbackContact) {
-    lines.push(`紧急联系：${template.fallbackContact}`);
+  if (version.fallbackContact) {
+    lines.push(`联系邮箱：${version.fallbackContact}`);
   }
 
-  if (template.signature) {
+  if (version.signature) {
     lines.push("");
-    lines.push(template.signature);
+    lines.push(version.signature);
   }
 
   return lines.join("\n").trim();
 }
 
 function renderPreview() {
-  const active = getSelectedTemplate();
-  if (!active) return;
+  const group = getSelectedGroup();
+  const version = getSelectedVersion(group, state.selectedLocale);
+  if (!version) return;
 
-  appEls.previewSubject.textContent = active.subject || "(无主题)";
-  appEls.previewBody.textContent = buildMailText(active);
+  appEls.previewSubject.textContent = version.subject || "(无主题)";
+  appEls.previewBody.textContent = buildMailText(version);
 }
 
-function persistLocalTemplates() {
+function persistLocalGroups() {
   localStorage.setItem(
-    STORAGE_KEYS.localTemplates,
+    STORAGE_KEYS.localTemplateGroups,
     JSON.stringify({
-      version: 1,
+      version: 2,
       updatedAt: new Date().toISOString(),
-      templates: state.templates,
+      groups: state.groups,
     }),
   );
 }
 
-function loadLocalTemplates() {
+function loadLocalGroups() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.localTemplates);
+    const raw = localStorage.getItem(STORAGE_KEYS.localTemplateGroups);
     if (!raw) return [];
 
     const payload = JSON.parse(raw);
-    return parseTemplatesPayload(payload);
+    return parseTemplateGroupsPayload(payload);
   } catch (_error) {
     return [];
   }
@@ -491,9 +728,9 @@ function loadLocalTemplates() {
 
 function exportTemplatesAsFile() {
   const payload = {
-    version: 1,
+    version: 2,
     updatedAt: new Date().toISOString(),
-    templates: state.templates,
+    groups: state.groups,
   };
 
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
@@ -503,7 +740,7 @@ function exportTemplatesAsFile() {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = `auto-reply-templates-${new Date().toISOString().slice(0, 10)}.json`;
+  anchor.download = `auto-reply-template-groups-${new Date().toISOString().slice(0, 10)}.json`;
   anchor.click();
   URL.revokeObjectURL(url);
 }
@@ -515,17 +752,18 @@ async function onImportFile(event) {
   try {
     const text = await file.text();
     const payload = JSON.parse(text);
-    const parsed = parseTemplatesPayload(payload);
+    const parsed = parseTemplateGroupsPayload(payload);
     if (parsed.length === 0) {
-      throw new Error("JSON 中没有可用模板");
+      throw new Error("JSON 中没有可用模板组");
     }
 
-    state.templates = parsed;
-    state.selectedId = parsed[0].id;
-    persistLocalTemplates();
+    state.groups = parsed;
+    state.selectedGroupId = parsed[0].groupId;
+    state.selectedLocale = "zh-CN";
+    persistLocalGroups();
     renderList();
-    selectTemplate(state.selectedId);
-    setStatus(appEls.status, `已导入 ${parsed.length} 条模板。`, false);
+    selectGroup(state.selectedGroupId, state.selectedLocale);
+    setStatus(appEls.status, `已导入 ${parsed.length} 个模板类别。`, false);
   } catch (error) {
     setStatus(appEls.status, `导入失败：${error.message}`, true);
   } finally {
@@ -540,23 +778,25 @@ function logout() {
 }
 
 async function copyPreviewText() {
-  const active = getSelectedTemplate();
-  if (!active) return;
+  const group = getSelectedGroup();
+  const version = getSelectedVersion(group, state.selectedLocale);
+  if (!version) return;
 
-  const text = `主题：${active.subject}\n\n${buildMailText(active)}`;
+  const text = `主题：${version.subject}\n\n${buildMailText(version)}`;
   await copyToClipboard(text, "已复制纯文本。", "复制失败，请检查浏览器权限。");
 }
 
 async function copyPreviewHtml() {
-  const active = getSelectedTemplate();
-  if (!active) return;
+  const group = getSelectedGroup();
+  const version = getSelectedVersion(group, state.selectedLocale);
+  if (!version) return;
 
-  const body = buildMailText(active)
+  const body = buildMailText(version)
     .split("\n")
     .map((line) => escapeHtml(line))
     .join("<br>");
 
-  const html = `<p><strong>主题：</strong>${escapeHtml(active.subject)}</p><p>${body}</p>`;
+  const html = `<p><strong>主题：</strong>${escapeHtml(version.subject)}</p><p>${body}</p>`;
   await copyToClipboard(html, "已复制 HTML。", "复制失败，请检查浏览器权限。");
 }
 

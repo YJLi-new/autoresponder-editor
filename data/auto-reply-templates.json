@@ -1,34 +1,748 @@
 {
-  "version": 1,
-  "updatedAt": "2026-02-27T00:00:00.000Z",
-  "templates": [
+  "version": 2,
+  "updatedAt": "2026-02-27T09:34:17.631758Z",
+  "groups": [
     {
-      "id": "tpl_zh_business",
-      "name": "商务出差（中文）",
-      "locale": "zh-CN",
-      "startAt": "2026-03-01T09:00",
-      "endAt": "2026-03-08T18:00",
-      "scope": "all",
-      "subject": "自动回复：您的邮件已收到",
-      "opening": "您好，{{sender_name}}：",
-      "body": "感谢您的来信。我目前因出差暂时无法及时回复，将在 {{return_date}} 后处理您的邮件。",
-      "fallbackContact": "sales@company.com",
-      "signature": "祝好\n{{company_name}} 销售团队",
-      "updatedAt": "2026-02-27T00:00:00.000Z"
+      "groupId": "T_IN_WEBFORM_ACK",
+      "category": "网站表单新线索",
+      "direction": "inbox",
+      "ruleId": "IN_10_WEBFORM_NEW",
+      "priority": 10,
+      "matchFields": "From/Subject/Body",
+      "keywords": "From 域名 io.katvr.com 或 From 为 noreply/no-reply；Subject 以 'New contact form from' 开头",
+      "exclusions": "若仅是内部转发（From 为 katvr.com）则走 IN_00",
+      "routing": "销售/客服（按表单页面&关键词分流）",
+      "sla": "自动确认 ≤5分钟；人工首次响应 ≤24小时(工作日)",
+      "placeholders": [
+        "{{Name}}",
+        "{{OriginalSubject}}",
+        "{{Product}}",
+        "{{Qty}}",
+        "{{Country}}",
+        "{{City}}",
+        "{{UseCase}}",
+        "{{Company}}"
+      ],
+      "note": "适用于 From=noreply@io.katvr.com 的系统表单邮件：需要从正文抽取客户邮箱后发送。",
+      "updatedAt": "2026-02-27T09:34:17.631758Z",
+      "versions": {
+        "zh-CN": {
+          "locale": "zh-CN",
+          "name": "网站表单新线索确认（中文）",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: {{OriginalSubject}}",
+          "opening": "您好 {{Name}}，",
+          "body": "感谢您通过官网提交咨询。\n\n为了准确准备价格、交期和物流方案，请您确认以下信息：\n1) 意向产品/型号\n2) 采购数量\n3) 目的国家与城市（或目的港）\n4) 使用场景（家庭 / VR 门店 / 教育 / 企业培训）\n5) 公司名称（如为 B2B）\n\n收到后我们会尽快回复。",
+          "fallbackContact": "business@katvr.com",
+          "signature": "此致\nKAT VR 商务团队\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        },
+        "en-US": {
+          "locale": "en-US",
+          "name": "网站表单新线索 (EN)",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: {{OriginalSubject}}",
+          "opening": "Hello {{Name}},",
+          "body": "Thank you for your inquiry via our website.\n\nTo prepare the right information (price / lead time / shipping options), could you please confirm:\n1) Product/model you are interested in\n2) Quantity\n3) Destination country & city (or destination port)\n4) Usage scenario (home / VR arcade / education / enterprise training)\n5) Company name (if B2B)\n\nWe will get back to you as soon as possible.",
+          "fallbackContact": "business@katvr.com",
+          "signature": "Best regards,\nKAT VR Business Team\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        }
+      }
     },
     {
-      "id": "tpl_en_leave",
-      "name": "OOO (English)",
-      "locale": "en-US",
-      "startAt": "2026-03-01T09:00",
-      "endAt": "2026-03-08T18:00",
-      "scope": "external",
-      "subject": "Auto Reply: Your Email Has Been Received",
-      "opening": "Hello {{sender_name}},",
-      "body": "Thank you for your email. I am currently out of office and will follow up after {{return_date}}.",
-      "fallbackContact": "support@company.com",
-      "signature": "Best regards,\n{{company_name}}",
-      "updatedAt": "2026-02-27T00:00:00.000Z"
+      "groupId": "T_OUT_LEAD_FOLLOWUP",
+      "category": "网站表单线索跟进（发件）",
+      "direction": "sendbox",
+      "ruleId": "OUT_10_LEAD_FOLLOWUP",
+      "priority": 10,
+      "matchFields": "Subject",
+      "keywords": "Subject 含 'New contact form from'",
+      "exclusions": "—",
+      "routing": "销售/客服",
+      "sla": "—",
+      "placeholders": [
+        "{{Name}}",
+        "{{AgentName}}",
+        "{{ShortAnswer}}",
+        "{{Product}}",
+        "{{Qty}}",
+        "{{Destination}}",
+        "{{UseCase}}"
+      ],
+      "note": "用于业务人员跟进网站表单线索，保持线程主题。",
+      "updatedAt": "2026-02-27T09:34:17.631758Z",
+      "versions": {
+        "zh-CN": {
+          "locale": "zh-CN",
+          "name": "网站线索跟进回复（中文）",
+          "startAt": "",
+          "endAt": "",
+          "scope": "all",
+          "subject": "Re: {{OriginalSubject}}",
+          "opening": "您好 {{Name}}，",
+          "body": "感谢您的来信，我是 KAT VR 的 {{AgentName}}。\n\n关于您的咨询：{{ShortAnswer}}\n\n为了继续推进，请您确认：\n- 产品型号与数量\n- 目的国家/城市\n- 使用场景\n\n确认后我们会提供报价或下一步方案。",
+          "fallbackContact": "business@katvr.com",
+          "signature": "{{AgentName}} | KAT VR\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        },
+        "en-US": {
+          "locale": "en-US",
+          "name": "网站表单线索跟进（发件） (EN)",
+          "startAt": "",
+          "endAt": "",
+          "scope": "all",
+          "subject": "Re: {{OriginalSubject}}",
+          "opening": "Hello {{Name}},",
+          "body": "Thanks for your message. This is {{AgentName}} from KAT VR.\n\nRegarding your inquiry: {{ShortAnswer}}\n\nTo proceed, could you please confirm:\n- Product/model and quantity\n- Destination country/city\n- Your usage scenario\n\nOnce confirmed, we will provide the quotation/next steps.",
+          "fallbackContact": "business@katvr.com",
+          "signature": "Best regards,\n{{AgentName}} | KAT VR\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        }
+      }
+    },
+    {
+      "groupId": "T_IN_QUOTE_INFO",
+      "category": "询价/报价/RFQ/价目表",
+      "direction": "inbox",
+      "ruleId": "IN_20_QUOTE_RFQ",
+      "priority": 20,
+      "matchFields": "Subject/Body",
+      "keywords": "Subject/正文含 quote/quotation/RFQ/price list/pricelist/bulk order",
+      "exclusions": "自动回复/内部邮件优先拦截",
+      "routing": "销售（B端）",
+      "sla": "自动确认 ≤5分钟；报价/答复 ≤1个工作日",
+      "placeholders": [
+        "{{Name}}",
+        "{{Product}}",
+        "{{Qty}}",
+        "{{Destination}}",
+        "{{Incoterms}}",
+        "{{Company}}",
+        "{{Timeline}}"
+      ],
+      "note": "可用于邮件主题含 Quote / Quotation / RFQ / Price list 等。",
+      "updatedAt": "2026-02-27T09:34:17.631758Z",
+      "versions": {
+        "zh-CN": {
+          "locale": "zh-CN",
+          "name": "询价报价信息收集（中文）",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: Quotation request – {{Product}}",
+          "opening": "您好 {{Name}}，",
+          "body": "感谢您的询价，我们可以为您准备正式报价。\n\n请确认以下信息以便准确报价：\n- 产品/型号：{{Product}}\n- 数量：{{Qty}}\n- 目的国家/城市（或港口）：{{Destination}}\n- 贸易术语偏好（EXW/FOB/CIF/DDP）\n- 公司名称与地址（B2B）\n- 期望交付时间\n\n收到后我们会发送正式报价与交期。",
+          "fallbackContact": "business@katvr.com",
+          "signature": "此致\nKAT VR 销售团队\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        },
+        "en-US": {
+          "locale": "en-US",
+          "name": "询价/报价/RFQ/价目表 (EN)",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: Quotation request – {{Product}}",
+          "opening": "Hello {{Name}},",
+          "body": "Thanks for reaching out. We can prepare a quotation for you.\n\nPlease confirm the following so we can quote accurately:\n- Product/model: {{Product}}\n- Quantity: {{Qty}}\n- Destination country/city (or port): {{Destination}}\n- Incoterms (EXW/FOB/CIF/DDP) if you have a preference\n- Company name & address (for B2B)\n- Expected timeline\n\nOnce we receive the above, we will send you a formal quotation and lead time.",
+          "fallbackContact": "business@katvr.com",
+          "signature": "Best regards,\nKAT VR Sales Team\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        }
+      }
+    },
+    {
+      "groupId": "T_OUT_PARTNER_OUTREACH",
+      "category": "合作拓展外联（发件）",
+      "direction": "sendbox",
+      "ruleId": "OUT_20_PARTNERSHIP_OUTREACH",
+      "priority": 20,
+      "matchFields": "Subject",
+      "keywords": "Exploring Partnership/Seeking Partners/Business cooperation/VR treamill/possible partner/follow up",
+      "exclusions": "—",
+      "routing": "BD/渠道",
+      "sla": "—",
+      "placeholders": [
+        "{{Name}}",
+        "{{AgentName}}",
+        "{{Region}}",
+        "{{Company}}",
+        "{{Website}}",
+        "{{Channels}}"
+      ],
+      "note": "发件模板；样本中该主题出现频率最高（外联拓展）。",
+      "updatedAt": "2026-02-27T09:34:17.631758Z",
+      "versions": {
+        "zh-CN": {
+          "locale": "zh-CN",
+          "name": "合作拓展外联开发（中文）",
+          "startAt": "",
+          "endAt": "",
+          "scope": "all",
+          "subject": "Exploring Partnership Opportunities in VR Solutions / KAT VR",
+          "opening": "您好 {{Name}}，",
+          "body": "我是 KAT VR 的 {{AgentName}}。我们提供 VR 全向运动平台及面向 VR 门店和企业培训的解决方案。\n\n我们正在 {{Region}} 寻找合作伙伴，想了解您是否愿意进行一次简短沟通，探讨经销/分销/项目合作的可能。\n\n如有兴趣，请分享：\n- 公司简介与官网\n- 目标市场与渠道\n- 典型客户类型与项目规模",
+          "fallbackContact": "business@katvr.com",
+          "signature": "{{AgentName}} | KAT VR\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        },
+        "en-US": {
+          "locale": "en-US",
+          "name": "合作拓展外联（发件） (EN)",
+          "startAt": "",
+          "endAt": "",
+          "scope": "all",
+          "subject": "Exploring Partnership Opportunities in VR Solutions / KAT VR",
+          "opening": "Hello {{Name}},",
+          "body": "I’m {{AgentName}} from KAT VR. We provide VR omni-directional treadmills and solutions for VR arcades and enterprise training.\n\nWe are looking for partners in {{Region}}. Would you be open to a brief call to explore cooperation (reseller / distributor / project-based)?\n\nIf interested, please share:\n- Company profile & website\n- Your target market and channels\n- Typical customer types and project sizes",
+          "fallbackContact": "business@katvr.com",
+          "signature": "Best regards,\n{{AgentName}} | KAT VR\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        }
+      }
+    },
+    {
+      "groupId": "T_IN_PARTNER_INTRO",
+      "category": "合作/渠道/分销/VR Arcade",
+      "direction": "inbox",
+      "ruleId": "IN_30_PARTNERSHIP",
+      "priority": 30,
+      "matchFields": "Subject/Body",
+      "keywords": "partner/partnership/partners/cooperation/reseller/distributor/distribution/arcade/business proposal/collab",
+      "exclusions": "自动回复/内部邮件优先拦截",
+      "routing": "BD/渠道经理",
+      "sla": "自动确认 ≤5分钟；人工首次响应 ≤1个工作日",
+      "placeholders": [
+        "{{Name}}",
+        "{{Company}}",
+        "{{Website}}",
+        "{{Region}}",
+        "{{BusinessType}}",
+        "{{Volume}}",
+        "{{ServiceCapability}}"
+      ],
+      "note": "适用于 Subject 含 partner/cooperation/reseller/distributor/arcade 等。",
+      "updatedAt": "2026-02-27T09:34:17.631758Z",
+      "versions": {
+        "zh-CN": {
+          "locale": "zh-CN",
+          "name": "合作渠道信息收集（中文）",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: Partnership inquiry – {{Company}}",
+          "opening": "您好 {{Name}}，",
+          "body": "感谢您对 KAT VR 合作的关注。\n\n为便于评估合作模式（经销 / 分销 / VR 门店 / 项目合作），请补充：\n1) 公司名称与官网\n2) 覆盖国家/区域\n3) 主营业务（VR 门店 / 零售 / 企业方案等）\n4) 现有渠道与客户基础\n5) 预计年销量或项目规模\n6) 售后/服务能力（如有）\n\n收到后 BD 团队将给出下一步建议。",
+          "fallbackContact": "business@katvr.com",
+          "signature": "此致\nKAT VR 渠道合作团队\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        },
+        "en-US": {
+          "locale": "en-US",
+          "name": "合作/渠道/分销/VR Arcade (EN)",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: Partnership inquiry – {{Company}}",
+          "opening": "Hello {{Name}},",
+          "body": "Thank you for your interest in partnering with KAT VR.\n\nTo evaluate the best cooperation model (reseller / distributor / VR arcade / project-based), could you please share:\n1) Company name & website\n2) Country/region you cover\n3) Your main business (VR arcade / retail / enterprise solutions, etc.)\n4) Existing channels and customer base\n5) Expected annual volume or project pipeline\n6) After-sales/service capability (if any)\n\nAfter we receive the above, our BD team will get back to you and propose next steps.",
+          "fallbackContact": "business@katvr.com",
+          "signature": "Best regards,\nKAT VR BD Team\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        }
+      }
+    },
+    {
+      "groupId": "T_OUT_PROMO",
+      "category": "促销活动群发（发件）",
+      "direction": "sendbox",
+      "ruleId": "OUT_30_PROMOTION",
+      "priority": 30,
+      "matchFields": "Subject",
+      "keywords": "Black Friday/discount/deals/promotion",
+      "exclusions": "—",
+      "routing": "市场/电商运营",
+      "sla": "—",
+      "placeholders": [
+        "{{CampaignName}}",
+        "{{CampaignIntro}}",
+        "{{Deal1}}",
+        "{{Deal2}}",
+        "{{Deal3}}"
+      ],
+      "note": "建议用营销系统发送；企业邮箱仅保留模板存档。",
+      "updatedAt": "2026-02-27T09:34:17.631758Z",
+      "versions": {
+        "zh-CN": {
+          "locale": "zh-CN",
+          "name": "促销活动群发模板（中文）",
+          "startAt": "",
+          "endAt": "",
+          "scope": "all",
+          "subject": "{{CampaignName}}: Exclusive Business Deals from KAT VR",
+          "opening": "您好，",
+          "body": "{{CampaignIntro}}\n\n活动亮点：\n- {{Deal1}}\n- {{Deal2}}\n- {{Deal3}}\n\n如需 B2B 专属方案、库存与交期信息，请联系：business@katvr.com",
+          "fallbackContact": "business@katvr.com",
+          "signature": "KAT VR 团队",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        },
+        "en-US": {
+          "locale": "en-US",
+          "name": "促销活动群发（发件） (EN)",
+          "startAt": "",
+          "endAt": "",
+          "scope": "all",
+          "subject": "{{CampaignName}}: Exclusive Business Deals from KAT VR",
+          "opening": "Hello,",
+          "body": "{{CampaignIntro}}\n\nHighlights:\n- {{Deal1}}\n- {{Deal2}}\n- {{Deal3}}\n\nContact us for B2B offers and stock/lead time: business@katvr.com",
+          "fallbackContact": "business@katvr.com",
+          "signature": "Best regards,\nKAT VR Team",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        }
+      }
+    },
+    {
+      "groupId": "T_IN_PAYMENT_SAFE",
+      "category": "付款/发票/PI/对账/审计",
+      "direction": "inbox",
+      "ruleId": "IN_40_PAYMENT_INVOICE",
+      "priority": 40,
+      "matchFields": "Subject/Body",
+      "keywords": "proforma/invoice/payment/PI/audit/bank/remittance/payment terms",
+      "exclusions": "自动回复/内部邮件优先拦截",
+      "routing": "财务/销售运营",
+      "sla": "自动确认 ≤5分钟；人工首次响应 ≤1个工作日（紧急付款异常≤4小时）",
+      "placeholders": [
+        "{{Name}}",
+        "{{PI_No}}",
+        "{{PayerCompany}}",
+        "{{Amount}}",
+        "{{PayDate}}"
+      ],
+      "note": "建议所有付款相关自动确认都带上防诈骗提示。不要在自动模板中写死银行账号信息。",
+      "updatedAt": "2026-02-27T09:34:17.631758Z",
+      "versions": {
+        "zh-CN": {
+          "locale": "zh-CN",
+          "name": "付款发票确认与防诈骗提示（中文）",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: Payment / Invoice – {{PI_No}}",
+          "opening": "您好 {{Name}}，",
+          "body": "我们已收到您关于付款/发票的邮件，正在核对。\n\n请提供或确认：\n- PI/发票号：{{PI_No}}\n- 付款公司：{{PayerCompany}}\n- 金额与币种：{{Amount}}\n- 计划付款日期：{{PayDate}}\n\n⚠️ 付款安全提醒：\nKAT VR 不会通过非官方邮箱要求更改收款账户。如收到任何变更收款信息的请求，请务必在本邮件线程中与我们复核后再付款。",
+          "fallbackContact": "business@katvr.com",
+          "signature": "此致\nKAT VR 财务团队\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        },
+        "en-US": {
+          "locale": "en-US",
+          "name": "付款/发票/PI/对账/审计 (EN)",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: Payment / Invoice – {{PI_No}}",
+          "opening": "Hello {{Name}},",
+          "body": "Thanks for your email. We will check your request regarding payment/invoice.\n\nPlease provide (or confirm):\n- PI/Invoice number: {{PI_No}}\n- Paying company name: {{PayerCompany}}\n- Amount & currency: {{Amount}}\n- Planned payment date: {{PayDate}}\n\n⚠️ Payment security reminder:\nKAT VR will NOT request changes to bank account details from non-official email addresses. If you receive any request to change beneficiary/bank information, please verify with us via this email thread before making a payment.",
+          "fallbackContact": "business@katvr.com",
+          "signature": "Best regards,\nKAT VR Finance Team\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        }
+      }
+    },
+    {
+      "groupId": "T_OUT_FRAUD_NOTICE",
+      "category": "付款防诈骗公告群发（发件）",
+      "direction": "sendbox",
+      "ruleId": "OUT_40_FRAUD_NOTICE",
+      "priority": 40,
+      "matchFields": "Subject",
+      "keywords": "Fraud Prevention/Payment Security/Important Notice",
+      "exclusions": "—",
+      "routing": "财务/运营",
+      "sla": "—",
+      "placeholders": [],
+      "note": "对应 sendbox 中高频的付款防诈骗公告主题。",
+      "updatedAt": "2026-02-27T09:34:17.631758Z",
+      "versions": {
+        "zh-CN": {
+          "locale": "zh-CN",
+          "name": "付款安全公告群发（中文）",
+          "startAt": "",
+          "endAt": "",
+          "scope": "all",
+          "subject": "Important Notice: Payment Security & Fraud Prevention",
+          "opening": "尊敬的客户，",
+          "body": "为保障您的付款安全，请注意：\n1) KAT VR 不会通过非官方邮箱要求更改收款账户。\n2) 付款前请务必与您的 KAT VR 销售联系人复核收款信息。\n3) 如收到可疑邮件或付款请求，请立即转发给我们核验。\n\n感谢您的配合。",
+          "fallbackContact": "business@katvr.com",
+          "signature": "KAT VR 团队\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        },
+        "en-US": {
+          "locale": "en-US",
+          "name": "付款防诈骗公告群发（发件） (EN)",
+          "startAt": "",
+          "endAt": "",
+          "scope": "all",
+          "subject": "Important Notice: Payment Security & Fraud Prevention",
+          "opening": "Dear Customer,",
+          "body": "To protect your payment security, please note:\n1) KAT VR will not request a change of bank account details from non-official email addresses.\n2) Always verify beneficiary/bank details with your KAT VR sales contact before making payments.\n3) If you receive any suspicious email or payment request, please forward it to us for verification.\n\nThank you for your cooperation.",
+          "fallbackContact": "business@katvr.com",
+          "signature": "KAT VR Team\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        }
+      }
+    },
+    {
+      "groupId": "T_IN_SHIPPING_STATUS",
+      "category": "物流/交期/运费/ETA/追踪",
+      "direction": "inbox",
+      "ruleId": "IN_50_SHIPPING",
+      "priority": 50,
+      "matchFields": "Subject/Body",
+      "keywords": "shipping/delivery/ETA/tracking/logistics/freight/shipment/AWB/B/L",
+      "exclusions": "自动回复/内部邮件优先拦截",
+      "routing": "物流/客服",
+      "sla": "自动确认 ≤5分钟；人工首次响应 ≤4小时(工作日)",
+      "placeholders": [
+        "{{Name}}",
+        "{{OrderNo}}",
+        "{{Product}}",
+        "{{Qty}}",
+        "{{Destination}}",
+        "{{TrackingNo}}"
+      ],
+      "note": "适用于 shipping/delivery/ETA/tracking/logistics 等。",
+      "updatedAt": "2026-02-27T09:34:17.631758Z",
+      "versions": {
+        "zh-CN": {
+          "locale": "zh-CN",
+          "name": "物流交付状态确认（中文）",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: Shipping / Delivery – {{OrderNo}}",
+          "opening": "您好 {{Name}}，",
+          "body": "感谢您联系 KAT VR 查询物流/交付状态。\n\n为便于快速核对，请提供：\n- 订单号或 PI 号：{{OrderNo}}\n- 产品型号与数量：{{Product}} / {{Qty}}\n- 目的国家/城市：{{Destination}}\n- 如有，请提供追踪号/AWB/B/L：{{TrackingNo}}\n\n收到后我们会尽快反馈最新状态与下一步安排。",
+          "fallbackContact": "business@katvr.com",
+          "signature": "此致\nKAT VR 客服团队\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        },
+        "en-US": {
+          "locale": "en-US",
+          "name": "物流/交期/运费/ETA/追踪 (EN)",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: Shipping / Delivery – {{OrderNo}}",
+          "opening": "Hello {{Name}},",
+          "body": "Thanks for contacting KAT VR about shipping/delivery.\n\nTo check the latest status, please provide:\n- Order / PI number: {{OrderNo}}\n- Product/model & quantity: {{Product}} / {{Qty}}\n- Destination country/city: {{Destination}}\n- If available, tracking number / AWB / B/L: {{TrackingNo}}\n\nOnce we have the above, we will update you with the shipping status and next steps.",
+          "fallbackContact": "business@katvr.com",
+          "signature": "Best regards,\nKAT VR Customer Service\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        }
+      }
+    },
+    {
+      "groupId": "T_IN_SUPPORT_TICKET",
+      "category": "售后/技术支持/配件补发",
+      "direction": "inbox",
+      "ruleId": "IN_60_SUPPORT",
+      "priority": 60,
+      "matchFields": "Subject/Body",
+      "keywords": "support/technical/compatibility/warranty/dongle/sensor/shoe/missing/broken/issue/problem",
+      "exclusions": "自动回复/内部邮件优先拦截",
+      "routing": "技术支持/售后",
+      "sla": "自动确认 ≤5分钟；人工首次响应 ≤4小时(工作日)",
+      "placeholders": [
+        "{{Name}}",
+        "{{Product}}",
+        "{{SN}}",
+        "{{Channel}}",
+        "{{PurchaseDate}}",
+        "{{Issue}}",
+        "{{Address}}"
+      ],
+      "note": "Support 类建议使用 service@katvr.com 作为落点邮箱（样本中存在该邮箱）。",
+      "updatedAt": "2026-02-27T09:34:17.631758Z",
+      "versions": {
+        "zh-CN": {
+          "locale": "zh-CN",
+          "name": "售后技术支持工单确认（中文）",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: Technical support – {{Product}}",
+          "opening": "您好 {{Name}}，",
+          "body": "感谢您联系 KAT VR 售后支持。\n\n为了更快定位问题（或安排补件），请提供：\n1) 产品/型号：{{Product}}\n2) 序列号(SN)或订单号：{{SN}}\n3) 购买渠道与日期：{{Channel}} / {{PurchaseDate}}\n4) 故障描述：{{Issue}}\n5) 现场照片/视频（如有）\n6) 收货地址（仅在需要补件时）\n\n收到后支持团队会尽快给出处理方案。",
+          "fallbackContact": "service@katvr.com",
+          "signature": "此致\nKAT VR 技术支持团队\nservice@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        },
+        "en-US": {
+          "locale": "en-US",
+          "name": "售后/技术支持/配件补发 (EN)",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: Technical support – {{Product}}",
+          "opening": "Hello {{Name}},",
+          "body": "Thank you for contacting KAT VR Support.\n\nTo help us troubleshoot (or arrange spare parts), please share:\n1) Product/model: {{Product}}\n2) Serial number (SN) / order number: {{SN}}\n3) Purchase channel & date: {{Channel}} / {{PurchaseDate}}\n4) Issue description: {{Issue}}\n5) Photos/videos (if available)\n6) Your shipping address (only if spare parts are needed)\n\nAfter we receive the information, our support team will respond with solutions.",
+          "fallbackContact": "service@katvr.com",
+          "signature": "Best regards,\nKAT VR Support Team\nservice@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        }
+      }
+    },
+    {
+      "groupId": "T_IN_EDU_SOLUTION",
+      "category": "教育/培训/仿真项目咨询",
+      "direction": "inbox",
+      "ruleId": "IN_70_EDU_TRAINING",
+      "priority": 70,
+      "matchFields": "Subject/Body",
+      "keywords": "educational/training/university/higher education/simulation",
+      "exclusions": "自动回复/内部邮件优先拦截",
+      "routing": "企业解决方案/大客户销售",
+      "sla": "自动确认 ≤5分钟；人工首次响应 ≤1个工作日",
+      "placeholders": [
+        "{{Name}}",
+        "{{Organization}}",
+        "{{UseCase}}",
+        "{{Qty}}",
+        "{{Product}}",
+        "{{Timeline}}",
+        "{{Budget}}",
+        "{{Integration}}"
+      ],
+      "note": "适用于 educational/training/simulation/higher education 等。",
+      "updatedAt": "2026-02-27T09:34:17.631758Z",
+      "versions": {
+        "zh-CN": {
+          "locale": "zh-CN",
+          "name": "教育培训仿真项目咨询确认（中文）",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: XR training / education project – {{Organization}}",
+          "opening": "您好 {{Name}}，",
+          "body": "感谢您就教育/培训/仿真项目联系 KAT VR。\n\n为了给您匹配更合适的方案，请补充：\n- 机构/学校名称：{{Organization}}\n- 项目背景与应用场景：{{UseCase}}\n- 预计采购型号与数量：{{Product}} / {{Qty}}\n- 期望时间计划与预算范围（如可提供）\n- 是否有系统集成需求（软件/内容/追踪系统）\n\n如需要，我们也可以安排线上会议详细沟通。",
+          "fallbackContact": "business@katvr.com",
+          "signature": "此致\nKAT VR 解决方案团队\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        },
+        "en-US": {
+          "locale": "en-US",
+          "name": "教育/培训/仿真项目咨询 (EN)",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: XR training / education project – {{Organization}}",
+          "opening": "Hello {{Name}},",
+          "body": "Thank you for reaching out regarding an education/training/simulation project.\n\nTo propose the right solution, could you please share:\n- Organization / institution: {{Organization}}\n- Project background and use case: {{UseCase}}\n- Expected number of units and models: {{Qty}} / {{Product}}\n- Required timeline and budget range (if available)\n- Any integration requirements (software / content / tracking system)\n\nWe can also arrange an online meeting to discuss details.",
+          "fallbackContact": "business@katvr.com",
+          "signature": "Best regards,\nKAT VR Solutions Team\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        }
+      }
+    },
+    {
+      "groupId": "T_IN_MARKETING_COLLAB",
+      "category": "市场合作/媒体/内容创作者",
+      "direction": "inbox",
+      "ruleId": "IN_80_MARKETING",
+      "priority": 80,
+      "matchFields": "Subject/Body",
+      "keywords": "content creator/influencer/showcasing/collab/press/media/photo",
+      "exclusions": "自动回复/内部邮件优先拦截",
+      "routing": "市场/PR",
+      "sla": "自动确认 ≤5分钟；人工首次响应 ≤2个工作日",
+      "placeholders": [
+        "{{Name}}",
+        "{{ChannelName}}",
+        "{{Links}}",
+        "{{Audience}}",
+        "{{Deliverables}}",
+        "{{Timeline}}"
+      ],
+      "note": "适用于 content creator/collab/media/press/photo 等。",
+      "updatedAt": "2026-02-27T09:34:17.631758Z",
+      "versions": {
+        "zh-CN": {
+          "locale": "zh-CN",
+          "name": "市场媒体合作申请确认（中文）",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: Collaboration – {{ChannelName}}",
+          "opening": "您好 {{Name}}，",
+          "body": "感谢您的合作申请。\n\n为便于评估合作机会，请提供：\n- 渠道/平台链接：{{Links}}\n- 受众地区与规模：{{Audience}}\n- 内容形式与交付项：{{Deliverables}}\n- 计划时间：{{Timeline}}\n- 商务条款或报价卡（如有）\n\n市场团队审核后会尽快回复。",
+          "fallbackContact": "business@katvr.com",
+          "signature": "此致\nKAT VR 市场团队\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        },
+        "en-US": {
+          "locale": "en-US",
+          "name": "市场合作/媒体/内容创作者 (EN)",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: Collaboration – {{ChannelName}}",
+          "opening": "Hello {{Name}},",
+          "body": "Thank you for your collaboration request.\n\nTo evaluate the opportunity, please share:\n- Your channel/platform links: {{Links}}\n- Audience location & size: {{Audience}}\n- Proposed content format and deliverables: {{Deliverables}}\n- Timeline: {{Timeline}}\n- Any commercial terms or rate card (if applicable)\n\nOur marketing team will review and get back to you.",
+          "fallbackContact": "business@katvr.com",
+          "signature": "Best regards,\nKAT VR Marketing Team\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        }
+      }
+    },
+    {
+      "groupId": "T_OUT_ORDER_FINANCE",
+      "category": "订单/交付/财务沟通（发件）",
+      "direction": "sendbox",
+      "ruleId": "OUT_90_OTHER",
+      "priority": 90,
+      "matchFields": "Subject",
+      "keywords": "默认兜底",
+      "exclusions": "—",
+      "routing": "发件人",
+      "sla": "—",
+      "placeholders": [
+        "{{Name}}",
+        "{{OrderNo}}",
+        "{{Status}}",
+        "{{NextAction}}",
+        "{{Timeline}}"
+      ],
+      "note": "用于订单交付、PO/PI/付款等往来沟通。",
+      "updatedAt": "2026-02-27T09:34:17.631758Z",
+      "versions": {
+        "zh-CN": {
+          "locale": "zh-CN",
+          "name": "订单交付财务沟通（中文）",
+          "startAt": "",
+          "endAt": "",
+          "scope": "all",
+          "subject": "Re: {{Subject}}",
+          "opening": "您好 {{Name}}，",
+          "body": "感谢您的更新。\n\n当前状态摘要：\n- 订单/PI：{{OrderNo}}\n- 当前进度：{{Status}}\n- 下一步动作：{{NextAction}}\n- 预计时间：{{Timeline}}\n\n如需其他文件或支持，请随时告知。",
+          "fallbackContact": "business@katvr.com",
+          "signature": "KAT VR 团队",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        },
+        "en-US": {
+          "locale": "en-US",
+          "name": "订单/交付/财务沟通（发件） (EN)",
+          "startAt": "",
+          "endAt": "",
+          "scope": "all",
+          "subject": "Re: {{Subject}}",
+          "opening": "Hello {{Name}},",
+          "body": "Thanks for the update.\n\nStatus summary:\n- Order/PI: {{OrderNo}}\n- Current status: {{Status}}\n- Next action: {{NextAction}}\n- Expected timeline: {{Timeline}}\n\nPlease let us know if you need any additional documents.",
+          "fallbackContact": "business@katvr.com",
+          "signature": "Best regards,\nKAT VR Team",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        }
+      }
+    },
+    {
+      "groupId": "T_OUT_PRODUCT_ANNOUNCE",
+      "category": "新品/品牌公告（发件）",
+      "direction": "sendbox",
+      "ruleId": "OUT_90_OTHER",
+      "priority": 90,
+      "matchFields": "Subject",
+      "keywords": "默认兜底",
+      "exclusions": "—",
+      "routing": "发件人",
+      "sla": "—",
+      "placeholders": [
+        "{{ProductName}}",
+        "{{Highlight1}}",
+        "{{Highlight2}}",
+        "{{Highlight3}}"
+      ],
+      "note": "适用于类似 'KAT's New Product: KAT MECHA...' 的发件。",
+      "updatedAt": "2026-02-27T09:34:17.631758Z",
+      "versions": {
+        "zh-CN": {
+          "locale": "zh-CN",
+          "name": "新品品牌公告（中文）",
+          "startAt": "",
+          "endAt": "",
+          "scope": "all",
+          "subject": "KAT VR – New Product Update: {{ProductName}}",
+          "opening": "您好，",
+          "body": "我们很高兴向您介绍 {{ProductName}}。\n\n核心亮点：\n- {{Highlight1}}\n- {{Highlight2}}\n- {{Highlight3}}\n\n如需产品手册、报价或演示沟通，请直接回复本邮件。",
+          "fallbackContact": "business@katvr.com",
+          "signature": "KAT VR 团队\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        },
+        "en-US": {
+          "locale": "en-US",
+          "name": "新品/品牌公告（发件） (EN)",
+          "startAt": "",
+          "endAt": "",
+          "scope": "all",
+          "subject": "KAT VR – New Product Update: {{ProductName}}",
+          "opening": "Hello,",
+          "body": "We’re excited to introduce {{ProductName}}.\n\nKey highlights:\n- {{Highlight1}}\n- {{Highlight2}}\n- {{Highlight3}}\n\nIf you’d like a brochure, quotation, or a demo discussion, please reply to this email.",
+          "fallbackContact": "business@katvr.com",
+          "signature": "Best regards,\nKAT VR Team\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        }
+      }
+    },
+    {
+      "groupId": "T_IN_GENERAL_ACK",
+      "category": "其他外部来信/兜底",
+      "direction": "inbox",
+      "ruleId": "IN_99_OTHER",
+      "priority": 99,
+      "matchFields": "Subject/Body",
+      "keywords": "默认兜底",
+      "exclusions": "自动回复/内部邮件优先拦截",
+      "routing": "客服/值班运营",
+      "sla": "自动确认 ≤5分钟；人工首次响应 ≤1个工作日",
+      "placeholders": [
+        "{{Name}}",
+        "{{OriginalSubject}}"
+      ],
+      "note": "用于未命中任何规则时的通用自动确认。",
+      "updatedAt": "2026-02-27T09:34:17.631758Z",
+      "versions": {
+        "zh-CN": {
+          "locale": "zh-CN",
+          "name": "其他外部来信通用确认（中文）",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: {{OriginalSubject}}",
+          "opening": "您好 {{Name}}，",
+          "body": "感谢您联系 KAT VR。我们已收到您的来信，并会尽快处理。\n\n为了更高效地为您服务，请补充以下信息：\n- 意向产品/型号\n- 预计数量\n- 所在国家与城市\n- 使用场景（家庭 / VR 门店 / 教育 / 企业培训）",
+          "fallbackContact": "business@katvr.com",
+          "signature": "此致\nKAT VR 团队\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        },
+        "en-US": {
+          "locale": "en-US",
+          "name": "其他外部来信/兜底 (EN)",
+          "startAt": "",
+          "endAt": "",
+          "scope": "external",
+          "subject": "Re: {{OriginalSubject}}",
+          "opening": "Hello {{Name}},",
+          "body": "Thank you for contacting KAT VR. We have received your message and will review it shortly.\n\nTo help us respond faster, please share any relevant details such as product model, quantity, country/city, and your use case.",
+          "fallbackContact": "business@katvr.com",
+          "signature": "Best regards,\nKAT VR Team\nbusiness@katvr.com",
+          "updatedAt": "2026-02-27T09:34:17.631758Z"
+        }
+      }
     }
   ]
 }
