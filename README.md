@@ -10,7 +10,7 @@
 - 基于规则的元信息展示（Rule ID、路由、SLA、关键词、排除条件、占位符）
 - 导入 / 导出 JSON
 - 自定义密钥门禁（PBKDF2 哈希校验）
-- 一键在 AliMail 激活（配合 `alimail-activator.user.js`）
+- 一键在 AliMail 激活（指定邮箱 / 当前或全部模板 / 验证码确认门槛）
 - 本地缓存（浏览器 `localStorage`）
 
 ## 初始模板来源
@@ -53,11 +53,27 @@
 2. 打开 `mail.aliyun.com` 并携带激活载荷
 3. `alimail-activator.user.js` 在 AliMail 页面自动填写并尝试保存
 
+## 一键激活行为
+
+一键激活会执行以下流程：
+
+1. 保存当前网页模板更改。
+2. 要求填写“指定邮箱（企业版账号）”。
+3. 选择激活范围：
+`仅当前模板`：只激活当前选中的模板。
+`全部模板（同步并激活当前）`：把全部模板同步到该邮箱上下文，并激活当前模板。
+4. 如启用“每次激活前要求短信验证码确认”，会先弹确认框，确认你已完成短信验证码登录后才继续。
+
+说明：
+AliMail 同一邮箱同一时刻只能启用一套自动回复内容，因此“全部模板”模式是“同步模板库 + 激活当前模板”，不是同时启用全部模板。
+
 ## 安装 AliMail 激活器（一次）
 
 1. 安装 Tampermonkey（或同类用户脚本插件）
 2. 新建脚本并粘贴 `alimail-activator.user.js` 内容
-3. 确保脚本匹配域名：`https://mail.aliyun.com/*`
+3. 确保脚本匹配域名：
+`https://qiye.aliyun.com/*`
+`https://mail.aliyun.com/*`
 
 安装后，编辑器里的“一键在 AliMail 激活”即可使用。
 
@@ -66,7 +82,7 @@
 - `index.html` 页面结构
 - `styles.css` 页面样式
 - `app.js` 前端逻辑（密钥校验 + 分组双语模板编辑器 + 激活载荷）
-- `alimail-activator.user.js` AliMail 端自动激活脚本
+- `alimail-activator.user.js` AliMail 端自动激活脚本（含指定邮箱检查与验证码确认门槛）
 - `data/auto-reply-templates.json` 默认模板（分组结构）
 - `data/access-control.json` 访问密钥哈希配置
 - `scripts/generate-access-config.mjs` 生成密钥哈希配置

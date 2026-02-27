@@ -392,6 +392,7 @@ textarea {
   margin-top: 10px;
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .status {
@@ -403,6 +404,32 @@ textarea {
 
 .status.error {
   color: var(--danger);
+}
+
+.activate-box {
+  margin-top: 10px;
+  border: 1px dashed #b4c3b0;
+  background: var(--panel-strong);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #b9c5b2;
+  border-radius: 12px;
+  background: #fff;
+  padding: 8px 10px;
+  color: var(--text);
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
 }
 
 @media (max-width: 1180px) {

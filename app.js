@@ -1,5 +1,6 @@
 const STORAGE_KEYS = {
   localTemplateGroups: "ali_editor_local_template_groups",
+  activationPrefs: "ali_editor_activation_prefs",
   unlockMarker: "ali_editor_unlock_marker",
 };
 
@@ -47,6 +48,9 @@ const appEls = {
   copyTextBtn: document.getElementById("copyTextBtn"),
   copyHtmlBtn: document.getElementById("copyHtmlBtn"),
   activateAliMailBtn: document.getElementById("activateAliMailBtn"),
+  targetMailboxInput: document.getElementById("targetMailboxInput"),
+  activateModeSelect: document.getElementById("activateModeSelect"),
+  requireSmsCheckbox: document.getElementById("requireSmsCheckbox"),
   chips: Array.from(document.querySelectorAll(".chip")),
   localeButtons: Array.from(document.querySelectorAll("#editorLocaleSwitch .locale-btn")),
   meta: {
@@ -68,6 +72,11 @@ const state = {
   selectedGroupId: null,
   selectedLocale: "zh-CN",
   focusedField: null,
+  activationPrefs: {
+    targetMailbox: "",
+    mode: "current",
+    requireSmsVerification: true,
+  },
 };
 
 boot();
@@ -77,6 +86,8 @@ async function boot() {
   setStatus(authEls.status, "正在加载访问配置...");
 
   await Promise.all([loadInitialGroups(), loadAccessConfig()]);
+  restoreActivationPrefs();
+  renderActivationPrefs();
 
   renderList();
   selectGroup(state.selectedGroupId || state.groups[0]?.groupId || null, state.selectedLocale);
@@ -155,6 +166,9 @@ function bindEvents() {
   appEls.copyTextBtn.addEventListener("click", copyPreviewText);
   appEls.copyHtmlBtn.addEventListener("click", copyPreviewHtml);
   appEls.activateAliMailBtn.addEventListener("click", activateInAliMail);
+  appEls.targetMailboxInput.addEventListener("input", onActivationPrefChange);
+  appEls.activateModeSelect.addEventListener("change", onActivationPrefChange);
+  appEls.requireSmsCheckbox.addEventListener("change", onActivationPrefChange);
 
   appEls.chips.forEach((chip) => {
     chip.addEventListener("click", () => {
@@ -729,6 +743,34 @@ function loadLocalGroups() {
   }
 }
 
+function restoreActivationPrefs() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.activationPrefs);
+    if (!raw) return;
+    const prefs = JSON.parse(raw);
+    state.activationPrefs = {
+      targetMailbox: String(prefs.targetMailbox || ""),
+      mode: prefs.mode === "all" ? "all" : "current",
+      requireSmsVerification: prefs.requireSmsVerification !== false,
+    };
+  } catch (_error) {
+    // Ignore invalid local prefs.
+  }
+}
+
+function renderActivationPrefs() {
+  appEls.targetMailboxInput.value = state.activationPrefs.targetMailbox;
+  appEls.activateModeSelect.value = state.activationPrefs.mode;
+  appEls.requireSmsCheckbox.checked = Boolean(state.activationPrefs.requireSmsVerification);
+}
+
+function onActivationPrefChange() {
+  state.activationPrefs.targetMailbox = String(appEls.targetMailboxInput.value || "").trim();
+  state.activationPrefs.mode = appEls.activateModeSelect.value === "all" ? "all" : "current";
+  state.activationPrefs.requireSmsVerification = Boolean(appEls.requireSmsCheckbox.checked);
+  localStorage.setItem(STORAGE_KEYS.activationPrefs, JSON.stringify(state.activationPrefs));
+}
+
 function exportTemplatesAsFile() {
   const payload = {
     version: 2,
@@ -804,6 +846,9 @@ async function copyPreviewHtml() {
 }
 
 async function activateInAliMail() {
+  onActivationPrefChange();
+  persistLocalGroups();
+
   const group = getSelectedGroup();
   const version = getSelectedVersion(group, state.selectedLocale);
   if (!group || !version) {
@@ -811,18 +856,32 @@ async function activateInAliMail() {
     return;
   }
 
-  const check = validateAliMailFormat(version);
-  if (check.errors.length > 0) {
-    setStatus(appEls.status, `格式校验失败：${check.errors.join("；")}`, true);
+  const targetMailbox = state.activationPrefs.targetMailbox;
+  if (!isValidEmail(targetMailbox)) {
+    setStatus(appEls.status, "请先填写有效的指定邮箱（企业版账号）。", true);
     return;
   }
 
-  const payload = buildAliMailActivationPayload(group, version);
-  const encodedPayload = utf8ToBase64Url(JSON.stringify(payload));
+  const activationEntries = collectTemplatesForActivation(group, version, state.activationPrefs.mode);
+  const validation = validateActivationEntries(activationEntries);
+  if (validation.errors.length > 0) {
+    setStatus(appEls.status, `格式校验失败：${validation.errors.join("；")}`, true);
+    return;
+  }
+
+  const envelope = buildAliMailActivationEnvelope({
+    entries: activationEntries,
+    activeGroup: group,
+    activeVersion: version,
+    targetMailbox,
+    mode: state.activationPrefs.mode,
+    requireSmsVerification: state.activationPrefs.requireSmsVerification,
+  });
+  const encodedPayload = utf8ToBase64Url(JSON.stringify(envelope));
   const targetUrl = `${ALIMAIL_ACTIVATE_URL}?alimailActivate=${encodeURIComponent(encodedPayload)}`;
 
   try {
-    await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+    await navigator.clipboard.writeText(JSON.stringify(envelope, null, 2));
   } catch (_error) {
     // Ignore clipboard failure because activation can still continue.
   }
@@ -833,10 +892,15 @@ async function activateInAliMail() {
     return;
   }
 
-  if (check.warnings.length > 0) {
+  const modeMessage =
+    state.activationPrefs.mode === "all"
+      ? "已同步全部模板并激活当前模板（AliMail 同一邮箱同一时刻仅能启用一套自动回复）。"
+      : "已激活当前模板。";
+
+  if (validation.warnings.length > 0) {
     setStatus(
       appEls.status,
-      `已触发一键激活，并复制激活载荷。注意：${check.warnings.join("；")}。若 AliMail 页面未自动填充，请先安装 alimail-activator.user.js。`,
+      `${modeMessage} 注意：${validation.warnings.join("；")}。若 AliMail 页面未自动填充，请先安装 alimail-activator.user.js。`,
       false,
     );
     return;
@@ -844,9 +908,44 @@ async function activateInAliMail() {
 
   setStatus(
     appEls.status,
-    "已触发一键激活，并复制激活载荷。若 AliMail 页面未自动填充，请先安装 alimail-activator.user.js。",
+    `${modeMessage} 若 AliMail 页面未自动填充，请先安装 alimail-activator.user.js。`,
     false,
   );
+}
+
+function collectTemplatesForActivation(activeGroup, activeVersion, mode) {
+  if (mode !== "all") {
+    return [
+      {
+        group: activeGroup,
+        version: activeVersion,
+      },
+    ];
+  }
+
+  const entries = [];
+  state.groups.forEach((group) => {
+    LOCALE_ORDER.forEach((locale) => {
+      const version = group.versions?.[locale];
+      if (!version) return;
+      entries.push({ group, version });
+    });
+  });
+  return entries;
+}
+
+function validateActivationEntries(entries) {
+  const errors = [];
+  const warnings = [];
+
+  entries.forEach(({ group, version }) => {
+    const check = validateAliMailFormat(version);
+    const prefix = `${group.groupId}/${version.locale}`;
+    check.errors.forEach((message) => errors.push(`${prefix}: ${message}`));
+    check.warnings.forEach((message) => warnings.push(`${prefix}: ${message}`));
+  });
+
+  return { errors, warnings };
 }
 
 function validateAliMailFormat(version) {
@@ -883,11 +982,25 @@ function validateAliMailFormat(version) {
   return { errors, warnings };
 }
 
+function buildAliMailActivationEnvelope(config) {
+  const templates = config.entries.map(({ group, version }) => buildAliMailActivationPayload(group, version));
+  const activeTemplate = buildAliMailActivationPayload(config.activeGroup, config.activeVersion);
+
+  return {
+    version: 2,
+    source: "katvr-autoreply-studio",
+    mode: config.mode,
+    targetMailbox: config.targetMailbox,
+    requireSmsVerification: Boolean(config.requireSmsVerification),
+    generatedAt: new Date().toISOString(),
+    activeTemplate,
+    templates,
+  };
+}
+
 function buildAliMailActivationPayload(group, version) {
   const plainBody = buildMailText(version);
   return {
-    version: 1,
-    source: "katvr-autoreply-studio",
     templateId: group.groupId,
     locale: version.locale,
     category: group.category,
@@ -902,6 +1015,10 @@ function buildAliMailActivationPayload(group, version) {
     endAt: version.endAt || null,
     generatedAt: new Date().toISOString(),
   };
+}
+
+function isValidEmail(text) {
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(text || "").trim());
 }
 
 async function copyToClipboard(content, okMessage, errorMessage) {

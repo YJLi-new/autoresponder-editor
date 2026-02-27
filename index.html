@@ -169,6 +169,25 @@
               <p class="preview-label">Body</p>
               <pre id="previewBody" class="preview-body"></pre>
             </article>
+            <div class="activate-box">
+              <label>
+                指定邮箱（企业版账号）
+                <input id="targetMailboxInput" type="email" placeholder="name@your-company.com" />
+              </label>
+              <div class="inline-grid">
+                <label>
+                  激活范围
+                  <select id="activateModeSelect">
+                    <option value="current">仅当前模板</option>
+                    <option value="all">全部模板（同步并激活当前）</option>
+                  </select>
+                </label>
+                <label class="checkbox-label">
+                  <input id="requireSmsCheckbox" type="checkbox" checked />
+                  每次激活前要求短信验证码确认
+                </label>
+              </div>
+            </div>
             <div class="preview-actions">
               <button id="copyTextBtn" class="btn ghost" type="button">复制纯文本</button>
               <button id="copyHtmlBtn" class="btn ghost" type="button">复制 HTML</button>
