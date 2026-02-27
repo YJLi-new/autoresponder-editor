@@ -3,6 +3,7 @@
 // @namespace    https://yjli-new.github.io/autoresponder-editor/
 // @version      1.0.0
 // @description  Read activation payload from URL and apply auto-reply settings in AliMail.
+// @match        https://qiye.aliyun.com/*
 // @match        https://mail.aliyun.com/*
 // @grant        none
 // @run-at       document-idle

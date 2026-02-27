@@ -8,7 +8,7 @@ const LOCALE_LABELS = {
   "zh-CN": "中文",
   "en-US": "English",
 };
-const ALIMAIL_ACTIVATE_URL = "https://mail.aliyun.com/";
+const ALIMAIL_ACTIVATE_URL = "https://qiye.aliyun.com/";
 
 const fields = {
   category: document.getElementById("categoryInput"),
