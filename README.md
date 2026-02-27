@@ -1,63 +1,62 @@
 # AliMail Auto-Reply Template Studio
 
-一个可部署在 GitHub Pages 的静态网页，用于可视化编辑阿里邮箱自动回复模板。
+一个部署在 GitHub Pages 的静态网页，用于可视化编辑阿里邮箱自动回复模板。
 
 ## 功能
 
 - 模板列表管理（新建、删除、导入、导出）
 - 可视化字段编辑（主题、正文、生效时间、发送范围）
 - 变量插入（`{{sender_name}}` 等）
-- 实时预览
-- GitHub 授权门禁：输入 Token 后校验仓库权限才能进入
-- 模板同步：直接写入 GitHub 仓库中的 JSON 文件
+- 实时预览与一键复制
+- 自定义密钥门禁（PBKDF2 哈希校验）
+- 本地缓存（浏览器 `localStorage`）
 
 ## 项目结构
 
 - `index.html` 页面结构
 - `styles.css` 页面样式
-- `app.js` 前端逻辑（授权 + 编辑 + GitHub API）
-- `data/auto-reply-templates.json` 默认模板数据
+- `app.js` 前端逻辑（密钥校验 + 编辑器）
+- `data/auto-reply-templates.json` 默认模板
+- `data/access-control.json` 访问密钥哈希配置
+- `scripts/generate-access-config.mjs` 生成密钥哈希配置
 - `.github/workflows/deploy-pages.yml` GitHub Pages 自动部署
 
-## 快速部署到 GitHub
+## 快速部署
 
-1. 新建仓库（例如 `autoresponder-editor`）。
-2. 把当前目录所有文件上传到仓库根目录。
-3. 进入 `Settings -> Pages`，确认 Source 使用 `GitHub Actions`。
-4. 推送到 `main` 分支后，等待 `Deploy GitHub Pages` 工作流完成。
-5. 获得页面地址：`https://<owner>.github.io/<repo>/`。
+1. 创建或使用现有 GitHub 仓库。
+2. 上传本目录文件到仓库根目录。
+3. 在 `Settings -> Pages` 选择 `GitHub Actions`。
+4. 推送到 `main` 后等待部署完成。
+5. 打开 `https://<owner>.github.io/<repo>/`。
 
-## 授权访问策略（必须授权）
+## 默认密钥
 
-### 方案 A（强访问控制，页面级）
+首次默认密钥是：`ChangeThisNow!2026`
 
-如果你要求“网页本身不能被未授权用户打开”，优先使用以下任一方式：
+建议你部署后立即修改，避免使用默认密钥。
 
-1. GitHub Enterprise Cloud 组织开启 Pages 访问控制（仅组织成员可访问）。
-2. GitHub Pages 前面加一层访问网关（如 Cloudflare Access），仅允许指定账号/邮箱访问。
+## 只通过 GitHub 修改密钥
 
-### 方案 B（内置门禁，编辑级）
+密钥不以明文存储，页面只校验 `data/access-control.json` 的哈希值。要更新密钥：
 
-当前项目已内置 GitHub Token 校验：
+1. 在本地运行：
 
-1. 创建 `Fine-grained personal access token`。
-2. Token 仅授权目标仓库。
-3. 权限最小化设置：
-   - Repository permissions -> `Contents: Read and write`
-4. 打开网页后输入 Token + Owner + Repo，验证通过才可进入编辑器并同步模板。
+```bash
+node scripts/generate-access-config.mjs "你的新强密钥"
+```
 
-说明：未持有有权限的 Token 无法读取/写入目标模板文件，页面核心编辑与同步流程无法完成。
+2. 把输出内容覆盖到 `data/access-control.json`。
+3. 提交并推送到 GitHub（需要仓库写权限）。
+4. Pages 部署完成后，新密钥生效。
 
 ## 阿里邮箱使用方式
 
-编辑完成后：
-
-1. 在右侧预览区点击“复制纯文本”或“复制 HTML”。
-2. 登录阿里邮箱管理界面，进入自动回复设置。
-3. 粘贴主题和正文，并设置启用时间。
+1. 在编辑器完成模板。
+2. 点击“复制纯文本”或“复制 HTML”。
+3. 登录阿里邮箱自动回复设置，粘贴主题与正文并启用。
 
 ## 注意事项
 
-- Token 只保存在浏览器会话（`sessionStorage`），关闭标签页后需要重新输入。
-- 模板会缓存到浏览器 `localStorage`，避免意外刷新丢失。
-- 若多人协作，建议统一使用同一个仓库 JSON 路径（默认 `data/auto-reply-templates.json`）。
+- 该方案是前端静态门禁，适合业务访问控制，不适合高对抗安全场景。
+- 请务必使用高强度密钥（建议 20+ 位，包含大小写、数字、符号）。
+- 若你需要“页面级强访问控制”，建议在 Pages 前增加 Cloudflare Access 等网关。

@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "kdf": "PBKDF2-HMAC-SHA-256",
+  "iterations": 260000,
+  "salt": "nQL2qn34CAHvFfenkcchSw==",
+  "hash": "51810db6318012783ca7710194591650c6912823f0b345e6b2d1da7bc4e0200f",
+  "updatedAt": "2026-02-27T09:18:00.252Z"
+}
