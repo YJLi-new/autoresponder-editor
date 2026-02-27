@@ -866,6 +866,14 @@ async function activateInAliMail() {
     return;
   }
 
+  const smsConfirmed = window.confirm(
+    "激活前请先在阿里企业邮箱完成手机号短信验证码登录校验，再点击“确定”继续。",
+  );
+  if (!smsConfirmed) {
+    setStatus(appEls.status, "已取消激活：未确认短信验证码登录。", true);
+    return;
+  }
+
   const envelope = buildAliMailActivationEnvelope({
     entries: activationEntries,
     activeGroup: group,
@@ -876,17 +884,22 @@ async function activateInAliMail() {
   const encodedPayload = utf8ToBase64Url(JSON.stringify(envelope));
   const targetUrl = `${ALIMAIL_ACTIVATE_URL}?alimailActivate=${encodeURIComponent(encodedPayload)}`;
 
-  try {
-    await navigator.clipboard.writeText(JSON.stringify(envelope, null, 2));
-  } catch (_error) {
-    // Ignore clipboard failure because activation can still continue.
-  }
-
   const opened = window.open(targetUrl, "_blank", "noopener,noreferrer");
   if (!opened) {
-    setStatus(appEls.status, "无法打开 AliMail，请检查浏览器弹窗拦截设置。", true);
+    const useCurrentTab = window.confirm(
+      "浏览器拦截了新窗口。是否在当前页打开 AliMail 并继续激活？（当前页内容已自动保存）",
+    );
+    if (useCurrentTab) {
+      window.location.assign(targetUrl);
+      return;
+    }
+    setStatus(appEls.status, "无法打开 AliMail，请允许该站点弹窗后重试。", true);
     return;
   }
+
+  navigator.clipboard.writeText(JSON.stringify(envelope, null, 2)).catch(() => {
+    // Ignore clipboard failure because activation can still continue.
+  });
 
   const modeMessage =
     state.activationPrefs.mode === "all"
