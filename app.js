@@ -50,7 +50,6 @@ const appEls = {
   activateAliMailBtn: document.getElementById("activateAliMailBtn"),
   targetMailboxInput: document.getElementById("targetMailboxInput"),
   activateModeSelect: document.getElementById("activateModeSelect"),
-  requireSmsCheckbox: document.getElementById("requireSmsCheckbox"),
   chips: Array.from(document.querySelectorAll(".chip")),
   localeButtons: Array.from(document.querySelectorAll("#editorLocaleSwitch .locale-btn")),
   meta: {
@@ -168,7 +167,6 @@ function bindEvents() {
   appEls.activateAliMailBtn.addEventListener("click", activateInAliMail);
   appEls.targetMailboxInput.addEventListener("input", onActivationPrefChange);
   appEls.activateModeSelect.addEventListener("change", onActivationPrefChange);
-  appEls.requireSmsCheckbox.addEventListener("change", onActivationPrefChange);
 
   appEls.chips.forEach((chip) => {
     chip.addEventListener("click", () => {
@@ -751,7 +749,7 @@ function restoreActivationPrefs() {
     state.activationPrefs = {
       targetMailbox: String(prefs.targetMailbox || ""),
       mode: prefs.mode === "all" ? "all" : "current",
-      requireSmsVerification: prefs.requireSmsVerification !== false,
+      requireSmsVerification: true,
     };
   } catch (_error) {
     // Ignore invalid local prefs.
@@ -761,13 +759,12 @@ function restoreActivationPrefs() {
 function renderActivationPrefs() {
   appEls.targetMailboxInput.value = state.activationPrefs.targetMailbox;
   appEls.activateModeSelect.value = state.activationPrefs.mode;
-  appEls.requireSmsCheckbox.checked = Boolean(state.activationPrefs.requireSmsVerification);
 }
 
 function onActivationPrefChange() {
   state.activationPrefs.targetMailbox = String(appEls.targetMailboxInput.value || "").trim();
   state.activationPrefs.mode = appEls.activateModeSelect.value === "all" ? "all" : "current";
-  state.activationPrefs.requireSmsVerification = Boolean(appEls.requireSmsCheckbox.checked);
+  state.activationPrefs.requireSmsVerification = true;
   localStorage.setItem(STORAGE_KEYS.activationPrefs, JSON.stringify(state.activationPrefs));
 }
 
@@ -875,7 +872,6 @@ async function activateInAliMail() {
     activeVersion: version,
     targetMailbox,
     mode: state.activationPrefs.mode,
-    requireSmsVerification: state.activationPrefs.requireSmsVerification,
   });
   const encodedPayload = utf8ToBase64Url(JSON.stringify(envelope));
   const targetUrl = `${ALIMAIL_ACTIVATE_URL}?alimailActivate=${encodeURIComponent(encodedPayload)}`;
@@ -991,7 +987,7 @@ function buildAliMailActivationEnvelope(config) {
     source: "katvr-autoreply-studio",
     mode: config.mode,
     targetMailbox: config.targetMailbox,
-    requireSmsVerification: Boolean(config.requireSmsVerification),
+    requireSmsVerification: true,
     generatedAt: new Date().toISOString(),
     activeTemplate,
     templates,

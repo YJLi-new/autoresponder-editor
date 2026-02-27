@@ -52,7 +52,7 @@
         version: 2,
         mode: payload.mode === "all" ? "all" : "current",
         targetMailbox: String(payload.targetMailbox || "").trim(),
-        requireSmsVerification: payload.requireSmsVerification !== false,
+        requireSmsVerification: true,
         activeTemplate: payload.activeTemplate,
         templates: Array.isArray(payload.templates) ? payload.templates : [payload.activeTemplate],
       };
@@ -63,7 +63,7 @@
         version: 2,
         mode: "current",
         targetMailbox: "",
-        requireSmsVerification: false,
+        requireSmsVerification: true,
         activeTemplate: payload,
         templates: [payload],
       };
