@@ -53,6 +53,7 @@ boot();
 
 async function boot() {
   bindEvents();
+  setStatus(authEls.status, "正在加载访问配置...");
 
   await Promise.all([loadInitialTemplates(), loadAccessConfig()]);
 
@@ -143,13 +144,13 @@ async function loadAccessConfig() {
 
     const payload = await response.json();
     state.accessConfig = normalizeAccessConfig(payload);
+    setStatus(authEls.status, "请输入访问密钥。", false);
   } catch (error) {
     setStatus(
       authEls.status,
       `无法加载访问控制配置：${error.message}。请检查 data/access-control.json`,
       true,
     );
-    authEls.form.querySelector("button[type='submit']")?.setAttribute("disabled", "disabled");
   }
 }
 
@@ -188,7 +189,16 @@ async function onAuthSubmit(event) {
   event.preventDefault();
 
   if (!state.accessConfig) {
-    setStatus(authEls.status, "访问控制配置未加载，无法验证。", true);
+    setStatus(authEls.status, "访问配置尚未就绪，正在重试加载...", true);
+    await loadAccessConfig();
+    if (!state.accessConfig) {
+      setStatus(authEls.status, "访问配置加载失败，请刷新页面后重试。", true);
+      return;
+    }
+  }
+
+  if (!window.crypto?.subtle) {
+    setStatus(authEls.status, "当前浏览器环境不支持密钥验证，请使用 HTTPS 访问。", true);
     return;
   }
 

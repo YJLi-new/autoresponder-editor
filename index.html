@@ -21,9 +21,7 @@
         <div class="card-head">
           <p class="eyebrow">Authorized Access</p>
           <h1>AliMail 自动回复模板编辑器</h1>
-          <p class="subtext">
-            输入自定义访问密钥后进入编辑器。密钥以哈希形式存放在仓库文件中，只能通过 GitHub 仓库修改。
-          </p>
+          <p class="subtext">输入自定义访问密钥后进入编辑器。</p>
         </div>
 
         <form id="authForm" class="auth-form">
@@ -41,11 +39,6 @@
         </form>
 
         <div id="authStatus" class="status" aria-live="polite"></div>
-
-        <div class="help-box">
-          <p>密钥配置文件：`data/access-control.json`</p>
-          <p>建议使用 `scripts/generate-access-config.mjs` 生成哈希后提交到 GitHub。</p>
-        </div>
       </section>
 
       <section id="editorApp" class="app hidden" aria-hidden="true">
