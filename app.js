@@ -616,15 +616,15 @@ function selectGroup(groupId, locale) {
   const version = getSelectedVersion(group, targetLocale);
   if (!version) return;
 
-  fields.category.value = group.category;
-  fields.name.value = version.name;
-  fields.startAt.value = version.startAt;
-  fields.endAt.value = version.endAt;
-  fields.scope.value = version.scope || "external";
-  fields.subject.value = version.subject;
-  fields.opening.value = version.opening;
-  fields.body.value = version.body;
-  fields.signature.value = version.signature;
+  setFieldValue(fields.category, group.category);
+  setFieldValue(fields.name, version.name);
+  setFieldValue(fields.startAt, version.startAt);
+  setFieldValue(fields.endAt, version.endAt);
+  setFieldValue(fields.scope, version.scope || "external");
+  setFieldValue(fields.subject, version.subject);
+  setFieldValue(fields.opening, version.opening);
+  setFieldValue(fields.body, version.body);
+  setFieldValue(fields.signature, version.signature);
 
   renderLocaleSwitch();
   renderList();
@@ -667,15 +667,15 @@ function getSelectedVersion(group, locale) {
 }
 
 function writeFormToState(group, version) {
-  group.category = fields.category.value;
-  version.name = fields.name.value;
-  version.startAt = fields.startAt.value;
-  version.endAt = fields.endAt.value;
-  version.scope = fields.scope.value;
-  version.subject = fields.subject.value;
-  version.opening = fields.opening.value;
-  version.body = fields.body.value;
-  version.signature = fields.signature.value;
+  group.category = getFieldValue(fields.category);
+  version.name = getFieldValue(fields.name);
+  version.startAt = getFieldValue(fields.startAt);
+  version.endAt = getFieldValue(fields.endAt);
+  version.scope = getFieldValue(fields.scope);
+  version.subject = getFieldValue(fields.subject);
+  version.opening = getFieldValue(fields.opening);
+  version.body = getFieldValue(fields.body);
+  version.signature = getFieldValue(fields.signature);
   version.updatedAt = new Date().toISOString();
   group.updatedAt = version.updatedAt;
 }
@@ -1033,6 +1033,15 @@ async function copyToClipboard(content, okMessage, errorMessage) {
 function setStatus(element, text, isError = false) {
   element.textContent = text;
   element.classList.toggle("error", isError);
+}
+
+function setFieldValue(element, value) {
+  if (!element) return;
+  element.value = String(value || "");
+}
+
+function getFieldValue(element) {
+  return String(element?.value || "");
 }
 
 function bytesToHex(bytes) {
