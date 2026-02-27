@@ -20,7 +20,6 @@ const fields = {
   subject: document.getElementById("subjectInput"),
   opening: document.getElementById("openingInput"),
   body: document.getElementById("bodyInput"),
-  fallbackContact: document.getElementById("contactInput"),
   signature: document.getElementById("signatureInput"),
 };
 
@@ -141,7 +140,7 @@ function bindEvents() {
   Object.entries(fields).forEach(([key, element]) => {
     if (!element) return;
 
-    if (["subject", "opening", "body", "fallbackContact", "signature"].includes(key)) {
+    if (["subject", "opening", "body", "signature"].includes(key)) {
       element.addEventListener("focus", () => {
         state.focusedField = element;
       });
@@ -482,7 +481,6 @@ function normalizeVersion(input, locale) {
     subject: String(input.subject || ""),
     opening: String(input.opening || ""),
     body: String(input.body || ""),
-    fallbackContact: String(input.fallbackContact || ""),
     signature: String(input.signature || ""),
     updatedAt: String(input.updatedAt || new Date().toISOString()),
   };
@@ -553,7 +551,6 @@ function createDefaultVersion(locale, category) {
       locale === "zh-CN"
         ? "感谢您的来信，我们已经收到并会尽快回复。"
         : "Thank you for your email. We have received your message and will respond soon.",
-    fallbackContact: "business@katvr.com",
     signature:
       locale === "zh-CN"
         ? "此致\nKAT VR 团队\nbusiness@katvr.com"
@@ -627,7 +624,6 @@ function selectGroup(groupId, locale) {
   fields.subject.value = version.subject;
   fields.opening.value = version.opening;
   fields.body.value = version.body;
-  fields.fallbackContact.value = version.fallbackContact;
   fields.signature.value = version.signature;
 
   renderLocaleSwitch();
@@ -679,7 +675,6 @@ function writeFormToState(group, version) {
   version.subject = fields.subject.value;
   version.opening = fields.opening.value;
   version.body = fields.body.value;
-  version.fallbackContact = fields.fallbackContact.value;
   version.signature = fields.signature.value;
   version.updatedAt = new Date().toISOString();
   group.updatedAt = version.updatedAt;
@@ -695,10 +690,6 @@ function buildMailText(version) {
   if (version.startAt || version.endAt) {
     lines.push("");
     lines.push(`生效时段：${version.startAt || "未设置"} ~ ${version.endAt || "未设置"}`);
-  }
-
-  if (version.fallbackContact) {
-    lines.push(`联系邮箱：${version.fallbackContact}`);
   }
 
   if (version.signature) {
