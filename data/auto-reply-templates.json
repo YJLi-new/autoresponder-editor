@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "updatedAt": "2026-02-27T00:00:00.000Z",
+  "templates": [
+    {
+      "id": "tpl_zh_business",
+      "name": "商务出差（中文）",
+      "locale": "zh-CN",
+      "startAt": "2026-03-01T09:00",
+      "endAt": "2026-03-08T18:00",
+      "scope": "all",
+      "subject": "自动回复：您的邮件已收到",
+      "opening": "您好，{{sender_name}}：",
+      "body": "感谢您的来信。我目前因出差暂时无法及时回复，将在 {{return_date}} 后处理您的邮件。",
+      "fallbackContact": "sales@company.com",
+      "signature": "祝好\n{{company_name}} 销售团队",
+      "updatedAt": "2026-02-27T00:00:00.000Z"
+    },
+    {
+      "id": "tpl_en_leave",
+      "name": "OOO (English)",
+      "locale": "en-US",
+      "startAt": "2026-03-01T09:00",
+      "endAt": "2026-03-08T18:00",
+      "scope": "external",
+      "subject": "Auto Reply: Your Email Has Been Received",
+      "opening": "Hello {{sender_name}},",
+      "body": "Thank you for your email. I am currently out of office and will follow up after {{return_date}}.",
+      "fallbackContact": "support@company.com",
+      "signature": "Best regards,\n{{company_name}}",
+      "updatedAt": "2026-02-27T00:00:00.000Z"
+    }
+  ]
+}

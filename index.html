@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AliMail Auto-Reply Template Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-shape bg-shape-1"></div>
+    <div class="bg-shape bg-shape-2"></div>
+
+    <main class="shell">
+      <section id="authGate" class="card auth-card">
+        <div class="card-head">
+          <p class="eyebrow">Authorized Access</p>
+          <h1>AliMail 自动回复模板编辑器</h1>
+          <p class="subtext">
+            使用 GitHub Token 校验仓库权限后才能进入编辑器。模板可直接同步到 GitHub 仓库文件。
+          </p>
+        </div>
+
+        <form id="authForm" class="auth-form">
+          <label>
+            GitHub Fine-grained Token
+            <input
+              id="tokenInput"
+              type="password"
+              autocomplete="off"
+              placeholder="github_pat_xxx"
+              required
+            />
+          </label>
+
+          <div class="inline-grid">
+            <label>
+              Owner
+              <input id="ownerInput" type="text" placeholder="your-org" required />
+            </label>
+            <label>
+              Repo
+              <input id="repoInput" type="text" placeholder="autoresponder-editor" required />
+            </label>
+          </div>
+
+          <div class="inline-grid">
+            <label>
+              Branch
+              <input id="branchInput" type="text" value="main" required />
+            </label>
+            <label>
+              JSON Path
+              <input id="pathInput" type="text" value="data/auto-reply-templates.json" required />
+            </label>
+          </div>
+
+          <button type="submit" class="btn primary">验证并进入</button>
+        </form>
+
+        <div id="authStatus" class="status" aria-live="polite"></div>
+
+        <div class="help-box">
+          <p>Token 最小权限建议：</p>
+          <p>`Contents: Read & write`，仓库访问范围仅授权目标仓库。</p>
+        </div>
+      </section>
+
+      <section id="editorApp" class="app hidden" aria-hidden="true">
+        <header class="app-header card">
+          <div>
+            <p class="eyebrow">Template Studio</p>
+            <h2>自动回复模板可视化编辑</h2>
+            <p id="repoBadge" class="repo-badge"></p>
+          </div>
+          <div class="toolbar">
+            <button id="syncBtn" class="btn primary" type="button">同步到 GitHub</button>
+            <button id="exportBtn" class="btn ghost" type="button">导出 JSON</button>
+            <button id="importBtn" class="btn ghost" type="button">导入 JSON</button>
+            <button id="logoutBtn" class="btn danger" type="button">退出</button>
+          </div>
+        </header>
+
+        <div class="workspace">
+          <aside class="panel list-panel">
+            <div class="panel-head">
+              <h3>模板列表</h3>
+              <button id="addTemplateBtn" class="btn ghost" type="button">新建</button>
+            </div>
+            <ul id="templateList" class="template-list"></ul>
+          </aside>
+
+          <section class="panel form-panel">
+            <div class="panel-head">
+              <h3>模板内容</h3>
+              <button id="deleteTemplateBtn" class="btn danger ghost" type="button">删除</button>
+            </div>
+
+            <form id="templateForm" class="template-form">
+              <div class="inline-grid">
+                <label>
+                  模板名称
+                  <input id="nameInput" name="name" type="text" required />
+                </label>
+                <label>
+                  语言
+                  <select id="localeInput" name="locale">
+                    <option value="zh-CN">简体中文</option>
+                    <option value="en-US">English</option>
+                    <option value="de-DE">Deutsch</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="inline-grid">
+                <label>
+                  生效开始
+                  <input id="startInput" name="startAt" type="datetime-local" />
+                </label>
+                <label>
+                  生效结束
+                  <input id="endInput" name="endAt" type="datetime-local" />
+                </label>
+              </div>
+
+              <label>
+                发送范围
+                <select id="scopeInput" name="scope">
+                  <option value="all">所有发件人</option>
+                  <option value="internal">仅内部同域</option>
+                  <option value="external">仅外部发件人</option>
+                </select>
+              </label>
+
+              <label>
+                主题
+                <input id="subjectInput" name="subject" type="text" required />
+              </label>
+
+              <label>
+                开场
+                <textarea id="openingInput" name="opening" rows="2" required></textarea>
+              </label>
+
+              <label>
+                正文
+                <textarea id="bodyInput" name="body" rows="7" required></textarea>
+              </label>
+
+              <label>
+                紧急联系人
+                <input id="contactInput" name="fallbackContact" type="text" placeholder="support@company.com" />
+              </label>
+
+              <label>
+                签名
+                <textarea id="signatureInput" name="signature" rows="3"></textarea>
+              </label>
+            </form>
+
+            <div class="token-row">
+              <p>变量插入：</p>
+              <div class="chips">
+                <button class="chip" type="button" data-token="{{sender_name}}">sender_name</button>
+                <button class="chip" type="button" data-token="{{sender_email}}">sender_email</button>
+                <button class="chip" type="button" data-token="{{current_date}}">current_date</button>
+                <button class="chip" type="button" data-token="{{return_date}}">return_date</button>
+                <button class="chip" type="button" data-token="{{company_name}}">company_name</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel preview-panel">
+            <h3>实时预览</h3>
+            <article class="mail-preview">
+              <p class="preview-label">Subject</p>
+              <p id="previewSubject" class="preview-subject"></p>
+              <p class="preview-label">Body</p>
+              <pre id="previewBody" class="preview-body"></pre>
+            </article>
+            <div class="preview-actions">
+              <button id="copyTextBtn" class="btn ghost" type="button">复制纯文本</button>
+              <button id="copyHtmlBtn" class="btn ghost" type="button">复制 HTML</button>
+            </div>
+            <div id="syncStatus" class="status" aria-live="polite"></div>
+          </section>
+        </div>
+      </section>
+
+      <input id="importInput" type="file" accept="application/json,.json" hidden />
+    </main>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
