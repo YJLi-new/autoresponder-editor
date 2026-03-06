@@ -1395,13 +1395,7 @@ function renderPolicySummary() {
 
   const policy = state.policySummary;
   const sections = [
-    buildPolicySection("有插件激活", [
-      policy.pluginActivationGuide.overview,
-      ...policy.pluginActivationGuide.installSteps.map((item) => `安装：${item}`),
-      ...policy.pluginActivationGuide.usageSteps.map((item) => `使用：${item}`),
-      ...policy.pluginActivationGuide.successChecks.map((item) => `验收：${item}`),
-      ...policy.pluginActivationGuide.troubleshooting.map((item) => `排查：${item}`),
-    ]),
+    buildPluginActivationPolicySection(policy.pluginActivationGuide),
     buildPolicySection("关键词/正则", [
       policy.keywordRegexGuide.purpose,
       policy.keywordRegexGuide.syntax,
@@ -1458,10 +1452,59 @@ function buildPolicySection(title, items, trustedHtml = false) {
   }
 
   const content = normalizedItems
-    .map((item) => `<li>${trustedHtml ? item : escapeHtml(item)}</li>`)
+    .map((item) => `<li>${trustedHtml ? item : formatPolicyText(item)}</li>`)
     .join("");
 
   return `<details class="policy-section" open><summary>${escapeHtml(title)}</summary><ul>${content}</ul></details>`;
+}
+
+function buildPluginActivationPolicySection(guide) {
+  const groups = [
+    { title: "安装准备", items: guide.installSteps },
+    { title: "使用流程", items: guide.usageSteps },
+    { title: "验收检查", items: guide.successChecks },
+    { title: "常见排查", items: guide.troubleshooting },
+  ].filter((group) => group.items.filter(Boolean).length > 0);
+
+  if (!guide?.overview && groups.length === 0) {
+    return "";
+  }
+
+  const groupHtml = groups
+    .map(
+      (group) => `
+        <section class="policy-group">
+          <p class="policy-group-title">${escapeHtml(group.title)}</p>
+          <ol class="policy-step-list">
+            ${group.items
+              .filter(Boolean)
+              .map(
+                (item) => `
+                  <li class="policy-step-item">
+                    <span class="policy-step-index" aria-hidden="true"></span>
+                    <span class="policy-step-text">${formatPolicyText(item)}</span>
+                  </li>`,
+              )
+              .join("")}
+          </ol>
+        </section>`,
+    )
+    .join("");
+
+  const overview = guide?.overview
+    ? `<p class="policy-intro">${formatPolicyText(guide.overview)}</p>`
+    : "";
+
+  return `
+    <details class="policy-section policy-section-rich" open>
+      <summary>${escapeHtml("有插件激活")}</summary>
+      ${overview}
+      <div class="policy-group-grid">${groupHtml}</div>
+    </details>`;
+}
+
+function formatPolicyText(text) {
+  return escapeHtml(String(text || "")).replace(/`([^`]+)`/g, '<code class="policy-inline-code">$1</code>');
 }
 
 function hasPolicySummary(policySummary) {
