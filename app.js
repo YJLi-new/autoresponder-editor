@@ -124,6 +124,7 @@ const appEls = {
   copyHtmlBtn: document.getElementById("copyHtmlBtn"),
   activateAliMailBtn: document.getElementById("activateAliMailBtn"),
   chipsContainer: document.getElementById("chipContainer"),
+  placeholderValuesForm: document.getElementById("placeholderValuesForm"),
   manualGuideBox: document.getElementById("manualGuideBox"),
   manualGuideList: document.getElementById("manualGuideList"),
   copyManualSubjectBtn: document.getElementById("copyManualSubjectBtn"),
@@ -270,6 +271,7 @@ function bindEvents() {
   appEls.copyManualPacketBtn?.addEventListener("click", copyManualPacket);
   appEls.targetMailboxInput.addEventListener("input", onActivationPrefChange);
   appEls.activateModeSelect.addEventListener("change", onActivationPrefChange);
+  appEls.placeholderValuesForm?.addEventListener("input", onPlaceholderValueInput);
 
   appEls.chipsContainer?.addEventListener("click", (event) => {
     const chip = event.target.closest(".chip");
@@ -565,10 +567,14 @@ async function loadInitialGroups() {
   const starter = await readStarterData();
   state.policySummary = starter.policySummary;
 
-  const cached = loadLocalGroups();
-  if (cached.length > 0) {
-    state.groups = cached;
-    state.selectedGroupId = cached[0].groupId;
+  const cached = loadLocalEditorState();
+  if (hasPolicySummary(cached.policySummary)) {
+    state.policySummary = cached.policySummary;
+  }
+
+  if (cached.groups.length > 0) {
+    state.groups = cached.groups;
+    state.selectedGroupId = cached.groups[0].groupId;
     return;
   }
 
@@ -597,6 +603,7 @@ async function readStarterData() {
 async function resetTemplatesFromStarter() {
   const starter = await readStarterData();
   state.policySummary = starter.policySummary;
+  renderPlaceholderValuesEditor();
   renderPolicySummary();
 
   if (starter.groups.length === 0) {
@@ -642,6 +649,8 @@ function normalizePolicySummary(input) {
     return fallback;
   }
 
+  const allowedPlaceholders = normalizePlaceholders(input.placeholderPolicy?.allowed);
+
   return {
     title: String(input.title || fallback.title),
     sourceFiles: normalizeStringArray(input.sourceFiles),
@@ -661,7 +670,7 @@ function normalizePolicySummary(input) {
     placeholderPolicy: {
       principle: String(input.placeholderPolicy?.principle || ""),
       namingRule: String(input.placeholderPolicy?.namingRule || ""),
-      allowed: normalizePlaceholders(input.placeholderPolicy?.allowed),
+      allowed: allowedPlaceholders,
       banned: normalizePlaceholders(input.placeholderPolicy?.banned),
       implementationNotes: normalizeStringArray(input.placeholderPolicy?.implementationNotes),
     },
@@ -675,7 +684,7 @@ function normalizePolicySummary(input) {
       signatureControl: normalizeStringArray(input.manualFlowNorms?.signatureControl),
       pricingControl: normalizeStringArray(input.manualFlowNorms?.pricingControl),
     },
-    defaultBlocks: normalizePolicyDefaults(input.defaultBlocks),
+    defaultBlocks: ensureDefaultBlockCoverage(normalizePolicyDefaults(input.defaultBlocks), allowedPlaceholders),
   };
 }
 
@@ -898,6 +907,30 @@ function normalizePolicyDefaults(input) {
     .filter((entry) => entry.token || entry.value);
 }
 
+function ensureDefaultBlockCoverage(defaultBlocks, allowedPlaceholders = []) {
+  const merged = new Map();
+
+  defaultBlocks.forEach((entry) => {
+    const token = String(entry.token || "").trim();
+    if (!token || merged.has(token)) return;
+    merged.set(token, {
+      token,
+      value: String(entry.value || ""),
+    });
+  });
+
+  allowedPlaceholders.forEach((token) => {
+    const normalizedToken = String(token || "").trim();
+    if (!normalizedToken || merged.has(normalizedToken)) return;
+    merged.set(normalizedToken, {
+      token: normalizedToken,
+      value: "",
+    });
+  });
+
+  return Array.from(merged.values());
+}
+
 function createGroup() {
   const now = new Date().toISOString();
   const label = `新类别 ${new Date().toLocaleDateString("zh-CN")}`;
@@ -1019,6 +1052,7 @@ function selectGroup(groupId, locale) {
   renderList();
   renderMeta();
   renderPlaceholderChips();
+  renderPlaceholderValuesEditor();
   renderPreview();
 }
 
@@ -1063,6 +1097,50 @@ function renderPlaceholderChips() {
     chip.dataset.token = token;
     chip.textContent = token.replace(/[{}]/g, "");
     appEls.chipsContainer.appendChild(chip);
+  });
+}
+
+function renderPlaceholderValuesEditor() {
+  if (!appEls.placeholderValuesForm) return;
+
+  const group = getSelectedGroup();
+  const currentTokens = new Set(group?.placeholders || []);
+  const defaultBlocks = ensureDefaultBlockCoverage(
+    state.policySummary.defaultBlocks,
+    state.policySummary.placeholderPolicy.allowed,
+  );
+
+  appEls.placeholderValuesForm.innerHTML = "";
+
+  defaultBlocks.forEach((item) => {
+    const card = document.createElement("label");
+    card.className = "placeholder-value-card";
+
+    const head = document.createElement("div");
+    head.className = "placeholder-value-head";
+
+    const token = document.createElement("code");
+    token.className = "placeholder-token";
+    token.textContent = item.token;
+    head.appendChild(token);
+
+    if (currentTokens.has(item.token)) {
+      const badge = document.createElement("span");
+      badge.className = "placeholder-badge";
+      badge.textContent = "当前模板";
+      head.appendChild(badge);
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.className = "placeholder-value-input";
+    textarea.rows = item.value && item.value.length > 120 ? 5 : 4;
+    textarea.dataset.token = item.token;
+    textarea.placeholder = "填写该占位符在预览、复制和激活时应替换成的实际信息";
+    textarea.value = item.value || "";
+
+    card.appendChild(head);
+    card.appendChild(textarea);
+    appEls.placeholderValuesForm.appendChild(card);
   });
 }
 
@@ -1176,9 +1254,9 @@ function writeFormToState(group, version) {
 function buildMailText(version) {
   const lines = [];
 
-  lines.push(version.opening || "");
+  lines.push(resolvePlaceholderText(version.opening || ""));
   lines.push("");
-  lines.push(version.body || "");
+  lines.push(resolvePlaceholderText(version.body || ""));
 
   if (version.startAt || version.endAt) {
     lines.push("");
@@ -1187,7 +1265,7 @@ function buildMailText(version) {
 
   if (version.signature) {
     lines.push("");
-    lines.push(version.signature);
+    lines.push(resolvePlaceholderText(version.signature));
   }
 
   return lines.join("\n").trim();
@@ -1198,7 +1276,7 @@ function renderPreview() {
   const version = getSelectedVersion(group, state.selectedLocale);
   if (!version) return;
 
-  appEls.previewSubject.textContent = version.subject || "(无主题)";
+  appEls.previewSubject.textContent = resolveTemplateSubject(version) || "(无主题)";
   appEls.previewBody.textContent = buildMailText(version);
 }
 
@@ -1209,19 +1287,31 @@ function persistLocalGroups() {
       version: TEMPLATE_DATA_VERSION,
       updatedAt: new Date().toISOString(),
       groups: state.groups,
+      policySummary: state.policySummary,
     }),
   );
 }
 
-function loadLocalGroups() {
+function loadLocalEditorState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.localTemplateGroups);
-    if (!raw) return [];
+    if (!raw) {
+      return {
+        groups: [],
+        policySummary: createEmptyPolicySummary(),
+      };
+    }
 
     const payload = JSON.parse(raw);
-    return parseTemplateGroupsPayload(payload);
+    return {
+      groups: parseTemplateGroupsPayload(payload),
+      policySummary: normalizePolicySummary(payload?.policySummary),
+    };
   } catch (_error) {
-    return [];
+    return {
+      groups: [],
+      policySummary: createEmptyPolicySummary(),
+    };
   }
 }
 
@@ -1248,6 +1338,33 @@ function onActivationPrefChange() {
   state.activationPrefs.targetMailbox = String(appEls.targetMailboxInput.value || "").trim();
   state.activationPrefs.mode = appEls.activateModeSelect.value === "all" ? "all" : "current";
   localStorage.setItem(STORAGE_KEYS.activationPrefs, JSON.stringify(state.activationPrefs));
+}
+
+function onPlaceholderValueInput(event) {
+  const input = event.target.closest("[data-token]");
+  if (!input) return;
+
+  const token = String(input.dataset.token || "").trim();
+  if (!token) return;
+
+  const existing = state.policySummary.defaultBlocks.find((item) => item.token === token);
+  if (existing) {
+    existing.value = String(input.value || "");
+  } else {
+    state.policySummary.defaultBlocks.push({
+      token,
+      value: String(input.value || ""),
+    });
+  }
+
+  state.policySummary.defaultBlocks = ensureDefaultBlockCoverage(
+    state.policySummary.defaultBlocks,
+    state.policySummary.placeholderPolicy.allowed,
+  );
+
+  persistLocalGroups();
+  renderPolicySummary();
+  renderPreview();
 }
 
 function exportTemplatesAsFile() {
@@ -1311,7 +1428,7 @@ async function copyPreviewText() {
   const version = getSelectedVersion(group, state.selectedLocale);
   if (!version) return;
 
-  const text = `主题：${version.subject}\n\n${buildMailText(version)}`;
+  const text = `主题：${resolveTemplateSubject(version)}\n\n${buildMailText(version)}`;
   await copyToClipboard(text, "已复制纯文本。", "复制失败，请检查浏览器权限。");
 }
 
@@ -1325,7 +1442,7 @@ async function copyPreviewHtml() {
     .map((line) => escapeHtml(line))
     .join("<br>");
 
-  const html = `<p><strong>主题：</strong>${escapeHtml(version.subject)}</p><p>${body}</p>`;
+  const html = `<p><strong>主题：</strong>${escapeHtml(resolveTemplateSubject(version))}</p><p>${body}</p>`;
   await copyToClipboard(html, "已复制 HTML。", "复制失败，请检查浏览器权限。");
 }
 
@@ -1471,7 +1588,7 @@ function validateAliMailFormat(version) {
   const errors = [];
   const warnings = [];
 
-  const subject = String(version.subject || "").trim();
+  const subject = resolveTemplateSubject(version).trim();
   const body = buildMailText(version);
 
   if (!subject) {
@@ -1523,7 +1640,7 @@ function buildAliMailActivationPayload(group, version) {
     locale: version.locale,
     category: group.category,
     scope: version.scope || "external",
-    subject: version.subject || "",
+    subject: resolveTemplateSubject(version),
     bodyText: plainBody,
     bodyHtml: plainBody
       .split("\n")
@@ -1600,6 +1717,22 @@ function buildManualActivationPacket(envelope, warnings) {
 
 function isValidEmail(text) {
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(text || "").trim());
+}
+
+function resolveTemplateSubject(version) {
+  return resolvePlaceholderText(version?.subject || "");
+}
+
+function resolvePlaceholderText(input) {
+  const defaultBlocks = ensureDefaultBlockCoverage(
+    state.policySummary.defaultBlocks,
+    state.policySummary.placeholderPolicy.allowed,
+  );
+
+  return defaultBlocks.reduce((output, item) => {
+    if (!item.token) return output;
+    return output.split(item.token).join(item.value || item.token);
+  }, String(input || ""));
 }
 
 async function copyToClipboard(content, okMessage, errorMessage) {
