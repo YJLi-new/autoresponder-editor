@@ -1396,43 +1396,49 @@ function renderPolicySummary() {
   const policy = state.policySummary;
   const sections = [
     buildRichPolicySection("有插件激活", {
+      className: "policy-section-activation",
       intro: policy.pluginActivationGuide.overview,
       groups: [
-        { title: "安装准备", items: policy.pluginActivationGuide.installSteps, ordered: true },
-        { title: "使用流程", items: policy.pluginActivationGuide.usageSteps, ordered: true },
-        { title: "验收检查", items: policy.pluginActivationGuide.successChecks, ordered: true },
-        { title: "常见排查", items: policy.pluginActivationGuide.troubleshooting, ordered: true },
+        { title: "安装准备", items: policy.pluginActivationGuide.installSteps, ordered: true, meta: `${policy.pluginActivationGuide.installSteps.length} 步` },
+        { title: "使用流程", items: policy.pluginActivationGuide.usageSteps, ordered: true, meta: `${policy.pluginActivationGuide.usageSteps.length} 步`, className: "policy-group-wide" },
+        { title: "验收检查", items: policy.pluginActivationGuide.successChecks, ordered: true, meta: `${policy.pluginActivationGuide.successChecks.length} 项` },
+        { title: "常见排查", items: policy.pluginActivationGuide.troubleshooting, ordered: true, meta: `${policy.pluginActivationGuide.troubleshooting.length} 项` },
       ],
     }),
     buildRichPolicySection("关键词/正则", {
+      className: "policy-section-keywords",
       intro: policy.keywordRegexGuide.purpose,
       groups: [
-        { title: "标准格式", items: [policy.keywordRegexGuide.syntax] },
-        { title: "Flags", items: policy.keywordRegexGuide.flags },
-        { title: "编写原则", items: policy.keywordRegexGuide.authoringRules },
-        { title: "示例", items: policy.keywordRegexGuide.examples.map((item) => `\`${item}\``) },
+        { title: "标准格式", items: [policy.keywordRegexGuide.syntax], className: "policy-group-wide" },
+        { title: "Flags", items: policy.keywordRegexGuide.flags, meta: `${policy.keywordRegexGuide.flags.length} 项` },
+        { title: "编写原则", items: policy.keywordRegexGuide.authoringRules, meta: `${policy.keywordRegexGuide.authoringRules.length} 条`, className: "policy-group-tall" },
+        { title: "示例", items: policy.keywordRegexGuide.examples.map((item) => `\`${item}\``), meta: `${policy.keywordRegexGuide.examples.length} 个` },
       ],
     }),
     buildRichPolicySection("来源与主题策略", {
+      className: "policy-section-source",
       groups: [
-        { title: "来源文件", items: policy.sourceFiles.map((item) => `\`${item}\``) },
+        { title: "来源文件", items: policy.sourceFiles.map((item) => `\`${item}\``), meta: `${policy.sourceFiles.length} 份` },
         {
           title: "语言策略",
           items: [
             policy.defaultLanguage ? `默认语言：\`${policy.defaultLanguage}\`` : "",
             ...policy.localizeWhen.map((item) => `切换语言条件：${item}`),
           ],
+          className: "policy-group-wide",
         },
         {
           title: "主题策略",
           items: [policy.subjectStrategy.source, policy.subjectStrategy.editorFallback],
+          meta: "线程优先",
         },
       ],
     }),
     buildPlaceholderPolicySection(policy.placeholderPolicy),
     buildRichPolicySection("去重与排除", {
+      className: "policy-section-dedupe",
       groups: [
-        { title: "去重规则", items: policy.dedupeRules },
+        { title: "去重规则", items: policy.dedupeRules, meta: `${policy.dedupeRules.length} 条` },
         {
           title: "排除规则",
           items: policy.exclusionRules.map((rule) =>
@@ -1440,25 +1446,30 @@ function renderPolicySummary() {
               .filter(Boolean)
               .join(" | "),
           ),
+          meta: `${policy.exclusionRules.length} 条`,
+          className: "policy-group-wide",
         },
       ],
     }),
     buildRichPolicySection("路由团队", {
+      className: "policy-section-routing",
       groups: policy.routingGroups.map((group) => ({
         title: group.label,
         items: [
           group.mailbox ? `邮箱：\`${group.mailbox}\`` : "",
           ...group.handles,
         ],
+        meta: `${group.handles.length + (group.mailbox ? 1 : 0)} 项`,
       })),
     }),
     buildRichPolicySection("人工跟进规范", {
+      className: "policy-section-manual",
       groups: [
-        { title: "第一封自动回复", items: policy.manualFlowNorms.firstTouch },
-        { title: "人工二次触达", items: policy.manualFlowNorms.secondTouch },
-        { title: "升级与转交", items: policy.manualFlowNorms.escalation },
-        { title: "签名控制", items: policy.manualFlowNorms.signatureControl },
-        { title: "价格控制", items: policy.manualFlowNorms.pricingControl },
+        { title: "第一封自动回复", items: policy.manualFlowNorms.firstTouch, className: "policy-group-wide", meta: `${policy.manualFlowNorms.firstTouch.length} 条` },
+        { title: "人工二次触达", items: policy.manualFlowNorms.secondTouch, meta: `${policy.manualFlowNorms.secondTouch.length} 条` },
+        { title: "升级与转交", items: policy.manualFlowNorms.escalation, meta: `${policy.manualFlowNorms.escalation.length} 条`, className: "policy-group-wide" },
+        { title: "签名控制", items: policy.manualFlowNorms.signatureControl, meta: `${policy.manualFlowNorms.signatureControl.length} 条` },
+        { title: "价格控制", items: policy.manualFlowNorms.pricingControl, meta: `${policy.manualFlowNorms.pricingControl.length} 条` },
       ],
     }),
   ]
@@ -1482,9 +1493,10 @@ function buildRichPolicySection(title, config = {}) {
 
   const groupHtml = groups.map(buildPolicyGroupCard).join("");
   const overview = config.intro ? `<p class="policy-intro">${formatPolicyText(config.intro)}</p>` : "";
+  const sectionClass = config.className ? ` ${escapeHtml(config.className)}` : "";
 
   return `
-    <details class="policy-section policy-section-rich" open>
+    <details class="policy-section policy-section-rich${sectionClass}" open>
       <summary>${escapeHtml(title)}</summary>
       ${overview}
       ${groupHtml ? `<div class="policy-group-grid">${groupHtml}</div>` : ""}
@@ -1583,6 +1595,7 @@ function buildPlaceholderPolicySection(policy) {
 function buildPolicyGroupCard(group) {
   const listClass = group.ordered ? "policy-step-list" : "policy-group-list";
   const listTag = group.ordered ? "ol" : "ul";
+  const cardClass = group.className ? ` ${escapeHtml(group.className)}` : "";
   const itemsHtml = group.items
     .map((item) =>
       group.ordered
@@ -1600,8 +1613,11 @@ function buildPolicyGroupCard(group) {
     .join("");
 
   return `
-    <section class="policy-group">
-      <p class="policy-group-title">${escapeHtml(group.title || "")}</p>
+    <section class="policy-group${cardClass}">
+      <div class="policy-group-head">
+        <p class="policy-group-title">${escapeHtml(group.title || "")}</p>
+        ${group.meta ? `<span class="policy-group-meta">${escapeHtml(group.meta)}</span>` : ""}
+      </div>
       <${listTag} class="${listClass}">
         ${itemsHtml}
       </${listTag}>
