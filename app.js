@@ -180,6 +180,7 @@ async function boot() {
   restoreActivationPrefs();
   renderActivationPrefs();
   renderPolicySummary();
+  renderManualGuide(state.activationPrefs.targetMailbox, state.activationPrefs.mode, []);
 
   renderList();
   selectGroup(state.selectedGroupId || state.groups[0]?.groupId || null, state.selectedLocale);
@@ -1353,6 +1354,7 @@ function onActivationPrefChange() {
   state.activationPrefs.targetMailbox = String(appEls.targetMailboxInput.value || "").trim();
   state.activationPrefs.mode = appEls.activateModeSelect.value === "all" ? "all" : "current";
   localStorage.setItem(STORAGE_KEYS.activationPrefs, JSON.stringify(state.activationPrefs));
+  renderManualGuide(state.activationPrefs.targetMailbox, state.activationPrefs.mode, []);
 }
 
 function onPlaceholderValueInput(event) {
@@ -1689,8 +1691,9 @@ function renderManualGuide(targetMailbox, mode, warnings) {
     return;
   }
 
+  const mailboxLabel = String(targetMailbox || "").trim() || "（请先填写上方指定邮箱）";
   const steps = [
-    `确认当前登录邮箱为 ${targetMailbox}。`,
+    `确认当前登录邮箱为 ${mailboxLabel}。`,
     `AliMail 网址：${ALIMAIL_WEBMAIL_URL}`,
     "进入 AliMail 设置页，找到“收信规则 / 邮件规则 / 过滤器规则”。",
     "新建规则并选择动作“自动回复/回复邮件”（若没有此动作，请联系管理员开通权限）。",

@@ -215,6 +215,10 @@ textarea {
   min-width: 0;
 }
 
+.preview-panel > * {
+  min-width: 0;
+}
+
 .list-panel {
   grid-template-rows: auto minmax(0, 1fr);
   align-content: stretch;
@@ -607,6 +611,7 @@ textarea {
   border-radius: 14px;
   padding: 14px;
   background: #fff;
+  min-width: 0;
 }
 
 .preview-label {
@@ -620,11 +625,13 @@ textarea {
 .preview-subject {
   margin: 6px 0 14px;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .preview-body {
   margin: 6px 0 0;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
   font-family: "Noto Sans SC", sans-serif;
   font-size: 14px;
   line-height: 1.55;
@@ -635,6 +642,13 @@ textarea {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
+}
+
+.preview-actions .btn,
+.manual-guide-actions .btn {
+  max-width: 100%;
+  white-space: normal;
 }
 
 .manual-guide {
@@ -643,6 +657,7 @@ textarea {
   background: #fffdf5;
   border-radius: 12px;
   padding: 10px 12px;
+  min-width: 0;
 }
 
 .manual-guide-title {
@@ -660,6 +675,7 @@ textarea {
   color: #41555c;
   font-size: 13px;
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .manual-guide-actions {
@@ -667,6 +683,7 @@ textarea {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .status {
@@ -688,6 +705,7 @@ textarea {
   padding: 10px 12px;
   display: grid;
   gap: 10px;
+  min-width: 0;
 }
 
 @media (max-width: 1180px) {
