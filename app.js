@@ -1395,49 +1395,86 @@ function renderPolicySummary() {
 
   const policy = state.policySummary;
   const sections = [
-    buildPluginActivationPolicySection(policy.pluginActivationGuide),
-    buildPolicySection("关键词/正则", [
-      policy.keywordRegexGuide.purpose,
-      policy.keywordRegexGuide.syntax,
-      ...policy.keywordRegexGuide.flags.map((item) => `Flags：${item}`),
-      ...policy.keywordRegexGuide.authoringRules,
-      ...policy.keywordRegexGuide.examples.map((item) => `示例：${item}`),
-    ]),
-    buildPolicySection("来源与主题策略", [
-      policy.sourceFiles.length > 0 ? `来源文件：${policy.sourceFiles.join(" + ")}` : "",
-      policy.defaultLanguage ? `默认语言：${policy.defaultLanguage}` : "",
-      ...policy.localizeWhen.map((item) => `切换语言条件：${item}`),
-      policy.subjectStrategy.source,
-      policy.subjectStrategy.editorFallback,
-    ]),
-    buildPolicySection("占位符政策", [
-      policy.placeholderPolicy.principle,
-      policy.placeholderPolicy.namingRule,
-      policy.placeholderPolicy.implementationNotes.join(" "),
-      policy.placeholderPolicy.allowed.length > 0
-        ? `允许变量：${policy.placeholderPolicy.allowed.map(formatPlaceholderWithAlias).join("，")}`
-        : "",
-      policy.placeholderPolicy.banned.length > 0
-        ? `禁用变量：${policy.placeholderPolicy.banned.join("，")}`
-        : "",
-    ]),
-    buildPolicySection("去重与排除", [
-      ...policy.dedupeRules,
-      ...policy.exclusionRules.map((rule) => `${rule.id}：${rule.reason}`),
-    ]),
-    buildPolicySection(
-      "路由团队",
-      policy.routingGroups.map((group) =>
-        [group.label, group.mailbox, group.handles.join(" / ")].filter(Boolean).join(" | "),
-      ),
-    ),
-    buildPolicySection("人工跟进规范", [
-      ...policy.manualFlowNorms.firstTouch,
-      ...policy.manualFlowNorms.secondTouch,
-      ...policy.manualFlowNorms.escalation,
-      ...policy.manualFlowNorms.signatureControl,
-      ...policy.manualFlowNorms.pricingControl,
-    ]),
+    buildRichPolicySection("有插件激活", {
+      intro: policy.pluginActivationGuide.overview,
+      groups: [
+        { title: "安装准备", items: policy.pluginActivationGuide.installSteps, ordered: true },
+        { title: "使用流程", items: policy.pluginActivationGuide.usageSteps, ordered: true },
+        { title: "验收检查", items: policy.pluginActivationGuide.successChecks, ordered: true },
+        { title: "常见排查", items: policy.pluginActivationGuide.troubleshooting, ordered: true },
+      ],
+    }),
+    buildRichPolicySection("关键词/正则", {
+      intro: policy.keywordRegexGuide.purpose,
+      groups: [
+        { title: "标准格式", items: [policy.keywordRegexGuide.syntax] },
+        { title: "Flags", items: policy.keywordRegexGuide.flags },
+        { title: "编写原则", items: policy.keywordRegexGuide.authoringRules },
+        { title: "示例", items: policy.keywordRegexGuide.examples.map((item) => `\`${item}\``) },
+      ],
+    }),
+    buildRichPolicySection("来源与主题策略", {
+      groups: [
+        { title: "来源文件", items: policy.sourceFiles.map((item) => `\`${item}\``) },
+        {
+          title: "语言策略",
+          items: [
+            policy.defaultLanguage ? `默认语言：\`${policy.defaultLanguage}\`` : "",
+            ...policy.localizeWhen.map((item) => `切换语言条件：${item}`),
+          ],
+        },
+        {
+          title: "主题策略",
+          items: [policy.subjectStrategy.source, policy.subjectStrategy.editorFallback],
+        },
+      ],
+    }),
+    buildRichPolicySection("占位符政策", {
+      intro: policy.placeholderPolicy.principle,
+      groups: [
+        { title: "命名规则", items: [policy.placeholderPolicy.namingRule] },
+        {
+          title: "允许占位符",
+          items: policy.placeholderPolicy.allowed.map(formatPolicyPlaceholderItem),
+        },
+        {
+          title: "禁用占位符",
+          items: policy.placeholderPolicy.banned.map((item) => `\`${item}\``),
+        },
+        { title: "实现说明", items: policy.placeholderPolicy.implementationNotes },
+      ],
+    }),
+    buildRichPolicySection("去重与排除", {
+      groups: [
+        { title: "去重规则", items: policy.dedupeRules },
+        {
+          title: "排除规则",
+          items: policy.exclusionRules.map((rule) =>
+            [rule.id ? `\`${rule.id}\`` : "", rule.reason, rule.routeTo ? `路由：\`${rule.routeTo}\`` : ""]
+              .filter(Boolean)
+              .join(" | "),
+          ),
+        },
+      ],
+    }),
+    buildRichPolicySection("路由团队", {
+      groups: policy.routingGroups.map((group) => ({
+        title: group.label,
+        items: [
+          group.mailbox ? `邮箱：\`${group.mailbox}\`` : "",
+          ...group.handles,
+        ],
+      })),
+    }),
+    buildRichPolicySection("人工跟进规范", {
+      groups: [
+        { title: "第一封自动回复", items: policy.manualFlowNorms.firstTouch },
+        { title: "人工二次触达", items: policy.manualFlowNorms.secondTouch },
+        { title: "升级与转交", items: policy.manualFlowNorms.escalation },
+        { title: "签名控制", items: policy.manualFlowNorms.signatureControl },
+        { title: "价格控制", items: policy.manualFlowNorms.pricingControl },
+      ],
+    }),
   ]
     .filter(Boolean)
     .join("");
@@ -1445,66 +1482,65 @@ function renderPolicySummary() {
   appEls.policySummaryContent.innerHTML = sections;
 }
 
-function buildPolicySection(title, items, trustedHtml = false) {
-  const normalizedItems = items.filter(Boolean);
-  if (normalizedItems.length === 0) {
+function buildRichPolicySection(title, config = {}) {
+  const groups = (config.groups || [])
+    .map((group) => ({
+      ...group,
+      items: (group.items || []).filter(Boolean),
+    }))
+    .filter((group) => group.items.length > 0);
+
+  if (!config.intro && groups.length === 0) {
     return "";
   }
 
-  const content = normalizedItems
-    .map((item) => `<li>${trustedHtml ? item : formatPolicyText(item)}</li>`)
-    .join("");
-
-  return `<details class="policy-section" open><summary>${escapeHtml(title)}</summary><ul>${content}</ul></details>`;
-}
-
-function buildPluginActivationPolicySection(guide) {
-  const groups = [
-    { title: "安装准备", items: guide.installSteps },
-    { title: "使用流程", items: guide.usageSteps },
-    { title: "验收检查", items: guide.successChecks },
-    { title: "常见排查", items: guide.troubleshooting },
-  ].filter((group) => group.items.filter(Boolean).length > 0);
-
-  if (!guide?.overview && groups.length === 0) {
-    return "";
-  }
-
-  const groupHtml = groups
-    .map(
-      (group) => `
-        <section class="policy-group">
-          <p class="policy-group-title">${escapeHtml(group.title)}</p>
-          <ol class="policy-step-list">
-            ${group.items
-              .filter(Boolean)
-              .map(
-                (item) => `
-                  <li class="policy-step-item">
-                    <span class="policy-step-index" aria-hidden="true"></span>
-                    <span class="policy-step-text">${formatPolicyText(item)}</span>
-                  </li>`,
-              )
-              .join("")}
-          </ol>
-        </section>`,
-    )
-    .join("");
-
-  const overview = guide?.overview
-    ? `<p class="policy-intro">${formatPolicyText(guide.overview)}</p>`
-    : "";
+  const groupHtml = groups.map(buildPolicyGroupCard).join("");
+  const overview = config.intro ? `<p class="policy-intro">${formatPolicyText(config.intro)}</p>` : "";
 
   return `
     <details class="policy-section policy-section-rich" open>
-      <summary>${escapeHtml("有插件激活")}</summary>
+      <summary>${escapeHtml(title)}</summary>
       ${overview}
-      <div class="policy-group-grid">${groupHtml}</div>
+      ${groupHtml ? `<div class="policy-group-grid">${groupHtml}</div>` : ""}
     </details>`;
+}
+
+function buildPolicyGroupCard(group) {
+  const listClass = group.ordered ? "policy-step-list" : "policy-group-list";
+  const listTag = group.ordered ? "ol" : "ul";
+  const itemsHtml = group.items
+    .map((item) =>
+      group.ordered
+        ? `
+            <li class="policy-step-item">
+              <span class="policy-step-index" aria-hidden="true"></span>
+              <span class="policy-step-text">${formatPolicyText(item)}</span>
+            </li>`
+        : `
+            <li class="policy-group-item">
+              <span class="policy-group-bullet" aria-hidden="true"></span>
+              <span class="policy-step-text">${formatPolicyText(item)}</span>
+            </li>`,
+    )
+    .join("");
+
+  return `
+    <section class="policy-group">
+      <p class="policy-group-title">${escapeHtml(group.title || "")}</p>
+      <${listTag} class="${listClass}">
+        ${itemsHtml}
+      </${listTag}>
+    </section>`;
 }
 
 function formatPolicyText(text) {
   return escapeHtml(String(text || "")).replace(/`([^`]+)`/g, '<code class="policy-inline-code">$1</code>');
+}
+
+function formatPolicyPlaceholderItem(token) {
+  const normalized = String(token || "").trim();
+  if (!normalized) return "";
+  return `${getPlaceholderAlias(normalized)} | \`${normalized}\``;
 }
 
 function hasPolicySummary(policySummary) {
