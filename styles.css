@@ -211,6 +211,10 @@ textarea {
   min-width: 0;
 }
 
+.list-panel {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
 .panel-head {
   display: flex;
   align-items: center;
@@ -257,8 +261,9 @@ textarea {
   padding: 0;
   display: grid;
   gap: 8px;
-  max-height: 42vh;
+  min-height: 0;
   overflow: auto;
+  align-content: start;
 }
 
 .template-item {
