@@ -1191,13 +1191,6 @@ function renderPolicySummary() {
       ...policy.manualFlowNorms.signatureControl,
       ...policy.manualFlowNorms.pricingControl,
     ]),
-    buildPolicySection(
-      "默认信息块",
-      policy.defaultBlocks.map(
-        (item) => `<span class="policy-token">${escapeHtml(item.token)}</span> = ${escapeHtml(item.value)}`,
-      ),
-      true,
-    ),
   ]
     .filter(Boolean)
     .join("");
