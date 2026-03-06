@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260306-7" />
+    <link rel="stylesheet" href="styles.css?v=20260306-8" />
   </head>
   <body>
     <div class="bg-shape bg-shape-1"></div>
@@ -112,7 +112,7 @@
                 <p><strong>路由部门：</strong><span id="metaRouting"></span></p>
                 <p><strong>建议 SLA：</strong><span id="metaSla"></span></p>
                 <p><strong>匹配字段：</strong><span id="metaMatchFields"></span></p>
-                <p><strong>关键词/正则：</strong><span id="metaKeywords"></span></p>
+                <p><strong>关键词/正则：</strong><span id="metaKeywords" class="regex-text"></span></p>
                 <p><strong>排除条件：</strong><span id="metaExclusions"></span></p>
                 <p><strong>占位符：</strong><span id="metaPlaceholders"></span></p>
                 <p><strong>备注：</strong><span id="metaNote"></span></p>
@@ -259,7 +259,12 @@
 
           <label>
             关键词/正则
-            <textarea id="metaEditorKeywords" rows="3"></textarea>
+            <textarea
+              id="metaEditorKeywords"
+              class="regex-text"
+              rows="3"
+              placeholder="/payment|invoice|\\bPI\\b|proforma|bank account/i"
+            ></textarea>
           </label>
 
           <label>
@@ -285,6 +290,6 @@
       </div>
     </div>
 
-    <script src="app.js?v=20260306-7" defer></script>
+    <script src="app.js?v=20260306-8" defer></script>
   </body>
 </html>

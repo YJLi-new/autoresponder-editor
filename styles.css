@@ -123,6 +123,10 @@ textarea {
   resize: vertical;
 }
 
+.regex-text {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
 .inline-grid {
   display: grid;
   gap: 12px;

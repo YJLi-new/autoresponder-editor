@@ -17,6 +17,22 @@ const ROUTING_LABELS = {
 
 const EXCLUSION_SUMMARY =
   "命中内部非表单、自动回复/退信、渠道 campaign 回信、付款安全公告回信时，不发送自动回复。";
+const KEYWORDS_REGEX_BY_TEMPLATE_ID = {
+  TPL_SUPPORT_AFTERSALES_ACK: "/support-detail|support|professionalsupport|shoes|dongle|customer care|spare parts/i",
+  TPL_SDK_TECH_ACK: "/sdk|vehicle hub|kat i\\/o|kat gateway|integration|technical compatibility/i",
+  TPL_INVOICE_PAYMENT_ACK: "/payment|invoice|\\bPI\\b|proforma|bank account/i",
+  TPL_SHIPPING_LOGISTICS_ACK: "/shipping|freight|\\bETA\\b|delivery timeline|forwarder|package/i",
+  TPL_QUOTE_PRICING_ACK: "/quote|quotation|\\bRFQ\\b|price list|pricing/i",
+  TPL_ORDER_PROCUREMENT_ACK: "/order|purchase|\\bPO\\b|bulk order/i",
+  TPL_EDU_TRAINING_ACK: "/educational|training solution|institution|simulation training/i",
+  TPL_B2B_BUSINESS_ACK:
+    "/business|primeday|primeday-fall|warehouse|fitnessday|memberday|flashsale|kat-walk-mini-s-bfcm|commercial|arcade|reseller|dealer/i",
+  TPL_PRODUCT_SELECTION_COMPARE_ACK: "/models-comparison|download/i",
+  TPL_WEBSITE_PRODUCT_ACK:
+    "/product page form|homepage form|product inquiry|new contact form from (kat-walk-[^\\s]*|kat-pro|kat-loco-s|kat-nexus)|No\\.\\d{5,}/i",
+  TPL_PARTNERSHIP_CHANNEL_ACK: "/dealer|creator|distribution|partnership proposal/i",
+  TPL_GENERAL_ACK: "/^.+$/i",
+};
 
 const TEMPLATE_LOCALIZATION = {
   TPL_WEBSITE_PRODUCT_ACK: {
@@ -200,7 +216,7 @@ function buildGroups(templateSections, rulesByTemplate, routes) {
         ruleId: rule.id,
         priority: rule.priority,
         matchFields: rule.matchFields,
-        keywords: template.appliesTo,
+        keywords: KEYWORDS_REGEX_BY_TEMPLATE_ID[templateId] || template.appliesTo,
         exclusions: templateId === "TPL_PARTNERSHIP_CHANNEL_ACK" ? `${EXCLUSION_SUMMARY} 不用于回复我方 partnership campaign 回信。` : EXCLUSION_SUMMARY,
         routing: routingLabel,
         sla: `自动确认后由${routingLabel.replace(/（.*$/, "")}继续人工跟进。`,

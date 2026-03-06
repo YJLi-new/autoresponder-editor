@@ -11,6 +11,22 @@ const LOCALE_LABELS = {
   "en-US": "English",
 };
 const ALIMAIL_WEBMAIL_URL = "https://qiye.aliyun.com/alimail/entries/v5.1/mail/inbox/all";
+const DEFAULT_KEYWORDS_REGEX_BY_GROUP_ID = {
+  TPL_SUPPORT_AFTERSALES_ACK: "/support-detail|support|professionalsupport|shoes|dongle|customer care|spare parts/i",
+  TPL_SDK_TECH_ACK: "/sdk|vehicle hub|kat i\\/o|kat gateway|integration|technical compatibility/i",
+  TPL_INVOICE_PAYMENT_ACK: "/payment|invoice|\\bPI\\b|proforma|bank account/i",
+  TPL_SHIPPING_LOGISTICS_ACK: "/shipping|freight|\\bETA\\b|delivery timeline|forwarder|package/i",
+  TPL_QUOTE_PRICING_ACK: "/quote|quotation|\\bRFQ\\b|price list|pricing/i",
+  TPL_ORDER_PROCUREMENT_ACK: "/order|purchase|\\bPO\\b|bulk order/i",
+  TPL_EDU_TRAINING_ACK: "/educational|training solution|institution|simulation training/i",
+  TPL_B2B_BUSINESS_ACK:
+    "/business|primeday|primeday-fall|warehouse|fitnessday|memberday|flashsale|kat-walk-mini-s-bfcm|commercial|arcade|reseller|dealer/i",
+  TPL_PRODUCT_SELECTION_COMPARE_ACK: "/models-comparison|download/i",
+  TPL_WEBSITE_PRODUCT_ACK:
+    "/product page form|homepage form|product inquiry|new contact form from (kat-walk-[^\\s]*|kat-pro|kat-loco-s|kat-nexus)|No\\.\\d{5,}/i",
+  TPL_PARTNERSHIP_CHANNEL_ACK: "/dealer|creator|distribution|partnership proposal/i",
+  TPL_GENERAL_ACK: "/^.+$/i",
+};
 
 const fields = {
   category: document.getElementById("categoryInput"),
@@ -346,12 +362,19 @@ function saveMetaEditor() {
     return;
   }
 
+  const rawKeywords = getFieldValue(appEls.metaEditorFields.keywords).trim();
+  if (rawKeywords && !isValidRegexText(rawKeywords)) {
+    setStatus(appEls.metaEditorStatus, "关键词/正则 请使用标准正则文本格式，例如 /payment|invoice|\\bPI\\b/i", true);
+    appEls.metaEditorFields.keywords?.focus();
+    return;
+  }
+
   group.groupId = nextGroupId;
   group.ruleId = getFieldValue(appEls.metaEditorFields.ruleId).trim();
   group.routing = getFieldValue(appEls.metaEditorFields.routing).trim();
   group.sla = getFieldValue(appEls.metaEditorFields.sla).trim();
   group.matchFields = getFieldValue(appEls.metaEditorFields.matchFields).trim();
-  group.keywords = getFieldValue(appEls.metaEditorFields.keywords).trim();
+  group.keywords = rawKeywords;
   group.exclusions = getFieldValue(appEls.metaEditorFields.exclusions).trim();
   group.placeholders = parseEditorPlaceholders(getFieldValue(appEls.metaEditorFields.placeholders));
   group.note = getFieldValue(appEls.metaEditorFields.note).trim();
@@ -659,7 +682,7 @@ function normalizeLegacyTemplates(list) {
         ruleId: String(item.ruleId || ""),
         priority: Number.isFinite(Number(item.priority)) ? Number(item.priority) : null,
         matchFields: String(item.matchFields || ""),
-        keywords: String(item.keywords || ""),
+        keywords: migrateKeywordsText(item.keywords, groupId),
         exclusions: String(item.exclusions || ""),
         routing: String(item.routing || ""),
         sla: String(item.sla || ""),
@@ -690,7 +713,7 @@ function normalizeGroup(input) {
     ruleId: String(input.ruleId || ""),
     priority: Number.isFinite(Number(input.priority)) ? Number(input.priority) : null,
     matchFields: String(input.matchFields || ""),
-    keywords: String(input.keywords || ""),
+    keywords: migrateKeywordsText(input.keywords, groupId),
     exclusions: String(input.exclusions || ""),
     routing: String(input.routing || ""),
     sla: String(input.sla || ""),
@@ -772,6 +795,41 @@ function parseEditorPlaceholders(input) {
     .split(/[\n,，]+/)
     .map((entry) => entry.trim())
     .filter(Boolean);
+}
+
+function migrateKeywordsText(input, groupId = "") {
+  const raw = String(input || "").trim();
+  if (!raw) {
+    return "";
+  }
+  if (isValidRegexText(raw)) {
+    return raw;
+  }
+  return getDefaultKeywordsRegex(groupId) || raw;
+}
+
+function getDefaultKeywordsRegex(groupId) {
+  return DEFAULT_KEYWORDS_REGEX_BY_GROUP_ID[String(groupId || "").trim()] || "";
+}
+
+function isValidRegexText(input) {
+  const raw = String(input || "").trim();
+  if (!raw) {
+    return false;
+  }
+
+  const match = raw.match(/^\/([\s\S]*)\/([a-z]*)$/);
+  if (!match) {
+    return false;
+  }
+
+  try {
+    // Validate user-entered regex text without executing it.
+    new RegExp(match[1], match[2]);
+    return true;
+  } catch (_error) {
+    return false;
+  }
 }
 
 function normalizeStringArray(input) {
