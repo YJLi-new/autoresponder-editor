@@ -202,6 +202,12 @@ textarea {
   padding: 16px;
 }
 
+.list-panel {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
 .panel-head {
   display: flex;
   align-items: center;
@@ -248,7 +254,7 @@ textarea {
   padding: 0;
   display: grid;
   gap: 8px;
-  max-height: 72vh;
+  max-height: 42vh;
   overflow: auto;
 }
 
@@ -358,6 +364,59 @@ textarea {
   background: #f9fff8;
   color: #2f524d;
   cursor: pointer;
+}
+
+.policy-box {
+  border: 1px dashed #b4c3b0;
+  background: var(--panel-strong);
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.policy-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1c4f45;
+}
+
+.policy-content {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  color: #405158;
+}
+
+.policy-section {
+  border: 1px solid #d9e1d1;
+  border-radius: 12px;
+  background: #fff;
+  padding: 8px 10px;
+}
+
+.policy-section summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: #214f45;
+}
+
+.policy-section p,
+.policy-section ul {
+  margin: 8px 0 0;
+}
+
+.policy-section ul {
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+}
+
+.policy-token {
+  font-family: "Space Grotesk", "Noto Sans SC", sans-serif;
+  font-weight: 700;
+  color: #19473f;
 }
 
 .mail-preview {

@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260227-3" />
+    <link rel="stylesheet" href="styles.css?v=20260306-1" />
   </head>
   <body>
     <div class="bg-shape bg-shape-1"></div>
@@ -46,7 +46,7 @@
           <div>
             <p class="eyebrow">Template Studio</p>
             <h2>自动回复模板可视化编辑</h2>
-            <p class="repo-badge">同类模板合并展示，中英版本可切换</p>
+            <p class="repo-badge">V2 规则重生成，中英版本成组展示</p>
           </div>
           <div class="toolbar">
             <button id="exportBtn" class="btn ghost" type="button">导出 JSON</button>
@@ -63,6 +63,10 @@
               <button id="addTemplateBtn" class="btn ghost" type="button">新建类别</button>
             </div>
             <ul id="templateList" class="template-list"></ul>
+            <section class="policy-box">
+              <p class="policy-title">V2 Rules Baseline</p>
+              <div id="policySummaryContent" class="policy-content"></div>
+            </section>
           </aside>
 
           <section class="panel form-panel">
@@ -143,16 +147,8 @@
             </form>
 
             <div class="token-row">
-              <p>变量插入：</p>
-              <div class="chips">
-                <button class="chip" type="button" data-token="{{Name}}">Name</button>
-                <button class="chip" type="button" data-token="{{OriginalSubject}}">OriginalSubject</button>
-                <button class="chip" type="button" data-token="{{Product}}">Product</button>
-                <button class="chip" type="button" data-token="{{Qty}}">Qty</button>
-                <button class="chip" type="button" data-token="{{Destination}}">Destination</button>
-                <button class="chip" type="button" data-token="{{OrderNo}}">OrderNo</button>
-                <button class="chip" type="button" data-token="{{PI_No}}">PI_No</button>
-              </div>
+              <p>推荐变量插入：</p>
+              <div id="chipContainer" class="chips"></div>
             </div>
           </section>
 
@@ -199,6 +195,6 @@
       <input id="importInput" type="file" accept="application/json,.json" hidden />
     </main>
 
-    <script src="app.js?v=20260227-3" defer></script>
+    <script src="app.js?v=20260306-1" defer></script>
   </body>
 </html>

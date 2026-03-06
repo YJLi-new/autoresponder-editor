@@ -1,108 +1,72 @@
 # AliMail Auto-Reply Template Studio
 
-一个部署在 GitHub Pages 的静态网页，用于可视化编辑阿里邮箱自动回复模板。
+一个部署在 GitHub Pages 的静态网页，用于可视化编辑 KAT VR 企业邮箱自动回复模板。
 
-## 功能
+## 当前默认内容
 
-- 模板按“类别分组”管理（每个类别内置中/英两个版本）
-- 侧边栏同类模板内切换 `中文 / English`
-- 可视化字段编辑（主题、开场、正文、签名、生效时间、发送范围）
-- 基于规则的元信息展示（Rule ID、路由、SLA、关键词、排除条件、占位符）
-- 导入 / 导出 JSON
-- 自定义密钥门禁（PBKDF2 哈希校验）
-- 一键在 AliMail 激活（无插件引导 + 主题/正文/激活包一键复制）
-- 本地缓存（浏览器 `localStorage`）
+- 默认模板已切换到 V2 重整规则体系
+- 左侧模板列表共 12 组 `TPL_*` 自动回复模板
+- 每组模板保留 `中文 / English` 双版本
+- 页面内新增只读 `V2 Rules Baseline` 摘要，展示默认语言、占位符政策、排除规则、去重策略、路由团队与默认信息块
+- 占位符按钮已改为仅显示 `Our* / KAT*` 体系变量，不再提供客户侧字段占位符
 
-## 初始模板来源
+## 数据来源
 
-`data/auto-reply-templates.json` 的初始模板基于：
+默认模板与规则摘要由以下两个源文件生成：
 
-- `instructions/email_rules_keyword_templates.csv`
-- `instructions/email_rules_keyword_templates.xlsx`
+- `/mnt/e/KV/KATVR_邮箱自动回复规则与模板_v2_重新生成/KATVR_企业邮箱自动回复模板_v2_重新生成.md`
+- `/mnt/e/KV/KATVR_邮箱自动回复规则与模板_v2_重新生成/KATVR_企业邮箱自动回复规则_v2_重新生成.yaml`
 
-已覆盖模板库中的 15 个 `Template_ID`，并为每个类别提供中英双语版本。
+生成脚本：
 
-## 阿里邮箱格式符合性说明
+```bash
+node scripts/generate-template-data.mjs \
+  "/mnt/e/KV/KATVR_邮箱自动回复规则与模板_v2_重新生成/KATVR_企业邮箱自动回复模板_v2_重新生成.md" \
+  "/mnt/e/KV/KATVR_邮箱自动回复规则与模板_v2_重新生成/KATVR_企业邮箱自动回复规则_v2_重新生成.yaml" \
+  > data/auto-reply-templates.json
+```
 
-本项目输出用于 AliMail 自动回复时，采用以下格式：
+## V2 规则约束
 
-- `subject`: 纯文本主题
-- `bodyText`: 纯文本正文（保留换行）
-- `bodyHtml`: 与正文等价的 HTML（`<br>` 换行）
-- `startAt/endAt`: `YYYY-MM-DDTHH:mm` 本地时间格式
-- `scope`: `all | internal | external`
+- 默认语言：`English`
+- 同类模板按双语成组展示，但正文内容已按 V2 规则重写
+- 客户字段不再作为模板占位符使用，例如 `{{Name}}`、`{{Qty}}`、`{{Budget}}`、`{{Timeline}}`
+- 允许的占位符仅用于展示我方产品、方案、软件、交付、支持与支付安全信息
+- 内部非表单邮件、自动回复/退信、我方 campaign 回信、付款安全公告回信默认不触发自动回复
+- 旧浏览器模板缓存已通过新存储键淘汰，首次打开会强制加载 V2 默认模板
 
-编辑器内置校验：
+## 激活方式
 
-- 主题不能为空
-- 正文不能为空
-- 结束时间必须晚于开始时间
-- 主题超长、正文超长、占位符未替换会给出警告
+阿里邮箱开放平台没有提供可直接写入自动回复正文的公开接口，因此默认使用无插件引导模式：
 
-## 激活方式说明
+1. 编辑器保存当前模板
+2. 自动复制主题 / 正文 / 完整激活包
+3. 打开阿里企业邮箱网页
+4. 按页面中的 `无插件激活步骤` 在规则页手动粘贴并保存
 
-阿里邮箱开放平台当前没有提供“自动回复正文/开关”的公开写接口。
-
-官方 OpenAPI 可见的用户设置接口是：
-
-- `/v2/users/{id_or_email}/mailboxSettings`（主要是外发、自动转发等限制项）
-
-因此默认激活流程为“无插件引导模式”：
-
-1. 编辑器点击“一键在 AliMail 激活”
-2. 自动复制当前模板内容（主题/正文/完整激活包）并打开阿里企业邮箱页面
-3. 按页面给出的步骤在 AliMail 规则里手动粘贴并保存
-
-## 一键激活行为
-
-一键激活会执行以下流程：
-
-1. 保存当前网页模板更改。
-2. 要求填写“指定邮箱（企业版账号）”。
-3. 选择激活范围：
-`仅当前模板`：只激活当前选中的模板。
-`全部模板（生成索引并激活当前）`：生成全部模板索引，便于逐条建立规则并激活当前模板。
-4. 自动展示“无插件激活步骤”，并提供三个复制按钮：
-`复制当前主题`、`复制当前正文`、`复制完整激活包`。
-
-说明：
-AliMail 同一邮箱同一时刻只能启用一套自动回复内容，因此“全部模板”模式是“生成模板索引 + 人工逐条设置”，不是同时启用全部模板。
-
-## 可选：安装 AliMail 激活器（高级用法）
-
-1. 安装 Tampermonkey（或同类用户脚本插件）
-2. 新建脚本并粘贴 `alimail-activator.user.js` 内容
-3. 确保脚本匹配域名：
-`https://qiye.aliyun.com/*`
-`https://mail.aliyun.com/*`
-
-安装后可尝试自动填充页面，但并非默认必需。
+`alimail-activator.user.js` 仍保留为高级用法，可选安装，但不再是默认前提。
 
 ## 项目结构
 
 - `index.html` 页面结构
 - `styles.css` 页面样式
-- `app.js` 前端逻辑（密钥校验 + 分组双语模板编辑器 + 激活载荷）
-- `alimail-activator.user.js` AliMail 端自动激活脚本（含指定邮箱检查）
-- `data/auto-reply-templates.json` 默认模板（分组结构）
-- `data/access-control.json` 访问密钥哈希配置
-- `scripts/generate-access-config.mjs` 生成密钥哈希配置
-- `.github/workflows/deploy-pages.yml` GitHub Pages 自动部署
+- `app.js` 前端逻辑（密钥校验、模板编辑、规则摘要、无插件激活）
+- `data/auto-reply-templates.json` 默认模板与规则摘要数据
+- `scripts/generate-template-data.mjs` 由 V2 `md + yaml` 生成站点默认数据
+- `scripts/generate-access-config.mjs` 生成访问密钥哈希配置
+- `alimail-activator.user.js` 可选的 AliMail 页面自动填写脚本
 
-## 快速部署
+## 部署
 
-1. 创建或使用现有 GitHub 仓库。
-2. 上传本目录文件到仓库根目录。
-3. 在 `Settings -> Pages` 选择 `GitHub Actions`。
-4. 推送到 `main` 后等待部署完成。
-5. 打开 `https://<owner>.github.io/<repo>/`。
+1. 推送仓库到 GitHub
+2. 在 `Settings -> Pages` 选择 `GitHub Actions`
+3. 推送到 `main` 后等待部署完成
+4. 打开 `https://<owner>.github.io/<repo>/`
 
-## 只通过 GitHub 修改密钥
+## 访问密钥
 
-密钥不以明文存储，页面只校验 `data/access-control.json` 的哈希值。要更新密钥：
+密钥不以明文存储，页面只校验 `data/access-control.json` 的哈希值。更新方式：
 
 ```bash
-node scripts/generate-access-config.mjs "你的新强密钥" > data/access-control.json
+node scripts/generate-access-config.mjs "你的新密钥" > data/access-control.json
 ```
-
-然后提交并推送到 GitHub，Pages 部署完成后新密钥生效。

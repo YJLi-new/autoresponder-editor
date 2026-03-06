@@ -1,8 +1,9 @@
 const STORAGE_KEYS = {
-  localTemplateGroups: "ali_editor_local_template_groups",
+  localTemplateGroups: "ali_editor_local_template_groups_v2_20260306",
   activationPrefs: "ali_editor_activation_prefs",
   unlockMarker: "ali_editor_unlock_marker",
 };
+const TEMPLATE_DATA_VERSION = 3;
 
 const LOCALE_ORDER = ["zh-CN", "en-US"];
 const LOCALE_LABELS = {
@@ -30,6 +31,37 @@ const authEls = {
   accessKey: document.getElementById("accessKeyInput"),
 };
 
+function createEmptyPolicySummary() {
+  return {
+    title: "",
+    sourceFiles: [],
+    subjectStrategy: {
+      source: "",
+      editorFallback: "",
+    },
+    defaultLanguage: "",
+    localizeWhen: [],
+    placeholderPolicy: {
+      principle: "",
+      namingRule: "",
+      allowed: [],
+      banned: [],
+      implementationNotes: [],
+    },
+    dedupeRules: [],
+    exclusionRules: [],
+    routingGroups: [],
+    manualFlowNorms: {
+      firstTouch: [],
+      secondTouch: [],
+      escalation: [],
+      signatureControl: [],
+      pricingControl: [],
+    },
+    defaultBlocks: [],
+  };
+}
+
 const appEls = {
   app: document.getElementById("editorApp"),
   list: document.getElementById("templateList"),
@@ -47,6 +79,7 @@ const appEls = {
   copyTextBtn: document.getElementById("copyTextBtn"),
   copyHtmlBtn: document.getElementById("copyHtmlBtn"),
   activateAliMailBtn: document.getElementById("activateAliMailBtn"),
+  chipsContainer: document.getElementById("chipContainer"),
   manualGuideBox: document.getElementById("manualGuideBox"),
   manualGuideList: document.getElementById("manualGuideList"),
   copyManualSubjectBtn: document.getElementById("copyManualSubjectBtn"),
@@ -54,8 +87,8 @@ const appEls = {
   copyManualPacketBtn: document.getElementById("copyManualPacketBtn"),
   targetMailboxInput: document.getElementById("targetMailboxInput"),
   activateModeSelect: document.getElementById("activateModeSelect"),
-  chips: Array.from(document.querySelectorAll(".chip")),
   localeButtons: Array.from(document.querySelectorAll("#editorLocaleSwitch .locale-btn")),
+  policySummaryContent: document.getElementById("policySummaryContent"),
   meta: {
     templateId: document.getElementById("metaTemplateId"),
     rule: document.getElementById("metaRule"),
@@ -72,6 +105,7 @@ const appEls = {
 const state = {
   accessConfig: null,
   groups: [],
+  policySummary: createEmptyPolicySummary(),
   selectedGroupId: null,
   selectedLocale: "zh-CN",
   focusedField: null,
@@ -91,6 +125,7 @@ async function boot() {
   await Promise.all([loadInitialGroups(), loadAccessConfig()]);
   restoreActivationPrefs();
   renderActivationPrefs();
+  renderPolicySummary();
 
   renderList();
   selectGroup(state.selectedGroupId || state.groups[0]?.groupId || null, state.selectedLocale);
@@ -175,15 +210,15 @@ function bindEvents() {
   appEls.targetMailboxInput.addEventListener("input", onActivationPrefChange);
   appEls.activateModeSelect.addEventListener("change", onActivationPrefChange);
 
-  appEls.chips.forEach((chip) => {
-    chip.addEventListener("click", () => {
-      if (!state.focusedField) {
-        setStatus(appEls.status, "请先点击一个输入框，再插入变量。", true);
-        return;
-      }
-      insertAtCursor(state.focusedField, chip.dataset.token || "");
-      state.focusedField.dispatchEvent(new Event("input", { bubbles: true }));
-    });
+  appEls.chipsContainer?.addEventListener("click", (event) => {
+    const chip = event.target.closest(".chip");
+    if (!chip) return;
+    if (!state.focusedField) {
+      setStatus(appEls.status, "请先点击一个输入框，再插入变量。", true);
+      return;
+    }
+    insertAtCursor(state.focusedField, chip.dataset.token || "");
+    state.focusedField.dispatchEvent(new Event("input", { bubbles: true }));
   });
 }
 
@@ -334,6 +369,9 @@ function hideApp() {
 }
 
 async function loadInitialGroups() {
+  const starter = await readStarterData();
+  state.policySummary = starter.policySummary;
+
   const cached = loadLocalGroups();
   if (cached.length > 0) {
     state.groups = cached;
@@ -341,13 +379,12 @@ async function loadInitialGroups() {
     return;
   }
 
-  const starter = await readStarterGroups();
-  state.groups = starter.length > 0 ? starter : [createGroup()];
+  state.groups = starter.groups.length > 0 ? starter.groups : [createGroup()];
   state.selectedGroupId = state.groups[0]?.groupId || null;
   persistLocalGroups();
 }
 
-async function readStarterGroups() {
+async function readStarterData() {
   try {
     const response = await fetch("data/auto-reply-templates.json", { cache: "no-store" });
     if (!response.ok) {
@@ -355,26 +392,39 @@ async function readStarterGroups() {
     }
 
     const payload = await response.json();
-    return parseTemplateGroupsPayload(payload);
+    return parseTemplateDataPayload(payload);
   } catch (_error) {
-    return [];
+    return {
+      groups: [],
+      policySummary: createEmptyPolicySummary(),
+    };
   }
 }
 
 async function resetTemplatesFromStarter() {
-  const starter = await readStarterGroups();
-  if (starter.length === 0) {
+  const starter = await readStarterData();
+  state.policySummary = starter.policySummary;
+  renderPolicySummary();
+
+  if (starter.groups.length === 0) {
     setStatus(appEls.status, "恢复失败：默认模板文件不可用。", true);
     return;
   }
 
-  state.groups = starter;
-  state.selectedGroupId = starter[0].groupId;
+  state.groups = starter.groups;
+  state.selectedGroupId = starter.groups[0].groupId;
   state.selectedLocale = "zh-CN";
   persistLocalGroups();
   renderList();
   selectGroup(state.selectedGroupId, state.selectedLocale);
   setStatus(appEls.status, "已恢复默认模板。", false);
+}
+
+function parseTemplateDataPayload(payload) {
+  return {
+    groups: parseTemplateGroupsPayload(payload),
+    policySummary: normalizePolicySummary(payload?.policySummary),
+  };
 }
 
 function parseTemplateGroupsPayload(payload) {
@@ -391,6 +441,42 @@ function parseTemplateGroupsPayload(payload) {
   }
 
   return [];
+}
+
+function normalizePolicySummary(input) {
+  const fallback = createEmptyPolicySummary();
+  if (!input || typeof input !== "object") {
+    return fallback;
+  }
+
+  return {
+    title: String(input.title || fallback.title),
+    sourceFiles: normalizeStringArray(input.sourceFiles),
+    subjectStrategy: {
+      source: String(input.subjectStrategy?.source || ""),
+      editorFallback: String(input.subjectStrategy?.editorFallback || ""),
+    },
+    defaultLanguage: String(input.defaultLanguage || ""),
+    localizeWhen: normalizeStringArray(input.localizeWhen),
+    placeholderPolicy: {
+      principle: String(input.placeholderPolicy?.principle || ""),
+      namingRule: String(input.placeholderPolicy?.namingRule || ""),
+      allowed: normalizePlaceholders(input.placeholderPolicy?.allowed),
+      banned: normalizePlaceholders(input.placeholderPolicy?.banned),
+      implementationNotes: normalizeStringArray(input.placeholderPolicy?.implementationNotes),
+    },
+    dedupeRules: normalizeStringArray(input.dedupeRules),
+    exclusionRules: normalizeObjectArray(input.exclusionRules, ["id", "reason", "routeTo"]),
+    routingGroups: normalizePolicyRoutingGroups(input.routingGroups),
+    manualFlowNorms: {
+      firstTouch: normalizeStringArray(input.manualFlowNorms?.firstTouch),
+      secondTouch: normalizeStringArray(input.manualFlowNorms?.secondTouch),
+      escalation: normalizeStringArray(input.manualFlowNorms?.escalation),
+      signatureControl: normalizeStringArray(input.manualFlowNorms?.signatureControl),
+      pricingControl: normalizeStringArray(input.manualFlowNorms?.pricingControl),
+    },
+    defaultBlocks: normalizePolicyDefaults(input.defaultBlocks),
+  };
 }
 
 function normalizeLegacyTemplates(list) {
@@ -521,9 +607,65 @@ function normalizePlaceholders(input) {
   return [];
 }
 
+function normalizeStringArray(input) {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+  return input.map((entry) => String(entry).trim()).filter(Boolean);
+}
+
+function normalizeObjectArray(input, keys) {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .filter((entry) => entry && typeof entry === "object")
+    .map((entry) => {
+      const normalized = {};
+      keys.forEach((key) => {
+        normalized[key] = String(entry[key] || "");
+      });
+      return normalized;
+    });
+}
+
+function normalizePolicyRoutingGroups(input) {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .filter((entry) => entry && typeof entry === "object")
+    .map((entry) => ({
+      id: String(entry.id || ""),
+      label: String(entry.label || ""),
+      mailbox: String(entry.mailbox || ""),
+      handles: normalizeStringArray(entry.handles),
+    }));
+}
+
+function normalizePolicyDefaults(input) {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .filter((entry) => entry && typeof entry === "object")
+    .map((entry) => ({
+      token: String(entry.token || ""),
+      value: String(entry.value || ""),
+    }))
+    .filter((entry) => entry.token || entry.value);
+}
+
 function createGroup() {
   const now = new Date().toISOString();
   const label = `新类别 ${new Date().toLocaleDateString("zh-CN")}`;
+  const defaultPlaceholders =
+    state.policySummary.placeholderPolicy.allowed.length > 0
+      ? state.policySummary.placeholderPolicy.allowed.slice(0, 4)
+      : [];
 
   return {
     groupId: `T_CUSTOM_${Date.now()}`,
@@ -536,7 +678,7 @@ function createGroup() {
     exclusions: "",
     routing: "",
     sla: "",
-    placeholders: [],
+    placeholders: defaultPlaceholders,
     note: "",
     versions: {
       "zh-CN": createDefaultVersion("zh-CN", label),
@@ -553,16 +695,16 @@ function createDefaultVersion(locale, category) {
     startAt: "",
     endAt: "",
     scope: "external",
-    subject: locale === "zh-CN" ? "自动回复：您的邮件已收到" : "Auto Reply: We Have Received Your Email",
-    opening: locale === "zh-CN" ? "您好 {{Name}}，" : "Hello {{Name}},",
+    subject: locale === "zh-CN" ? "回复：已收到您发给 KAT VR 的邮件" : "Re: KAT VR inquiry received",
+    opening: locale === "zh-CN" ? "您好，" : "Hello,",
     body:
       locale === "zh-CN"
-        ? "感谢您的来信，我们已经收到并会尽快回复。"
-        : "Thank you for your email. We have received your message and will respond soon.",
+        ? "感谢您联系 KAT VR。\n\n我们已收到您的留言，相关团队会尽快查看并跟进。"
+        : "Thank you for contacting KAT VR.\n\nWe have received your message and our team will review it shortly.",
     signature:
       locale === "zh-CN"
-        ? "此致\nKAT VR 团队\nbusiness@katvr.com"
-        : "Best regards,\nKAT VR Team\nbusiness@katvr.com",
+        ? "此致\n{{OurReplySignature}}"
+        : "Best regards,\n{{OurReplySignature}}",
     updatedAt: new Date().toISOString(),
   };
 }
@@ -637,6 +779,7 @@ function selectGroup(groupId, locale) {
   renderLocaleSwitch();
   renderList();
   renderMeta();
+  renderPlaceholderChips();
   renderPreview();
 }
 
@@ -663,6 +806,101 @@ function renderMeta() {
   appEls.meta.exclusions.textContent = group.exclusions || "无";
   appEls.meta.placeholders.textContent = group.placeholders.length > 0 ? group.placeholders.join("，") : "无";
   appEls.meta.note.textContent = group.note || "无";
+}
+
+function renderPlaceholderChips() {
+  if (!appEls.chipsContainer) return;
+
+  const group = getSelectedGroup();
+  const preferredTokens = group?.placeholders?.length
+    ? group.placeholders
+    : state.policySummary.placeholderPolicy.allowed;
+
+  appEls.chipsContainer.innerHTML = "";
+  preferredTokens.forEach((token) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    chip.dataset.token = token;
+    chip.textContent = token.replace(/[{}]/g, "");
+    appEls.chipsContainer.appendChild(chip);
+  });
+}
+
+function renderPolicySummary() {
+  if (!appEls.policySummaryContent) return;
+
+  const policy = state.policySummary;
+  const sections = [
+    buildPolicySection("来源与主题策略", [
+      policy.sourceFiles.length > 0 ? `来源文件：${policy.sourceFiles.join(" + ")}` : "",
+      policy.defaultLanguage ? `默认语言：${policy.defaultLanguage}` : "",
+      ...policy.localizeWhen.map((item) => `切换语言条件：${item}`),
+      policy.subjectStrategy.source,
+      policy.subjectStrategy.editorFallback,
+    ]),
+    buildPolicySection("占位符政策", [
+      policy.placeholderPolicy.principle,
+      policy.placeholderPolicy.namingRule,
+      policy.placeholderPolicy.implementationNotes.join(" "),
+      policy.placeholderPolicy.allowed.length > 0
+        ? `允许变量：${policy.placeholderPolicy.allowed.join("，")}`
+        : "",
+      policy.placeholderPolicy.banned.length > 0
+        ? `禁用变量：${policy.placeholderPolicy.banned.join("，")}`
+        : "",
+    ]),
+    buildPolicySection("去重与排除", [
+      ...policy.dedupeRules,
+      ...policy.exclusionRules.map((rule) => `${rule.id}：${rule.reason}`),
+    ]),
+    buildPolicySection(
+      "路由团队",
+      policy.routingGroups.map((group) =>
+        [group.label, group.mailbox, group.handles.join(" / ")].filter(Boolean).join(" | "),
+      ),
+    ),
+    buildPolicySection("人工跟进规范", [
+      ...policy.manualFlowNorms.firstTouch,
+      ...policy.manualFlowNorms.secondTouch,
+      ...policy.manualFlowNorms.escalation,
+      ...policy.manualFlowNorms.signatureControl,
+      ...policy.manualFlowNorms.pricingControl,
+    ]),
+    buildPolicySection(
+      "默认信息块",
+      policy.defaultBlocks.map(
+        (item) => `<span class="policy-token">${escapeHtml(item.token)}</span> = ${escapeHtml(item.value)}`,
+      ),
+      true,
+    ),
+  ]
+    .filter(Boolean)
+    .join("");
+
+  appEls.policySummaryContent.innerHTML = sections;
+}
+
+function buildPolicySection(title, items, trustedHtml = false) {
+  const normalizedItems = items.filter(Boolean);
+  if (normalizedItems.length === 0) {
+    return "";
+  }
+
+  const content = normalizedItems
+    .map((item) => `<li>${trustedHtml ? item : escapeHtml(item)}</li>`)
+    .join("");
+
+  return `<details class="policy-section" open><summary>${escapeHtml(title)}</summary><ul>${content}</ul></details>`;
+}
+
+function hasPolicySummary(policySummary) {
+  return Boolean(
+    policySummary?.title ||
+      policySummary?.placeholderPolicy?.allowed?.length ||
+      policySummary?.routingGroups?.length ||
+      policySummary?.defaultBlocks?.length,
+  );
 }
 
 function getSelectedGroup() {
@@ -721,7 +959,7 @@ function persistLocalGroups() {
   localStorage.setItem(
     STORAGE_KEYS.localTemplateGroups,
     JSON.stringify({
-      version: 2,
+      version: TEMPLATE_DATA_VERSION,
       updatedAt: new Date().toISOString(),
       groups: state.groups,
     }),
@@ -767,9 +1005,10 @@ function onActivationPrefChange() {
 
 function exportTemplatesAsFile() {
   const payload = {
-    version: 2,
+    version: TEMPLATE_DATA_VERSION,
     updatedAt: new Date().toISOString(),
     groups: state.groups,
+    policySummary: state.policySummary,
   };
 
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
@@ -791,18 +1030,22 @@ async function onImportFile(event) {
   try {
     const text = await file.text();
     const payload = JSON.parse(text);
-    const parsed = parseTemplateGroupsPayload(payload);
-    if (parsed.length === 0) {
+    const parsed = parseTemplateDataPayload(payload);
+    if (parsed.groups.length === 0) {
       throw new Error("JSON 中没有可用模板组");
     }
 
-    state.groups = parsed;
-    state.selectedGroupId = parsed[0].groupId;
+    state.groups = parsed.groups;
+    if (hasPolicySummary(parsed.policySummary)) {
+      state.policySummary = parsed.policySummary;
+    }
+    state.selectedGroupId = parsed.groups[0].groupId;
     state.selectedLocale = "zh-CN";
     persistLocalGroups();
+    renderPolicySummary();
     renderList();
     selectGroup(state.selectedGroupId, state.selectedLocale);
-    setStatus(appEls.status, `已导入 ${parsed.length} 个模板类别。`, false);
+    setStatus(appEls.status, `已导入 ${parsed.groups.length} 个模板类别。`, false);
   } catch (error) {
     setStatus(appEls.status, `导入失败：${error.message}`, true);
   } finally {
