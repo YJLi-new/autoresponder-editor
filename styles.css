@@ -142,6 +142,11 @@ textarea {
   white-space: nowrap;
 }
 
+.btn.compact {
+  padding: 9px 10px;
+  font-size: 12px;
+}
+
 .btn.primary {
   background: linear-gradient(135deg, var(--brand), var(--brand-2));
   color: #fff;
@@ -542,10 +547,43 @@ textarea {
   width: min(100%, 720px);
 }
 
+.guide-modal-card {
+  width: min(100%, 880px);
+}
+
 .modal-form {
   margin-top: 12px;
   display: grid;
   gap: 10px;
+}
+
+.guide-modal-body {
+  margin-top: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.guide-section {
+  border: 1px solid #d9e1d1;
+  border-radius: 14px;
+  background: #fff;
+  padding: 12px;
+}
+
+.guide-section h4 {
+  margin: 0;
+  color: #214f45;
+  font-size: 14px;
+}
+
+.guide-section ol {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  color: #41555c;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .modal-text {

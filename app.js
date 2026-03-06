@@ -27,6 +27,85 @@ const DEFAULT_KEYWORDS_REGEX_BY_GROUP_ID = {
   TPL_PARTNERSHIP_CHANNEL_ACK: "/dealer|creator|distribution|partnership proposal/i",
   TPL_GENERAL_ACK: "/^.+$/i",
 };
+const DETAILED_PLUGIN_GUIDE_SECTIONS = [
+  {
+    title: "1. 先选浏览器",
+    items: [
+      "优先使用桌面版 Chromium 浏览器，例如 Microsoft Edge 或 Google Chrome。",
+      "尽量不要用手机浏览器；手机端通常无法稳定安装和运行 Tampermonkey。",
+      "如果你的办公电脑被公司策略禁止安装浏览器扩展，需要先让 IT 开通扩展安装权限。",
+    ],
+  },
+  {
+    title: "2. 安装 Tampermonkey 扩展",
+    items: [
+      "打开浏览器扩展商店，搜索 `Tampermonkey`。",
+      "确认开发者和扩展名称无误后，点击安装 / 添加到浏览器。",
+      "安装完成后，把 Tampermonkey 图标固定到浏览器工具栏，方便后续检查脚本是否已启用。",
+    ],
+  },
+  {
+    title: "3. 安装 KATVR 激活脚本",
+    items: [
+      "在同一个浏览器里打开以下脚本地址：",
+      "https://raw.githubusercontent.com/YJLi-new/autoresponder-editor/main/alimail-activator.user.js",
+      "页面跳转到 Tampermonkey 安装确认页后，检查脚本名是 `KATVR AliMail Auto Reply Activator`，再点击安装。",
+      "安装后进入 Tampermonkey Dashboard，确认这个脚本处于启用状态。",
+    ],
+  },
+  {
+    title: "4. 首次安装后做一次环境确认",
+    items: [
+      "先手动打开并登录阿里邮箱企业版网页。",
+      "确认网址是 `https://qiye.aliyun.com/...` 或 `https://mail.aliyun.com/...` 之一。",
+      "登录后刷新一次页面，让新安装的脚本接管当前域名。",
+      "如果浏览器提示本站点弹窗被拦截，请先允许，否则编辑器无法自动打开 AliMail 页面。",
+    ],
+  },
+  {
+    title: "5. 回到模板编辑器做激活前准备",
+    items: [
+      "在右侧填写“指定邮箱（企业版账号）”，确保它就是你要应用自动回复的真实邮箱。",
+      "把当前模板的主题、正文、签名检查一遍。",
+      "到“占位符实际信息”模块里，把当前模板会用到的 `{{Our*}}` 占位符都填成实际内容。",
+      "如果你选择“全部模板”，要确认当前站点里所有模板都已经整理完成。",
+    ],
+  },
+  {
+    title: "6. 触发有插件激活",
+    items: [
+      "点击右侧的 `一键在 AliMail 激活（有插件）` 按钮。",
+      "编辑器会先保存当前内容、生成激活载荷，并尝试打开 AliMail 页面。",
+      "如果浏览器拦截新窗口，按页面提示允许弹窗，或选择当前页继续打开。",
+    ],
+  },
+  {
+    title: "7. AliMail 页面上会发生什么",
+    items: [
+      "如果脚本运行正常，页面会出现提示：`AliMail 激活器：开始处理激活请求...`。",
+      "脚本会尝试识别你当前登录的邮箱是否与编辑器里填写的目标邮箱一致。",
+      "随后脚本会尝试打开自动回复设置页、填写主题和正文，并在可能时自动点击保存。",
+      "如果页面结构变化导致找不到某个按钮，脚本可能只能填写内容，最后一步需要你手动点保存。",
+    ],
+  },
+  {
+    title: "8. 激活完成后如何验收",
+    items: [
+      "页面出现 `AliMail 激活器：已激活当前模板。` 或类似成功提示。",
+      "进入 AliMail 自动回复设置，检查主题和正文是否已经是最终文字，而不是 `{{Our*}}` 占位符。",
+      "用外部邮箱给目标邮箱发一封测试邮件，确认能收到最新自动回复。",
+    ],
+  },
+  {
+    title: "9. 常见问题排查",
+    items: [
+      "如果 AliMail 页面完全没有出现 `AliMail 激活器` 提示，通常是脚本没启用、域名不匹配，或当前浏览器不是装脚本的那个浏览器。",
+      "如果出现“检测到未填写占位符”的提示，说明你还有 `{{Our*}}` 没填，需要先回编辑器补完“占位符实际信息”。",
+      "如果脚本提示找不到自动回复入口或保存按钮，通常是 AliMail 页面结构变了；这时先手动保存，再反馈给维护者更新脚本。",
+      "如果一直被弹窗拦截，先在浏览器地址栏附近允许本站弹窗，再重新点击激活。",
+    ],
+  },
+];
 
 const fields = {
   category: document.getElementById("categoryInput"),
@@ -130,6 +209,10 @@ const appEls = {
   copyTextBtn: document.getElementById("copyTextBtn"),
   copyHtmlBtn: document.getElementById("copyHtmlBtn"),
   activateAliMailBtn: document.getElementById("activateAliMailBtn"),
+  pluginGuideBtn: document.getElementById("pluginGuideBtn"),
+  pluginGuideModal: document.getElementById("pluginGuideModal"),
+  pluginGuideContent: document.getElementById("pluginGuideContent"),
+  pluginGuideCloseBtn: document.getElementById("pluginGuideCloseBtn"),
   chipsContainer: document.getElementById("chipContainer"),
   placeholderValuesForm: document.getElementById("placeholderValuesForm"),
   manualGuideBox: document.getElementById("manualGuideBox"),
@@ -162,6 +245,7 @@ const state = {
   selectedLocale: "zh-CN",
   focusedField: null,
   pendingDeleteGroupId: null,
+  pluginGuideOpen: false,
   metaEditorGroupId: null,
   activationGuide: null,
   activationPrefs: {
@@ -180,6 +264,7 @@ async function boot() {
   restoreActivationPrefs();
   renderActivationPrefs();
   renderPolicySummary();
+  renderPluginGuideModal();
   renderManualGuide(state.activationPrefs.targetMailbox, state.activationPrefs.mode, []);
 
   renderList();
@@ -214,6 +299,13 @@ function bindEvents() {
       closeDeleteConfirm();
     }
   });
+  appEls.pluginGuideBtn?.addEventListener("click", openPluginGuideModal);
+  appEls.pluginGuideCloseBtn?.addEventListener("click", closePluginGuideModal);
+  appEls.pluginGuideModal?.addEventListener("click", (event) => {
+    if (event.target === appEls.pluginGuideModal) {
+      closePluginGuideModal();
+    }
+  });
   appEls.metaEditorCancelBtn?.addEventListener("click", closeMetaEditor);
   appEls.metaEditorSaveBtn?.addEventListener("click", saveMetaEditor);
   appEls.metaEditorForm?.addEventListener("submit", (event) => {
@@ -228,6 +320,10 @@ function bindEvents() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && state.pendingDeleteGroupId) {
       closeDeleteConfirm();
+      return;
+    }
+    if (event.key === "Escape" && state.pluginGuideOpen) {
+      closePluginGuideModal();
       return;
     }
     if (event.key === "Escape" && state.metaEditorGroupId) {
@@ -317,6 +413,34 @@ function closeDeleteConfirm() {
   appEls.deleteConfirmModal?.classList.add("hidden");
   appEls.deleteConfirmModal?.setAttribute("aria-hidden", "true");
   appEls.deleteBtn?.focus();
+}
+
+function renderPluginGuideModal() {
+  if (!appEls.pluginGuideContent) return;
+
+  const html = DETAILED_PLUGIN_GUIDE_SECTIONS.map((section) => {
+    const items = section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+    return `<section class="guide-section"><h4>${escapeHtml(section.title)}</h4><ol>${items}</ol></section>`;
+  }).join("");
+
+  appEls.pluginGuideContent.innerHTML = html;
+}
+
+function openPluginGuideModal() {
+  state.pluginGuideOpen = true;
+  appEls.pluginGuideModal?.classList.remove("hidden");
+  appEls.pluginGuideModal?.setAttribute("aria-hidden", "false");
+  appEls.pluginGuideCloseBtn?.focus();
+}
+
+function closePluginGuideModal(restoreFocus = true) {
+  if (!state.pluginGuideOpen) return;
+  state.pluginGuideOpen = false;
+  appEls.pluginGuideModal?.classList.add("hidden");
+  appEls.pluginGuideModal?.setAttribute("aria-hidden", "true");
+  if (restoreFocus) {
+    appEls.pluginGuideBtn?.focus();
+  }
 }
 
 function openMetaEditor() {
@@ -564,6 +688,7 @@ function showApp() {
 
 function hideApp() {
   closeDeleteConfirm();
+  closePluginGuideModal(false);
   closeMetaEditor();
   authEls.gate.classList.remove("hidden");
   appEls.app.classList.add("hidden");
