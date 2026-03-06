@@ -262,8 +262,31 @@ textarea {
   display: grid;
   gap: 8px;
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: scroll;
   align-content: start;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #7ca897 #eef3ea;
+}
+
+.template-list::-webkit-scrollbar {
+  width: 12px;
+}
+
+.template-list::-webkit-scrollbar-track {
+  background: #eef3ea;
+  border-radius: 999px;
+}
+
+.template-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #7ca897, #0f5f62);
+  border-radius: 999px;
+  border: 2px solid #eef3ea;
+}
+
+.template-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #6b9888, #0c4f51);
 }
 
 .template-item {
