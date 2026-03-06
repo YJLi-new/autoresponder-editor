@@ -834,11 +834,33 @@ textarea {
   min-width: 0;
 }
 
+.policy-group-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .policy-group-title {
   margin: 0;
   font-size: 12px;
   font-weight: 700;
   color: var(--accent-ui);
+}
+
+.policy-group-meta {
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.policy-group-text {
+  margin: 10px 0 0;
+  line-height: 1.55;
 }
 
 .policy-step-list {
@@ -901,6 +923,65 @@ textarea {
   border-radius: 999px;
   margin-top: 6px;
   background: linear-gradient(135deg, var(--brand), var(--brand-2));
+}
+
+.policy-placeholder-layout {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.95fr);
+  grid-template-areas:
+    "allowed naming"
+    "allowed implementation"
+    "banned implementation";
+  gap: 10px;
+  align-items: start;
+}
+
+.policy-placeholder-allowed {
+  grid-area: allowed;
+}
+
+.policy-placeholder-naming {
+  grid-area: naming;
+}
+
+.policy-placeholder-implementation {
+  grid-area: implementation;
+}
+
+.policy-placeholder-banned {
+  grid-area: banned;
+}
+
+.policy-chip-cloud,
+.policy-code-cloud {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.policy-token-chip {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--surface);
+  min-width: 0;
+}
+
+.policy-token-chip-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-ui);
+}
+
+.policy-code-pill {
+  padding: 6px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: var(--surface);
 }
 
 .policy-inline-code {
@@ -1060,6 +1141,15 @@ textarea {
 
   .policy-group-grid {
     grid-template-columns: 1fr;
+  }
+
+  .policy-placeholder-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "allowed"
+      "naming"
+      "implementation"
+      "banned";
   }
 }
 

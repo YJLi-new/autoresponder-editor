@@ -1429,21 +1429,7 @@ function renderPolicySummary() {
         },
       ],
     }),
-    buildRichPolicySection("占位符政策", {
-      intro: policy.placeholderPolicy.principle,
-      groups: [
-        { title: "命名规则", items: [policy.placeholderPolicy.namingRule] },
-        {
-          title: "允许占位符",
-          items: policy.placeholderPolicy.allowed.map(formatPolicyPlaceholderItem),
-        },
-        {
-          title: "禁用占位符",
-          items: policy.placeholderPolicy.banned.map((item) => `\`${item}\``),
-        },
-        { title: "实现说明", items: policy.placeholderPolicy.implementationNotes },
-      ],
-    }),
+    buildPlaceholderPolicySection(policy.placeholderPolicy),
     buildRichPolicySection("去重与排除", {
       groups: [
         { title: "去重规则", items: policy.dedupeRules },
@@ -1505,6 +1491,95 @@ function buildRichPolicySection(title, config = {}) {
     </details>`;
 }
 
+function buildPlaceholderPolicySection(policy) {
+  const allowed = (policy.allowed || []).filter(Boolean);
+  const banned = (policy.banned || []).filter(Boolean);
+  const implementationNotes = (policy.implementationNotes || []).filter(Boolean);
+
+  if (!policy.principle && !policy.namingRule && allowed.length === 0 && banned.length === 0 && implementationNotes.length === 0) {
+    return "";
+  }
+
+  const allowedHtml = allowed
+    .map(
+      (token) => `
+        <span class="policy-token-chip">
+          <span class="policy-token-chip-label">${escapeHtml(getPlaceholderAlias(token))}</span>
+          <code class="policy-inline-code">${escapeHtml(token)}</code>
+        </span>`,
+    )
+    .join("");
+
+  const bannedHtml = banned
+    .map(
+      (token) => `
+        <span class="policy-code-pill">
+          <code class="policy-inline-code">${escapeHtml(token)}</code>
+        </span>`,
+    )
+    .join("");
+
+  const notesHtml = implementationNotes
+    .map(
+      (item) => `
+        <li class="policy-group-item">
+          <span class="policy-group-bullet" aria-hidden="true"></span>
+          <span class="policy-step-text">${formatPolicyText(item)}</span>
+        </li>`,
+    )
+    .join("");
+
+  return `
+    <details class="policy-section policy-section-rich policy-section-placeholder" open>
+      <summary>${escapeHtml("占位符政策")}</summary>
+      ${policy.principle ? `<p class="policy-intro">${formatPolicyText(policy.principle)}</p>` : ""}
+      <div class="policy-placeholder-layout">
+        ${
+          allowed.length > 0
+            ? `
+              <section class="policy-group policy-placeholder-allowed">
+                <div class="policy-group-head">
+                  <p class="policy-group-title">允许占位符</p>
+                  <span class="policy-group-meta">${allowed.length} 个</span>
+                </div>
+                <div class="policy-chip-cloud">${allowedHtml}</div>
+              </section>`
+            : ""
+        }
+        ${
+          policy.namingRule
+            ? `
+              <section class="policy-group policy-placeholder-naming">
+                <p class="policy-group-title">命名规则</p>
+                <p class="policy-group-text">${formatPolicyText(policy.namingRule)}</p>
+              </section>`
+            : ""
+        }
+        ${
+          implementationNotes.length > 0
+            ? `
+              <section class="policy-group policy-placeholder-implementation">
+                <p class="policy-group-title">实现说明</p>
+                <ul class="policy-group-list">${notesHtml}</ul>
+              </section>`
+            : ""
+        }
+        ${
+          banned.length > 0
+            ? `
+              <section class="policy-group policy-placeholder-banned">
+                <div class="policy-group-head">
+                  <p class="policy-group-title">禁用占位符</p>
+                  <span class="policy-group-meta">${banned.length} 个</span>
+                </div>
+                <div class="policy-code-cloud">${bannedHtml}</div>
+              </section>`
+            : ""
+        }
+      </div>
+    </details>`;
+}
+
 function buildPolicyGroupCard(group) {
   const listClass = group.ordered ? "policy-step-list" : "policy-group-list";
   const listTag = group.ordered ? "ol" : "ul";
@@ -1535,12 +1610,6 @@ function buildPolicyGroupCard(group) {
 
 function formatPolicyText(text) {
   return escapeHtml(String(text || "")).replace(/`([^`]+)`/g, '<code class="policy-inline-code">$1</code>');
-}
-
-function formatPolicyPlaceholderItem(token) {
-  const normalized = String(token || "").trim();
-  if (!normalized) return "";
-  return `${getPlaceholderAlias(normalized)} | \`${normalized}\``;
 }
 
 function hasPolicySummary(policySummary) {
