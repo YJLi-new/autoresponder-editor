@@ -1247,9 +1247,9 @@ function renderPlaceholderChips() {
   if (!appEls.chipsContainer) return;
 
   const group = getSelectedGroup();
-  const preferredTokens = group?.placeholders?.length
-    ? group.placeholders
-    : state.policySummary.placeholderPolicy.allowed;
+  const preferredTokens = Array.from(
+    new Set([...(state.policySummary.placeholderPolicy.allowed || []), ...((group && group.placeholders) || [])]),
+  );
 
   appEls.chipsContainer.innerHTML = "";
   preferredTokens.forEach((token) => {
