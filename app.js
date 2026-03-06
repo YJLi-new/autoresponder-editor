@@ -1395,26 +1395,8 @@ function renderPolicySummary() {
 
   const policy = state.policySummary;
   const sections = [
-    buildRichPolicySection("有插件激活", {
-      className: "policy-section-activation",
-      intro: policy.pluginActivationGuide.overview,
-      groups: [
-        { title: "安装准备", items: policy.pluginActivationGuide.installSteps, ordered: true, meta: `${policy.pluginActivationGuide.installSteps.length} 步` },
-        { title: "使用流程", items: policy.pluginActivationGuide.usageSteps, ordered: true, meta: `${policy.pluginActivationGuide.usageSteps.length} 步`, className: "policy-group-wide" },
-        { title: "验收检查", items: policy.pluginActivationGuide.successChecks, ordered: true, meta: `${policy.pluginActivationGuide.successChecks.length} 项` },
-        { title: "常见排查", items: policy.pluginActivationGuide.troubleshooting, ordered: true, meta: `${policy.pluginActivationGuide.troubleshooting.length} 项` },
-      ],
-    }),
-    buildRichPolicySection("关键词/正则", {
-      className: "policy-section-keywords",
-      intro: policy.keywordRegexGuide.purpose,
-      groups: [
-        { title: "标准格式", items: [policy.keywordRegexGuide.syntax], className: "policy-group-wide" },
-        { title: "Flags", items: policy.keywordRegexGuide.flags, meta: `${policy.keywordRegexGuide.flags.length} 项` },
-        { title: "编写原则", items: policy.keywordRegexGuide.authoringRules, meta: `${policy.keywordRegexGuide.authoringRules.length} 条`, className: "policy-group-tall" },
-        { title: "示例", items: policy.keywordRegexGuide.examples.map((item) => `\`${item}\``), meta: `${policy.keywordRegexGuide.examples.length} 个` },
-      ],
-    }),
+    buildPluginActivationPolicySection(policy.pluginActivationGuide),
+    buildKeywordRegexPolicySection(policy.keywordRegexGuide),
     buildRichPolicySection("来源与主题策略", {
       className: "policy-section-source",
       groups: [
@@ -1451,27 +1433,8 @@ function renderPolicySummary() {
         },
       ],
     }),
-    buildRichPolicySection("路由团队", {
-      className: "policy-section-routing",
-      groups: policy.routingGroups.map((group) => ({
-        title: group.label,
-        items: [
-          group.mailbox ? `邮箱：\`${group.mailbox}\`` : "",
-          ...group.handles,
-        ],
-        meta: `${group.handles.length + (group.mailbox ? 1 : 0)} 项`,
-      })),
-    }),
-    buildRichPolicySection("人工跟进规范", {
-      className: "policy-section-manual",
-      groups: [
-        { title: "第一封自动回复", items: policy.manualFlowNorms.firstTouch, className: "policy-group-wide", meta: `${policy.manualFlowNorms.firstTouch.length} 条` },
-        { title: "人工二次触达", items: policy.manualFlowNorms.secondTouch, meta: `${policy.manualFlowNorms.secondTouch.length} 条` },
-        { title: "升级与转交", items: policy.manualFlowNorms.escalation, meta: `${policy.manualFlowNorms.escalation.length} 条`, className: "policy-group-wide" },
-        { title: "签名控制", items: policy.manualFlowNorms.signatureControl, meta: `${policy.manualFlowNorms.signatureControl.length} 条` },
-        { title: "价格控制", items: policy.manualFlowNorms.pricingControl, meta: `${policy.manualFlowNorms.pricingControl.length} 条` },
-      ],
-    }),
+    buildRoutingTeamsPolicySection(policy.routingGroups),
+    buildManualFlowPolicySection(policy.manualFlowNorms),
   ]
     .filter(Boolean)
     .join("");
@@ -1590,6 +1553,91 @@ function buildPlaceholderPolicySection(policy) {
         }
       </div>
     </details>`;
+}
+
+function buildPluginActivationPolicySection(guide) {
+  return buildRichPolicySection("有插件激活", {
+    className: "policy-section-activation-clean",
+    intro: guide.overview,
+    groups: [
+      { title: "安装准备", items: guide.installSteps, ordered: true },
+      { title: "使用流程", items: guide.usageSteps, ordered: true },
+      { title: "验收检查", items: guide.successChecks, ordered: true },
+      { title: "常见排查", items: guide.troubleshooting, ordered: true },
+    ],
+  });
+}
+
+function buildKeywordRegexPolicySection(guide) {
+  return buildRichPolicySection("关键词/正则", {
+    className: "policy-section-keywords-clean",
+    intro: guide.purpose,
+    groups: [
+      { title: "标准格式", items: [guide.syntax] },
+      { title: "Flags", items: guide.flags },
+      { title: "编写原则", items: guide.authoringRules, className: "policy-group-wide" },
+      { title: "示例", items: guide.examples.map((item) => `\`${item}\``), className: "policy-group-wide" },
+    ],
+  });
+}
+
+function buildRoutingTeamsPolicySection(routingGroups) {
+  const groups = (routingGroups || [])
+    .map((group) => ({
+      ...group,
+      handles: (group.handles || []).filter(Boolean),
+    }))
+    .filter((group) => group.label || group.mailbox || group.handles.length > 0);
+
+  if (groups.length === 0) {
+    return "";
+  }
+
+  const cards = groups
+    .map(
+      (group) => `
+        <section class="policy-group policy-routing-card">
+          <div class="policy-group-head">
+            <p class="policy-group-title">${escapeHtml(group.label || "")}</p>
+            ${group.mailbox ? `<span class="policy-code-pill"><code class="policy-inline-code">${escapeHtml(group.mailbox)}</code></span>` : ""}
+          </div>
+          <ul class="policy-group-list">
+            ${group.handles
+              .map(
+                (item) => `
+                  <li class="policy-group-item">
+                    <span class="policy-group-bullet" aria-hidden="true"></span>
+                    <span class="policy-step-text">${formatPolicyText(item)}</span>
+                  </li>`,
+              )
+              .join("")}
+          </ul>
+        </section>`,
+    )
+    .join("");
+
+  return `
+    <details class="policy-section policy-section-rich policy-section-routing-clean" open>
+      <summary>${escapeHtml("路由团队")}</summary>
+      <div class="policy-routing-grid">${cards}</div>
+    </details>`;
+}
+
+function buildManualFlowPolicySection(norms) {
+  const controlItems = [
+    ...(norms.signatureControl || []).map((item) => `签名控制：${item}`),
+    ...(norms.pricingControl || []).map((item) => `价格控制：${item}`),
+  ];
+
+  return buildRichPolicySection("人工跟进规范", {
+    className: "policy-section-manual-clean",
+    groups: [
+      { title: "第一封自动回复", items: norms.firstTouch || [], className: "policy-group-wide" },
+      { title: "人工二次触达", items: norms.secondTouch || [] },
+      { title: "升级与转交", items: norms.escalation || [] },
+      { title: "控制要求", items: controlItems, className: "policy-group-wide" },
+    ],
+  });
 }
 
 function buildPolicyGroupCard(group) {

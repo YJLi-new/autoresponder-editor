@@ -840,10 +840,6 @@ textarea {
   grid-column: span 12;
 }
 
-.policy-group-tall {
-  min-height: 100%;
-}
-
 .policy-group-head {
   display: flex;
   align-items: flex-start;
@@ -994,22 +990,6 @@ textarea {
   background: var(--surface);
 }
 
-.policy-section-keywords .policy-group-grid {
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-}
-
-.policy-section-keywords .policy-group {
-  grid-column: span 4;
-}
-
-.policy-section-keywords .policy-group-wide {
-  grid-column: span 12;
-}
-
-.policy-section-keywords .policy-group-tall {
-  grid-column: span 8;
-}
-
 .policy-section-source .policy-group-grid {
   grid-template-columns: repeat(12, minmax(0, 1fr));
 }
@@ -1038,40 +1018,47 @@ textarea {
   grid-column: span 8;
 }
 
-.policy-section-routing .policy-group-grid {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+.policy-section-activation-clean .policy-group-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.policy-section-routing .policy-group {
+.policy-section-activation-clean .policy-group {
   grid-column: auto;
 }
 
-.policy-section-routing .policy-group-head {
+.policy-section-keywords-clean .policy-group-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.policy-section-keywords-clean .policy-group {
+  grid-column: auto;
+}
+
+.policy-section-keywords-clean .policy-group-wide {
+  grid-column: 1 / -1;
+}
+
+.policy-routing-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.policy-routing-card .policy-group-head {
   margin-bottom: 2px;
 }
 
-.policy-section-manual .policy-group-grid {
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+.policy-section-manual-clean .policy-group-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.policy-section-manual .policy-group {
-  grid-column: span 4;
+.policy-section-manual-clean .policy-group {
+  grid-column: auto;
 }
 
-.policy-section-manual .policy-group-wide {
-  grid-column: span 8;
-}
-
-.policy-section-activation .policy-group-grid {
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-}
-
-.policy-section-activation .policy-group {
-  grid-column: span 6;
-}
-
-.policy-section-activation .policy-group-wide {
-  grid-column: span 12;
+.policy-section-manual-clean .policy-group-wide {
+  grid-column: 1 / -1;
 }
 
 .policy-inline-code {
@@ -1235,19 +1222,21 @@ textarea {
 
   .policy-group,
   .policy-group-wide,
-  .policy-section-keywords .policy-group,
-  .policy-section-keywords .policy-group-wide,
-  .policy-section-keywords .policy-group-tall,
   .policy-section-source .policy-group:nth-child(1),
   .policy-section-source .policy-group:nth-child(2),
   .policy-section-source .policy-group:nth-child(3),
   .policy-section-dedupe .policy-group:first-child,
   .policy-section-dedupe .policy-group:last-child,
-  .policy-section-manual .policy-group,
-  .policy-section-manual .policy-group-wide,
-  .policy-section-activation .policy-group,
-  .policy-section-activation .policy-group-wide {
+  .policy-section-keywords-clean .policy-group,
+  .policy-section-keywords-clean .policy-group-wide,
+  .policy-section-manual-clean .policy-group,
+  .policy-section-manual-clean .policy-group-wide,
+  .policy-section-activation-clean .policy-group {
     grid-column: auto;
+  }
+
+  .policy-routing-grid {
+    grid-template-columns: 1fr;
   }
 
   .policy-placeholder-layout {
