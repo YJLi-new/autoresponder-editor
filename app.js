@@ -27,6 +27,20 @@ const DEFAULT_KEYWORDS_REGEX_BY_GROUP_ID = {
   TPL_PARTNERSHIP_CHANNEL_ACK: "/dealer|creator|distribution|partnership proposal/i",
   TPL_GENERAL_ACK: "/^.+$/i",
 };
+const PLACEHOLDER_ALIASES = {
+  "{{OurRecommendedProduct}}": "推荐产品",
+  "{{OurProductPositioning}}": "产品定位",
+  "{{OurProductHighlights}}": "产品亮点",
+  "{{OurPortfolioBlock}}": "产品线概览",
+  "{{OurBusinessSolutionBlock}}": "商业方案摘要",
+  "{{OurCompatibilityOrSoftwareInfo}}": "兼容性 / 软件说明",
+  "{{OurShippingLeadTimeNote}}": "交付与时效说明",
+  "{{OurWarrantyOrSupportInfo}}": "售后与支持说明",
+  "{{OurSupportContactBlock}}": "官方支持联系方式",
+  "{{OurPaymentSecurityNotice}}": "付款安全提醒",
+  "{{OurCatalogOrPageURL}}": "资料页 / 产品页链接",
+  "{{OurReplySignature}}": "回复签名",
+};
 const LEGACY_DEFAULT_BLOCK_VALUES = {
   "{{OurBusinessSolutionBlock}}": [
     "KAT VR business solutions cover VR treadmills and motion systems for arcades, training and commercial deployment.",
@@ -1239,7 +1253,8 @@ function renderMeta() {
   appEls.meta.matchFields.textContent = group.matchFields || "未指定";
   appEls.meta.keywords.textContent = group.keywords || "未指定";
   appEls.meta.exclusions.textContent = group.exclusions || "无";
-  appEls.meta.placeholders.textContent = group.placeholders.length > 0 ? group.placeholders.join("，") : "无";
+  appEls.meta.placeholders.textContent =
+    group.placeholders.length > 0 ? group.placeholders.map(formatPlaceholderWithAlias).join("，") : "无";
   appEls.meta.note.textContent = group.note || "无";
 }
 
@@ -1257,7 +1272,9 @@ function renderPlaceholderChips() {
     chip.type = "button";
     chip.className = "chip";
     chip.dataset.token = token;
-    chip.textContent = token.replace(/[{}]/g, "");
+    chip.textContent = getPlaceholderAlias(token);
+    chip.title = `${getPlaceholderAlias(token)} ${token}`;
+    chip.setAttribute("aria-label", `${getPlaceholderAlias(token)} ${token}`);
     appEls.chipsContainer.appendChild(chip);
   });
 }
@@ -1281,10 +1298,19 @@ function renderPlaceholderValuesEditor() {
     const head = document.createElement("div");
     head.className = "placeholder-value-head";
 
+    const identity = document.createElement("div");
+    identity.className = "placeholder-identity";
+
+    const alias = document.createElement("span");
+    alias.className = "placeholder-alias";
+    alias.textContent = getPlaceholderAlias(item.token);
+    identity.appendChild(alias);
+
     const token = document.createElement("code");
     token.className = "placeholder-token";
     token.textContent = item.token;
-    head.appendChild(token);
+    identity.appendChild(token);
+    head.appendChild(identity);
 
     if (currentTokens.has(item.token)) {
       const badge = document.createElement("span");
@@ -1337,7 +1363,7 @@ function renderPolicySummary() {
       policy.placeholderPolicy.namingRule,
       policy.placeholderPolicy.implementationNotes.join(" "),
       policy.placeholderPolicy.allowed.length > 0
-        ? `允许变量：${policy.placeholderPolicy.allowed.join("，")}`
+        ? `允许变量：${policy.placeholderPolicy.allowed.map(formatPlaceholderWithAlias).join("，")}`
         : "",
       policy.placeholderPolicy.banned.length > 0
         ? `禁用变量：${policy.placeholderPolicy.banned.join("，")}`
@@ -1994,6 +2020,17 @@ function truncateText(text, maxLength) {
   const value = String(text || "");
   if (value.length <= maxLength) return value;
   return `${value.slice(0, maxLength - 3)}...`;
+}
+
+function getPlaceholderAlias(token) {
+  const normalized = String(token || "").trim();
+  return PLACEHOLDER_ALIASES[normalized] || normalized.replace(/[{}]/g, "") || normalized;
+}
+
+function formatPlaceholderWithAlias(token) {
+  const normalized = String(token || "").trim();
+  if (!normalized) return "";
+  return `${getPlaceholderAlias(normalized)}（${normalized}）`;
 }
 
 function bytesToHex(bytes) {

@@ -500,10 +500,22 @@ textarea {
   gap: 8px;
 }
 
+.placeholder-identity {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.placeholder-alias {
+  color: #224d45;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .placeholder-token {
   color: #19473f;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   word-break: break-all;
 }
 
