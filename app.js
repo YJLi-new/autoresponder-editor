@@ -27,6 +27,20 @@ const DEFAULT_KEYWORDS_REGEX_BY_GROUP_ID = {
   TPL_PARTNERSHIP_CHANNEL_ACK: "/dealer|creator|distribution|partnership proposal/i",
   TPL_GENERAL_ACK: "/^.+$/i",
 };
+const LEGACY_DEFAULT_BLOCK_VALUES = {
+  "{{OurBusinessSolutionBlock}}": [
+    "KAT VR business solutions cover VR treadmills and motion systems for arcades, training and commercial deployment.",
+  ],
+  "{{OurCompatibilityOrSoftwareInfo}}": [
+    "KAT Unity SDK supports all KAT VR product lines. Consumer products use KAT Gateway, while professional products use KAT I/O.",
+  ],
+  "{{OurShippingLeadTimeNote}}": [
+    "We normally support EXW and can also coordinate FCA/CIF/DDP when needed. Production and transit timing will be confirmed by our team in follow-up.",
+  ],
+  "{{OurPaymentSecurityNotice}}": [
+    "Please remit only to the official company bank account under Hangzhou Virtual And Reality Technology Co., Ltd. / 杭州虚现科技股份有限公司. We do not accept cryptocurrency or unverified bank-account changes sent by email alone.",
+  ],
+};
 const DETAILED_PLUGIN_GUIDE_SECTIONS = [
   {
     title: "0. 快速操作说明",
@@ -709,12 +723,9 @@ function hideApp() {
 
 async function loadInitialGroups() {
   const starter = await readStarterData();
-  state.policySummary = starter.policySummary;
 
   const cached = loadLocalEditorState();
-  if (hasPolicySummary(cached.policySummary)) {
-    state.policySummary = cached.policySummary;
-  }
+  state.policySummary = mergePolicySummaryWithStarter(starter.policySummary, cached.policySummary);
 
   if (cached.groups.length > 0) {
     state.groups = cached.groups;
@@ -1465,6 +1476,55 @@ function loadLocalEditorState() {
       policySummary: createEmptyPolicySummary(),
     };
   }
+}
+
+function mergePolicySummaryWithStarter(starterPolicy, cachedPolicy) {
+  const starter = normalizePolicySummary(starterPolicy);
+  if (!hasPolicySummary(cachedPolicy)) {
+    return starter;
+  }
+
+  const cached = normalizePolicySummary(cachedPolicy);
+  return {
+    ...starter,
+    defaultBlocks: mergeDefaultBlocksWithStarter(starter.defaultBlocks, cached.defaultBlocks),
+  };
+}
+
+function mergeDefaultBlocksWithStarter(starterBlocks, cachedBlocks) {
+  const starterMap = new Map(
+    normalizePolicyDefaults(starterBlocks).map((entry) => [entry.token, { ...entry }]),
+  );
+  const cachedMap = new Map(
+    normalizePolicyDefaults(cachedBlocks).map((entry) => [entry.token, { ...entry }]),
+  );
+  const merged = [];
+  const seen = new Set();
+
+  starterMap.forEach((starterEntry, token) => {
+    const cachedEntry = cachedMap.get(token);
+    merged.push({
+      token,
+      value: shouldUseStarterDefault(token, cachedEntry?.value) ? starterEntry.value : cachedEntry.value,
+    });
+    seen.add(token);
+  });
+
+  cachedMap.forEach((entry, token) => {
+    if (seen.has(token)) return;
+    merged.push(entry);
+  });
+
+  return merged;
+}
+
+function shouldUseStarterDefault(token, cachedValue) {
+  const normalized = String(cachedValue || "").trim();
+  if (!normalized) {
+    return true;
+  }
+
+  return (LEGACY_DEFAULT_BLOCK_VALUES[token] || []).includes(normalized);
 }
 
 function restoreActivationPrefs() {

@@ -427,11 +427,30 @@ function parseManualFlowNorms(yamlText) {
 
 function parseDefaultBlocks(markdown) {
   const section = sliceSection(markdown, "## 四、建议维护的默认值", "## 五、落地提醒");
-  const matches = [...section.matchAll(/- `(\{\{[^`]+\}\})`\s*\n\s*`([^`]+)`/g)];
+  const matches = [
+    ...section.matchAll(
+      /- `(\{\{[^`]+\}\})`\s*\n(?:\s*```(?:[^\n`]*)\n([\s\S]*?)\n\s*```|\s*`([\s\S]*?)`)/g,
+    ),
+  ];
   return matches.map((match) => ({
     token: match[1],
-    value: match[2].trim(),
+    value: normalizeMultilineValue(match[2] ?? match[3] ?? ""),
   }));
+}
+
+function normalizeMultilineValue(input) {
+  const value = String(input || "").replace(/\r/g, "");
+  const lines = value.split("\n");
+  const nonEmptyLines = lines.filter((line) => line.trim().length > 0);
+  const commonIndent =
+    nonEmptyLines.length > 0
+      ? Math.min(...nonEmptyLines.map((line) => (line.match(/^ */) || [""])[0].length))
+      : 0;
+
+  return lines
+    .map((line) => line.slice(commonIndent))
+    .join("\n")
+    .trim();
 }
 
 function parseSectionList(text, startMarker, endMarker, listKey) {
