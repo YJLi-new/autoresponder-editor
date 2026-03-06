@@ -205,6 +205,7 @@ textarea {
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr) 360px;
   gap: 14px;
+  align-items: start;
 }
 
 .panel {
@@ -228,6 +229,11 @@ textarea {
   grid-template-rows: auto minmax(0, 1fr);
   align-content: stretch;
   min-height: 0;
+  align-self: start;
+  position: sticky;
+  top: 16px;
+  height: min(78vh, calc(100vh - 32px));
+  overflow: hidden;
 }
 
 .panel-head {
@@ -285,6 +291,7 @@ textarea {
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: #7ca897 #eef3ea;
+  padding-right: 2px;
 }
 
 .template-list::-webkit-scrollbar {
@@ -771,6 +778,13 @@ textarea {
 @media (max-width: 1080px) {
   .workspace {
     grid-template-columns: 1fr;
+  }
+
+  .list-panel {
+    position: static;
+    top: auto;
+    height: auto;
+    overflow: visible;
   }
 
   .template-list {
