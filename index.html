@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260306-14" />
+    <link rel="stylesheet" href="styles.css?v=20260306-15" />
   </head>
   <body>
     <div class="bg-shape bg-shape-1"></div>
@@ -189,7 +189,7 @@
             <div class="preview-actions">
               <button id="copyTextBtn" class="btn ghost" type="button">复制纯文本</button>
               <button id="copyHtmlBtn" class="btn ghost" type="button">复制 HTML</button>
-              <button id="activateAliMailBtn" class="btn primary" type="button">一键在 AliMail 激活</button>
+              <button id="activateAliMailBtn" class="btn primary" type="button">一键在 AliMail 激活（有插件）</button>
             </div>
             <section id="manualGuideBox" class="manual-guide hidden" aria-live="polite">
               <p class="manual-guide-title">无插件激活步骤</p>
@@ -231,19 +231,6 @@
         <div class="modal-actions">
           <button id="deleteConfirmCancelBtn" class="btn ghost" type="button">取消</button>
           <button id="deleteConfirmOkBtn" class="btn danger" type="button">确认</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="activationModeModal" class="modal-overlay hidden" aria-hidden="true">
-      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="activationModeTitle">
-        <p class="eyebrow">Activation Mode</p>
-        <h3 id="activationModeTitle">选择激活方式</h3>
-        <p id="activationModeText" class="modal-text"></p>
-        <div class="modal-actions modal-actions-split">
-          <button id="activationModeCancelBtn" class="btn ghost" type="button">取消</button>
-          <button id="activationModeManualBtn" class="btn ghost" type="button">无插件激活</button>
-          <button id="activationModePluginBtn" class="btn primary" type="button">有插件激活</button>
         </div>
       </div>
     </div>
@@ -313,6 +300,6 @@
       </div>
     </div>
 
-    <script src="app.js?v=20260306-14" defer></script>
+    <script src="app.js?v=20260306-15" defer></script>
   </body>
 </html>
