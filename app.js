@@ -108,6 +108,11 @@ const appEls = {
   deleteConfirmText: document.getElementById("deleteConfirmText"),
   deleteConfirmCancelBtn: document.getElementById("deleteConfirmCancelBtn"),
   deleteConfirmOkBtn: document.getElementById("deleteConfirmOkBtn"),
+  activationModeModal: document.getElementById("activationModeModal"),
+  activationModeText: document.getElementById("activationModeText"),
+  activationModeCancelBtn: document.getElementById("activationModeCancelBtn"),
+  activationModePluginBtn: document.getElementById("activationModePluginBtn"),
+  activationModeManualBtn: document.getElementById("activationModeManualBtn"),
   metaEditorModal: document.getElementById("metaEditorModal"),
   metaEditorForm: document.getElementById("metaEditorForm"),
   metaEditorStatus: document.getElementById("metaEditorStatus"),
@@ -162,6 +167,7 @@ const state = {
   selectedLocale: "zh-CN",
   focusedField: null,
   pendingDeleteGroupId: null,
+  pendingActivation: null,
   metaEditorGroupId: null,
   activationGuide: null,
   activationPrefs: {
@@ -213,6 +219,14 @@ function bindEvents() {
       closeDeleteConfirm();
     }
   });
+  appEls.activationModeCancelBtn?.addEventListener("click", closeActivationModeModal);
+  appEls.activationModePluginBtn?.addEventListener("click", () => continueActivation("plugin"));
+  appEls.activationModeManualBtn?.addEventListener("click", () => continueActivation("manual"));
+  appEls.activationModeModal?.addEventListener("click", (event) => {
+    if (event.target === appEls.activationModeModal) {
+      closeActivationModeModal();
+    }
+  });
   appEls.metaEditorCancelBtn?.addEventListener("click", closeMetaEditor);
   appEls.metaEditorSaveBtn?.addEventListener("click", saveMetaEditor);
   appEls.metaEditorForm?.addEventListener("submit", (event) => {
@@ -227,6 +241,10 @@ function bindEvents() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && state.pendingDeleteGroupId) {
       closeDeleteConfirm();
+      return;
+    }
+    if (event.key === "Escape" && state.pendingActivation) {
+      closeActivationModeModal();
       return;
     }
     if (event.key === "Escape" && state.metaEditorGroupId) {
@@ -316,6 +334,24 @@ function closeDeleteConfirm() {
   appEls.deleteConfirmModal?.classList.add("hidden");
   appEls.deleteConfirmModal?.setAttribute("aria-hidden", "true");
   appEls.deleteBtn?.focus();
+}
+
+function openActivationModeModal(summaryText) {
+  if (!state.pendingActivation) return;
+
+  if (appEls.activationModeText) {
+    appEls.activationModeText.textContent = summaryText;
+  }
+  appEls.activationModeModal?.classList.remove("hidden");
+  appEls.activationModeModal?.setAttribute("aria-hidden", "false");
+  appEls.activationModePluginBtn?.focus();
+}
+
+function closeActivationModeModal() {
+  state.pendingActivation = null;
+  appEls.activationModeModal?.classList.add("hidden");
+  appEls.activationModeModal?.setAttribute("aria-hidden", "true");
+  appEls.activateAliMailBtn?.focus();
 }
 
 function openMetaEditor() {
@@ -563,6 +599,7 @@ function showApp() {
 
 function hideApp() {
   closeDeleteConfirm();
+  closeActivationModeModal();
   closeMetaEditor();
   authEls.gate.classList.remove("hidden");
   appEls.app.classList.add("hidden");
@@ -1520,29 +1557,50 @@ async function activateInAliMail() {
     mode: state.activationPrefs.mode,
   });
   const packetText = buildManualActivationPacket(envelope, validation.warnings);
-  state.activationGuide = {
+  state.pendingActivation = {
+    envelope,
+    warnings: validation.warnings,
+    packetText,
+    targetMailbox,
+    mode: state.activationPrefs.mode,
     subject: envelope.activeTemplate.subject || "",
     bodyText: envelope.activeTemplate.bodyText || "",
-    packetText,
   };
-  renderManualGuide(targetMailbox, envelope.mode, validation.warnings);
+  openActivationModeModal(`已为 ${targetMailbox} 生成激活包。请选择继续方式。`);
+}
+
+async function continueActivation(mode) {
+  const pending = state.pendingActivation;
+  if (!pending) return;
+
+  closeActivationModeModal();
+
+  state.activationGuide = {
+    subject: pending.subject,
+    bodyText: pending.bodyText,
+    packetText: pending.packetText,
+  };
+  renderManualGuide(pending.targetMailbox, pending.mode, pending.warnings);
 
   let copiedPacket = false;
   try {
-    await navigator.clipboard.writeText(packetText);
+    await navigator.clipboard.writeText(pending.packetText);
     copiedPacket = true;
   } catch (_error) {
     copiedPacket = false;
   }
 
-  const activationUrl = buildAliMailActivationUrl(envelope);
-  const opened = window.open(activationUrl, "_blank", "noopener,noreferrer");
+  const preferredMode = mode === "plugin" ? "plugin" : "manual";
+  const targetUrl =
+    preferredMode === "plugin" ? buildAliMailActivationUrl(pending.envelope) : ALIMAIL_WEBMAIL_URL;
+  const opened = window.open(targetUrl, "_blank", "noopener,noreferrer");
+
   if (!opened) {
     const useCurrentTab = window.confirm(
       "浏览器拦截了新窗口。是否在当前页打开 AliMail 并继续激活？（当前页内容已自动保存）",
     );
     if (useCurrentTab) {
-      window.location.assign(activationUrl);
+      window.location.assign(targetUrl);
       return;
     }
     setStatus(appEls.status, "无法打开 AliMail，请允许该站点弹窗后重试。", true);
@@ -1550,19 +1608,17 @@ async function activateInAliMail() {
   }
 
   const modeMessage =
-    state.activationPrefs.mode === "all"
-      ? "已生成全部模板激活包，并定位到当前模板。"
-      : "已生成当前模板激活包。";
+    pending.mode === "all" ? "已生成全部模板激活包，并定位到当前模板。" : "已生成当前模板激活包。";
   const copyMessage = copiedPacket
     ? "完整激活包已复制到剪贴板。"
     : "自动复制失败，请使用下方按钮手动复制主题/正文。";
-  const warningMessage = validation.warnings.length > 0 ? ` 注意：${validation.warnings.join("；")}。` : "";
+  const warningMessage = pending.warnings.length > 0 ? ` 注意：${pending.warnings.join("；")}。` : "";
+  const nextStepMessage =
+    preferredMode === "plugin"
+      ? "AliMail 页面会优先尝试插件自动填写；如果没有出现“AliMail 激活器”提示，请改用无插件流程或先安装插件。"
+      : "请按下方“无插件激活步骤”在 AliMail 保存规则。";
 
-  setStatus(
-    appEls.status,
-    `${modeMessage}${copyMessage} 若已安装插件，AliMail 页面会尝试自动填写；若未安装插件，请按下方“无插件激活步骤”手动保存。${warningMessage}`,
-    false,
-  );
+  setStatus(appEls.status, `${modeMessage}${copyMessage} ${nextStepMessage}${warningMessage}`, false);
 }
 
 function collectTemplatesForActivation(activeGroup, activeVersion, mode) {
@@ -1626,9 +1682,11 @@ function validateAliMailFormat(version) {
     errors.push("结束时间必须晚于开始时间");
   }
 
-  const placeholderMatches = body.match(/\{\{[^}]+\}\}/g) || [];
-  if (placeholderMatches.length > 0) {
-    warnings.push("检测到占位符，AliMail 不会自动替换变量");
+  const unresolvedPlaceholders = Array.from(new Set(`${subject}\n${body}`.match(/\{\{[^}]+\}\}/g) || []));
+  if (unresolvedPlaceholders.length > 0) {
+    warnings.push(
+      `检测到未填写占位符 ${unresolvedPlaceholders.join("、")}；AliMail 不会自动替换，请先在“占位符实际信息”中填写，或直接把正文改成实际内容`,
+    );
   }
 
   return { errors, warnings };

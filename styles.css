@@ -558,6 +558,10 @@ textarea {
   flex-wrap: wrap;
 }
 
+.modal-actions-split {
+  justify-content: space-between;
+}
+
 .policy-title {
   margin: 0;
   font-size: 13px;
