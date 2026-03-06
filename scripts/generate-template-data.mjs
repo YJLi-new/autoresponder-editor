@@ -261,6 +261,27 @@ function buildPolicySummary(templateSourcePath, rulesSourcePath, mdText, yamlTex
       path.basename(templateSourcePath),
       path.basename(rulesSourcePath),
     ],
+    keywordRegexGuide: {
+      purpose:
+        "“关键词/正则”用于说明该模板通常匹配哪些邮件线索，便于维护模板与人工核对分类；它是规则基线说明，不会被当前网页或 AliMail 手动激活流程直接执行。",
+      syntax:
+        "统一写成标准 JavaScript 正则文本格式 `/pattern/flags`。推荐默认使用 `i` 做不区分大小写匹配；多个候选词用 `|` 连接。",
+      flags: [
+        "`i`：大小写不敏感，适合邮件主题和正文关键词识别",
+        "`g`、`m` 默认不需要；只有在明确需要多行锚点时才考虑",
+      ],
+      authoringRules: [
+        "对缩写词优先使用单词边界，例如 `\\bPI\\b`、`\\bPO\\b`、`\\bRFQ\\b`，避免误命中更长字符串。",
+        "对字面量符号需要转义，例如匹配 `No.12345` 时应写 `No\\.\\d{5,}`。",
+        "优先保留高信号词，不要把整句业务说明直接写进正则，避免模式过宽、难维护。",
+        "如果一类线索来自固定页面或表单入口，可把稳定 slug 纳入正则，例如 `models-comparison`、`kat-walk-[^\\s]*`。",
+        "这栏描述的是模板适用线索，不等于 AliMail 页面中的最终规则条件；手动激活时仍需按页面引导把主题和正文保存到邮箱规则里。",
+      ],
+      examples: [
+        "/payment|invoice|\\bPI\\b|proforma|bank account/i",
+        "/product page form|homepage form|product inquiry|new contact form from (kat-walk-[^\\\\s]*|kat-pro|kat-loco-s|kat-nexus)|No\\.\\d{5,}/i",
+      ],
+    },
     subjectStrategy: {
       source: "源文件建议保留原线程主题，由邮件系统自动添加 Re: / 回复：。",
       editorFallback: "当前编辑器默认填充兼容 AliMail 的固定主题；如实际邮箱支持线程主题策略，可在应用前手动调整。",

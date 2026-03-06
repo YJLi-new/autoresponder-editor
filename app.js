@@ -51,6 +51,13 @@ function createEmptyPolicySummary() {
   return {
     title: "",
     sourceFiles: [],
+    keywordRegexGuide: {
+      purpose: "",
+      syntax: "",
+      flags: [],
+      authoringRules: [],
+      examples: [],
+    },
     subjectStrategy: {
       source: "",
       editorFallback: "",
@@ -638,6 +645,13 @@ function normalizePolicySummary(input) {
   return {
     title: String(input.title || fallback.title),
     sourceFiles: normalizeStringArray(input.sourceFiles),
+    keywordRegexGuide: {
+      purpose: String(input.keywordRegexGuide?.purpose || ""),
+      syntax: String(input.keywordRegexGuide?.syntax || ""),
+      flags: normalizeStringArray(input.keywordRegexGuide?.flags),
+      authoringRules: normalizeStringArray(input.keywordRegexGuide?.authoringRules),
+      examples: normalizeStringArray(input.keywordRegexGuide?.examples),
+    },
     subjectStrategy: {
       source: String(input.subjectStrategy?.source || ""),
       editorFallback: String(input.subjectStrategy?.editorFallback || ""),
@@ -1057,6 +1071,13 @@ function renderPolicySummary() {
 
   const policy = state.policySummary;
   const sections = [
+    buildPolicySection("关键词/正则", [
+      policy.keywordRegexGuide.purpose,
+      policy.keywordRegexGuide.syntax,
+      ...policy.keywordRegexGuide.flags.map((item) => `Flags：${item}`),
+      ...policy.keywordRegexGuide.authoringRules,
+      ...policy.keywordRegexGuide.examples.map((item) => `示例：${item}`),
+    ]),
     buildPolicySection("来源与主题策略", [
       policy.sourceFiles.length > 0 ? `来源文件：${policy.sourceFiles.join(" + ")}` : "",
       policy.defaultLanguage ? `默认语言：${policy.defaultLanguage}` : "",
@@ -1122,6 +1143,7 @@ function buildPolicySection(title, items, trustedHtml = false) {
 function hasPolicySummary(policySummary) {
   return Boolean(
     policySummary?.title ||
+      policySummary?.keywordRegexGuide?.purpose ||
       policySummary?.placeholderPolicy?.allowed?.length ||
       policySummary?.routingGroups?.length ||
       policySummary?.defaultBlocks?.length,
