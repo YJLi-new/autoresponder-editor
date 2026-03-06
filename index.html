@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260306-3" />
+    <link rel="stylesheet" href="styles.css?v=20260306-4" />
   </head>
   <body>
     <div class="bg-shape bg-shape-1"></div>
@@ -196,6 +196,18 @@
       <input id="importInput" type="file" accept="application/json,.json" hidden />
     </main>
 
-    <script src="app.js?v=20260306-2" defer></script>
+    <div id="deleteConfirmModal" class="modal-overlay hidden" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
+        <p class="eyebrow">Confirm Action</p>
+        <h3 id="deleteConfirmTitle">确认删除该类别？</h3>
+        <p id="deleteConfirmText" class="modal-text"></p>
+        <div class="modal-actions">
+          <button id="deleteConfirmCancelBtn" class="btn ghost" type="button">取消</button>
+          <button id="deleteConfirmOkBtn" class="btn danger" type="button">确认</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js?v=20260306-4" defer></script>
   </body>
 </html>

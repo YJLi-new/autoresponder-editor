@@ -73,6 +73,10 @@ const appEls = {
   resetBtn: document.getElementById("resetBtn"),
   importInput: document.getElementById("importInput"),
   logoutBtn: document.getElementById("logoutBtn"),
+  deleteConfirmModal: document.getElementById("deleteConfirmModal"),
+  deleteConfirmText: document.getElementById("deleteConfirmText"),
+  deleteConfirmCancelBtn: document.getElementById("deleteConfirmCancelBtn"),
+  deleteConfirmOkBtn: document.getElementById("deleteConfirmOkBtn"),
   previewSubject: document.getElementById("previewSubject"),
   previewBody: document.getElementById("previewBody"),
   status: document.getElementById("appStatus"),
@@ -109,6 +113,7 @@ const state = {
   selectedGroupId: null,
   selectedLocale: "zh-CN",
   focusedField: null,
+  pendingDeleteGroupId: null,
   activationGuide: null,
   activationPrefs: {
     targetMailbox: "",
@@ -150,19 +155,18 @@ function bindEvents() {
     selectGroup(created.groupId, "zh-CN");
   });
 
-  appEls.deleteBtn.addEventListener("click", () => {
-    if (!state.selectedGroupId) return;
-
-    if (state.groups.length <= 1) {
-      setStatus(appEls.status, "至少保留一个模板类别。", true);
-      return;
+  appEls.deleteBtn.addEventListener("click", openDeleteConfirm);
+  appEls.deleteConfirmCancelBtn?.addEventListener("click", closeDeleteConfirm);
+  appEls.deleteConfirmOkBtn?.addEventListener("click", confirmDeleteGroup);
+  appEls.deleteConfirmModal?.addEventListener("click", (event) => {
+    if (event.target === appEls.deleteConfirmModal) {
+      closeDeleteConfirm();
     }
-
-    state.groups = state.groups.filter((group) => group.groupId !== state.selectedGroupId);
-    state.selectedGroupId = state.groups[0]?.groupId || null;
-    persistLocalGroups();
-    renderList();
-    selectGroup(state.selectedGroupId, state.selectedLocale);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && state.pendingDeleteGroupId) {
+      closeDeleteConfirm();
+    }
   });
 
   appEls.form.addEventListener("input", () => {
@@ -220,6 +224,44 @@ function bindEvents() {
     insertAtCursor(state.focusedField, chip.dataset.token || "");
     state.focusedField.dispatchEvent(new Event("input", { bubbles: true }));
   });
+}
+
+function openDeleteConfirm() {
+  if (!state.selectedGroupId) return;
+
+  if (state.groups.length <= 1) {
+    setStatus(appEls.status, "至少保留一个模板类别。", true);
+    return;
+  }
+
+  const group = getSelectedGroup();
+  state.pendingDeleteGroupId = state.selectedGroupId;
+  if (appEls.deleteConfirmText) {
+    const category = group?.category || "当前类别";
+    appEls.deleteConfirmText.textContent = `删除后将移除“${category}”及其中的中英文模板内容，此操作不可撤销。`;
+  }
+  appEls.deleteConfirmModal?.classList.remove("hidden");
+  appEls.deleteConfirmModal?.setAttribute("aria-hidden", "false");
+  appEls.deleteConfirmCancelBtn?.focus();
+}
+
+function closeDeleteConfirm() {
+  state.pendingDeleteGroupId = null;
+  appEls.deleteConfirmModal?.classList.add("hidden");
+  appEls.deleteConfirmModal?.setAttribute("aria-hidden", "true");
+  appEls.deleteBtn?.focus();
+}
+
+function confirmDeleteGroup() {
+  const targetGroupId = state.pendingDeleteGroupId;
+  if (!targetGroupId) return;
+
+  state.groups = state.groups.filter((group) => group.groupId !== targetGroupId);
+  state.selectedGroupId = state.groups[0]?.groupId || null;
+  closeDeleteConfirm();
+  persistLocalGroups();
+  renderList();
+  selectGroup(state.selectedGroupId, state.selectedLocale);
 }
 
 async function loadAccessConfig() {
@@ -362,6 +404,7 @@ function showApp() {
 }
 
 function hideApp() {
+  closeDeleteConfirm();
   authEls.gate.classList.remove("hidden");
   appEls.app.classList.add("hidden");
   appEls.app.setAttribute("aria-hidden", "true");
