@@ -73,10 +73,27 @@ const appEls = {
   resetBtn: document.getElementById("resetBtn"),
   importInput: document.getElementById("importInput"),
   logoutBtn: document.getElementById("logoutBtn"),
+  editMetaBtn: document.getElementById("editMetaBtn"),
   deleteConfirmModal: document.getElementById("deleteConfirmModal"),
   deleteConfirmText: document.getElementById("deleteConfirmText"),
   deleteConfirmCancelBtn: document.getElementById("deleteConfirmCancelBtn"),
   deleteConfirmOkBtn: document.getElementById("deleteConfirmOkBtn"),
+  metaEditorModal: document.getElementById("metaEditorModal"),
+  metaEditorForm: document.getElementById("metaEditorForm"),
+  metaEditorStatus: document.getElementById("metaEditorStatus"),
+  metaEditorCancelBtn: document.getElementById("metaEditorCancelBtn"),
+  metaEditorSaveBtn: document.getElementById("metaEditorSaveBtn"),
+  metaEditorFields: {
+    templateId: document.getElementById("metaEditorTemplateId"),
+    ruleId: document.getElementById("metaEditorRuleId"),
+    routing: document.getElementById("metaEditorRouting"),
+    sla: document.getElementById("metaEditorSla"),
+    matchFields: document.getElementById("metaEditorMatchFields"),
+    keywords: document.getElementById("metaEditorKeywords"),
+    exclusions: document.getElementById("metaEditorExclusions"),
+    placeholders: document.getElementById("metaEditorPlaceholders"),
+    note: document.getElementById("metaEditorNote"),
+  },
   previewSubject: document.getElementById("previewSubject"),
   previewBody: document.getElementById("previewBody"),
   status: document.getElementById("appStatus"),
@@ -114,6 +131,7 @@ const state = {
   selectedLocale: "zh-CN",
   focusedField: null,
   pendingDeleteGroupId: null,
+  metaEditorGroupId: null,
   activationGuide: null,
   activationPrefs: {
     targetMailbox: "",
@@ -155,6 +173,7 @@ function bindEvents() {
     selectGroup(created.groupId, "zh-CN");
   });
 
+  appEls.editMetaBtn?.addEventListener("click", openMetaEditor);
   appEls.deleteBtn.addEventListener("click", openDeleteConfirm);
   appEls.deleteConfirmCancelBtn?.addEventListener("click", closeDeleteConfirm);
   appEls.deleteConfirmOkBtn?.addEventListener("click", confirmDeleteGroup);
@@ -163,9 +182,24 @@ function bindEvents() {
       closeDeleteConfirm();
     }
   });
+  appEls.metaEditorCancelBtn?.addEventListener("click", closeMetaEditor);
+  appEls.metaEditorSaveBtn?.addEventListener("click", saveMetaEditor);
+  appEls.metaEditorForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    saveMetaEditor();
+  });
+  appEls.metaEditorModal?.addEventListener("click", (event) => {
+    if (event.target === appEls.metaEditorModal) {
+      closeMetaEditor();
+    }
+  });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && state.pendingDeleteGroupId) {
       closeDeleteConfirm();
+      return;
+    }
+    if (event.key === "Escape" && state.metaEditorGroupId) {
+      closeMetaEditor();
     }
   });
 
@@ -250,6 +284,91 @@ function closeDeleteConfirm() {
   appEls.deleteConfirmModal?.classList.add("hidden");
   appEls.deleteConfirmModal?.setAttribute("aria-hidden", "true");
   appEls.deleteBtn?.focus();
+}
+
+function openMetaEditor() {
+  const group = getSelectedGroup();
+  if (!group) return;
+
+  state.metaEditorGroupId = group.groupId;
+  setFieldValue(appEls.metaEditorFields.templateId, group.groupId);
+  setFieldValue(appEls.metaEditorFields.ruleId, group.ruleId);
+  setFieldValue(appEls.metaEditorFields.routing, group.routing);
+  setFieldValue(appEls.metaEditorFields.sla, group.sla);
+  setFieldValue(appEls.metaEditorFields.matchFields, group.matchFields);
+  setFieldValue(appEls.metaEditorFields.keywords, group.keywords);
+  setFieldValue(appEls.metaEditorFields.exclusions, group.exclusions);
+  setFieldValue(appEls.metaEditorFields.placeholders, group.placeholders.join("\n"));
+  setFieldValue(appEls.metaEditorFields.note, group.note);
+  setStatus(appEls.metaEditorStatus, "", false);
+  appEls.metaEditorModal?.classList.remove("hidden");
+  appEls.metaEditorModal?.setAttribute("aria-hidden", "false");
+  appEls.metaEditorFields.templateId?.focus();
+  appEls.metaEditorFields.templateId?.select();
+}
+
+function closeMetaEditor() {
+  const wasOpen = Boolean(state.metaEditorGroupId);
+  state.metaEditorGroupId = null;
+  appEls.metaEditorModal?.classList.add("hidden");
+  appEls.metaEditorModal?.setAttribute("aria-hidden", "true");
+  setStatus(appEls.metaEditorStatus, "", false);
+  if (wasOpen) {
+    appEls.editMetaBtn?.focus();
+  }
+}
+
+function saveMetaEditor() {
+  const targetGroupId = state.metaEditorGroupId;
+  if (!targetGroupId) return;
+
+  const group = state.groups.find((entry) => entry.groupId === targetGroupId);
+  if (!group) {
+    closeMetaEditor();
+    setStatus(appEls.status, "未找到要更新的模板类别。", true);
+    return;
+  }
+
+  const nextGroupId = getFieldValue(appEls.metaEditorFields.templateId).trim();
+  if (!nextGroupId) {
+    setStatus(appEls.metaEditorStatus, "Template ID 不能为空。", true);
+    appEls.metaEditorFields.templateId?.focus();
+    return;
+  }
+
+  const duplicated = state.groups.some(
+    (entry) => entry.groupId === nextGroupId && entry.groupId !== targetGroupId,
+  );
+  if (duplicated) {
+    setStatus(appEls.metaEditorStatus, "Template ID 已存在，请使用唯一值。", true);
+    appEls.metaEditorFields.templateId?.focus();
+    appEls.metaEditorFields.templateId?.select();
+    return;
+  }
+
+  group.groupId = nextGroupId;
+  group.ruleId = getFieldValue(appEls.metaEditorFields.ruleId).trim();
+  group.routing = getFieldValue(appEls.metaEditorFields.routing).trim();
+  group.sla = getFieldValue(appEls.metaEditorFields.sla).trim();
+  group.matchFields = getFieldValue(appEls.metaEditorFields.matchFields).trim();
+  group.keywords = getFieldValue(appEls.metaEditorFields.keywords).trim();
+  group.exclusions = getFieldValue(appEls.metaEditorFields.exclusions).trim();
+  group.placeholders = parseEditorPlaceholders(getFieldValue(appEls.metaEditorFields.placeholders));
+  group.note = getFieldValue(appEls.metaEditorFields.note).trim();
+  group.updatedAt = new Date().toISOString();
+
+  if (state.selectedGroupId === targetGroupId) {
+    state.selectedGroupId = nextGroupId;
+  }
+  if (state.pendingDeleteGroupId === targetGroupId) {
+    state.pendingDeleteGroupId = nextGroupId;
+  }
+
+  persistLocalGroups();
+  closeMetaEditor();
+  renderList();
+  selectGroup(nextGroupId, state.selectedLocale);
+  setStatus(appEls.status, "已更新规则元信息。", false);
 }
 
 function confirmDeleteGroup() {
@@ -405,6 +524,7 @@ function showApp() {
 
 function hideApp() {
   closeDeleteConfirm();
+  closeMetaEditor();
   authEls.gate.classList.remove("hidden");
   appEls.app.classList.add("hidden");
   appEls.app.setAttribute("aria-hidden", "true");
@@ -641,13 +761,17 @@ function normalizePlaceholders(input) {
   }
 
   if (typeof input === "string") {
-    return input
-      .split(",")
-      .map((entry) => entry.trim())
-      .filter(Boolean);
+    return parseEditorPlaceholders(input);
   }
 
   return [];
+}
+
+function parseEditorPlaceholders(input) {
+  return String(input || "")
+    .split(/[\n,，]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
 }
 
 function normalizeStringArray(input) {

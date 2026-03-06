@@ -368,6 +368,45 @@ textarea {
   color: #445058;
 }
 
+.meta-box-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.meta-box-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #224d45;
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #b9c5b2;
+  border-radius: 10px;
+  background: #fff;
+  color: #214f45;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.icon-btn:hover {
+  transform: translateY(-1px);
+  border-color: #8cab9f;
+  background: #f5fff8;
+}
+
+.icon-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
 .meta-box p {
   margin: 0;
   line-height: 1.45;
@@ -429,12 +468,24 @@ textarea {
 
 .modal-card {
   width: min(100%, 420px);
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 18px;
   box-shadow: 0 24px 50px rgba(31, 42, 44, 0.22);
   padding: 18px;
   transition: 0.2s ease;
+}
+
+.meta-modal-card {
+  width: min(100%, 720px);
+}
+
+.modal-form {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
 }
 
 .modal-text {
