@@ -2,6 +2,7 @@ const STORAGE_KEYS = {
   localTemplateGroups: "ali_editor_local_template_groups_v2_20260306",
   activationPrefs: "ali_editor_activation_prefs",
   unlockMarker: "ali_editor_unlock_marker",
+  themeMode: "ali_editor_theme_mode",
 };
 const TEMPLATE_DATA_VERSION = 3;
 
@@ -212,6 +213,8 @@ function createEmptyPolicySummary() {
 
 const appEls = {
   app: document.getElementById("editorApp"),
+  themeToggleBtn: document.getElementById("themeToggleBtn"),
+  themeToggleLabel: document.getElementById("themeToggleLabel"),
   list: document.getElementById("templateList"),
   form: document.getElementById("templateForm"),
   addBtn: document.getElementById("addTemplateBtn"),
@@ -280,6 +283,7 @@ const state = {
   accessConfig: null,
   groups: [],
   policySummary: createEmptyPolicySummary(),
+  theme: document.documentElement.dataset.theme === "dark" ? "dark" : "light",
   selectedGroupId: null,
   selectedLocale: "zh-CN",
   focusedField: null,
@@ -296,6 +300,7 @@ const state = {
 boot();
 
 async function boot() {
+  applyTheme(resolveInitialTheme(), false);
   bindEvents();
   setStatus(authEls.status, "正在加载访问配置...");
 
@@ -318,6 +323,7 @@ async function boot() {
 
 function bindEvents() {
   authEls.form.addEventListener("submit", onAuthSubmit);
+  appEls.themeToggleBtn?.addEventListener("click", toggleTheme);
 
   appEls.addBtn.addEventListener("click", () => {
     const created = createGroup();
@@ -426,6 +432,58 @@ function bindEvents() {
     insertAtCursor(state.focusedField, chip.dataset.token || "");
     state.focusedField.dispatchEvent(new Event("input", { bubbles: true }));
   });
+}
+
+function resolveInitialTheme() {
+  const current = document.documentElement.dataset.theme;
+  if (current === "light" || current === "dark") {
+    return current;
+  }
+
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.themeMode);
+    if (stored === "light" || stored === "dark") {
+      return stored;
+    }
+  } catch (_error) {
+    // Ignore theme storage errors.
+  }
+
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function toggleTheme() {
+  applyTheme(state.theme === "dark" ? "light" : "dark");
+}
+
+function applyTheme(theme, persist = true) {
+  const normalized = theme === "dark" ? "dark" : "light";
+  state.theme = normalized;
+  document.documentElement.dataset.theme = normalized;
+  document.documentElement.style.colorScheme = normalized;
+
+  if (persist) {
+    try {
+      localStorage.setItem(STORAGE_KEYS.themeMode, normalized);
+    } catch (_error) {
+      // Ignore theme storage errors.
+    }
+  }
+
+  renderThemeToggle();
+}
+
+function renderThemeToggle() {
+  if (!appEls.themeToggleBtn) return;
+
+  const nextTheme = state.theme === "dark" ? "light" : "dark";
+  const label = nextTheme === "dark" ? "切换到深色主题" : "切换到浅色主题";
+  appEls.themeToggleBtn.setAttribute("aria-label", label);
+  appEls.themeToggleBtn.setAttribute("title", label);
+  appEls.themeToggleBtn.setAttribute("aria-pressed", String(state.theme === "dark"));
+  if (appEls.themeToggleLabel) {
+    appEls.themeToggleLabel.textContent = label;
+  }
 }
 
 function openDeleteConfirm() {
