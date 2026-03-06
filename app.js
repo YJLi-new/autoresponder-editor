@@ -29,6 +29,17 @@ const DEFAULT_KEYWORDS_REGEX_BY_GROUP_ID = {
 };
 const DETAILED_PLUGIN_GUIDE_SECTIONS = [
   {
+    title: "0. 快速操作说明",
+    items: [
+      "先在桌面版 Edge 或 Chrome 安装 Tampermonkey 扩展。",
+      "再安装 `KATVR AliMail Auto Reply Activator` 脚本，并确认脚本已启用。",
+      "手动登录一次阿里企业邮箱网页，然后刷新该页面，让脚本接管当前域名。",
+      "回到编辑器，填写“指定邮箱（企业版账号）”，并把模板里的占位符实际信息补齐。",
+      "点击 `一键在 AliMail 激活（有插件）`，等待浏览器打开 AliMail 页面。",
+      "如果页面出现 `AliMail 激活器：开始处理激活请求...`，说明插件已开始执行；最后检查内容是否已保存，并用测试邮件验收。",
+    ],
+  },
+  {
     title: "1. 先选浏览器",
     items: [
       "优先使用桌面版 Chromium 浏览器，例如 Microsoft Edge 或 Google Chrome。",
