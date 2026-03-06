@@ -261,6 +261,32 @@ function buildPolicySummary(templateSourcePath, rulesSourcePath, mdText, yamlTex
       path.basename(templateSourcePath),
       path.basename(rulesSourcePath),
     ],
+    pluginActivationGuide: {
+      overview:
+        "编辑器仍保留有插件激活方案。安装 Tampermonkey 并启用 `alimail-activator.user.js` 后，点击“一键在 AliMail 激活”会把当前模板载荷带到 AliMail 页面，脚本会自动尝试打开自动回复设置、填写主题/正文并点击保存。",
+      installSteps: [
+        "在浏览器安装 Tampermonkey 扩展。",
+        "打开 `https://raw.githubusercontent.com/YJLi-new/autoresponder-editor/main/alimail-activator.user.js`，按 Tampermonkey 提示安装脚本。",
+        "在 Tampermonkey Dashboard 确认脚本已启用，并允许匹配 `https://qiye.aliyun.com/*` 与 `https://mail.aliyun.com/*`。",
+        "首次安装后刷新一次 AliMail 企业邮箱页面，确保脚本开始接管该域名。",
+      ],
+      usageSteps: [
+        "在编辑器中填写指定邮箱，并确认当前模板内容、占位符实际信息和激活范围无误。",
+        "点击“一键在 AliMail 激活”；编辑器会把激活载荷附加到 AliMail 链接中并打开企业邮箱。",
+        "若插件运行成功，AliMail 页面会出现 `AliMail 激活器：开始处理激活请求...` 的提示，并继续尝试打开自动回复面板和填写内容。",
+        "如果插件能定位到保存按钮，会自动点保存；如果只填充未保存，页面会提示你手动确认并点击保存。",
+      ],
+      successChecks: [
+        "AliMail 页面出现 `AliMail 激活器：已激活当前模板。` 或 `已同步 X 个模板，并激活当前模板。` 的提示。",
+        "进入 AliMail 自动回复设置，检查主题和正文是否已替换为当前编辑器中的实际内容，而不是 `{{Our*}}` 占位符。",
+        "用外部邮箱发送一封测试邮件，确认目标邮箱能回出最新自动回复。",
+      ],
+      troubleshooting: [
+        "如果页面没有任何激活器提示，优先检查 Tampermonkey 是否启用、脚本是否启用，以及当前域名是否为 `qiye.aliyun.com` / `mail.aliyun.com`。",
+        "如果脚本提示未找到自动回复入口或保存按钮，通常是 AliMail 页面结构变化；先手动保存一次，再把最新页面截图或 DOM 文本提供给维护者更新脚本。",
+        "如果浏览器拦截新窗口，允许本站弹窗，或在提示时选择当前页打开 AliMail。",
+      ],
+    },
     keywordRegexGuide: {
       purpose:
         "“关键词/正则”用于说明该模板通常匹配哪些邮件线索，便于维护模板与人工核对分类；它是规则基线说明，不会被当前网页或 AliMail 手动激活流程直接执行。",

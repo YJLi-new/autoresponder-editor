@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "updatedAt": "2026-03-06T12:13:14.524Z",
+  "updatedAt": "2026-03-06T12:52:47.207Z",
   "source": "KATVR v2 regenerated rules and templates",
   "groups": [
     {
@@ -20,7 +20,7 @@
         "{{OurReplySignature}}"
       ],
       "note": "售后与补件类优先走支持团队。 人工二次收集：设备型号；序列号；缺失 / 损坏的配件名称；故障现象与照片 / 视频；备件寄送地址",
-      "updatedAt": "2026-03-06T12:13:14.523Z",
+      "updatedAt": "2026-03-06T12:52:47.207Z",
       "versions": {
         "zh-CN": {
           "locale": "zh-CN",
@@ -32,7 +32,7 @@
           "opening": "您好，",
           "body": "感谢您联系 KAT VR 支持团队。\n\n我们已收到您的留言，支持团队会尽快查看。\n\n售后与支持参考如下：\n{{OurWarrantyOrSupportInfo}}\n\n官方支持渠道：\n{{OurSupportContactBlock}}\n\n如果您的情况涉及配件、备件或替换组件，我们会在后续跟进中确认库存与下一步支持方式。",
           "signature": "此致\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.523Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         },
         "en-US": {
           "locale": "en-US",
@@ -44,7 +44,7 @@
           "opening": "Hello,",
           "body": "Thank you for contacting KAT VR support.\n\nWe have received your message and our support team will review it shortly.\n\nFor support and after-sales reference:\n{{OurWarrantyOrSupportInfo}}\n\nOfficial support channels:\n{{OurSupportContactBlock}}\n\nIf your case involves accessories, spare parts or replacement components, our team will confirm availability and the next support step in follow-up.",
           "signature": "Best regards,\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.523Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         }
       }
     },
@@ -65,7 +65,7 @@
         "{{OurReplySignature}}"
       ],
       "note": "技术咨询用技术模板，不要回销售口径模板。 人工二次收集：Unity / Unreal；目标头显平台；目标产品线；需要 SDK、KAT I/O 还是 KAT Gateway；是否涉及 Vehicle Hub / seated simulation",
-      "updatedAt": "2026-03-06T12:13:14.523Z",
+      "updatedAt": "2026-03-06T12:52:47.207Z",
       "versions": {
         "zh-CN": {
           "locale": "zh-CN",
@@ -77,7 +77,7 @@
           "opening": "您好，",
           "body": "感谢您联系 KAT VR。\n\n我们已收到您的技术咨询，相关团队会尽快查看。\n\n供您快速参考：\n{{OurCompatibilityOrSoftwareInfo}}\n\n相关页面：\n{{OurCatalogOrPageURL}}\n\n技术团队会尽快继续跟进，并提供更合适的软件 / 集成建议。",
           "signature": "此致\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.523Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         },
         "en-US": {
           "locale": "en-US",
@@ -89,7 +89,7 @@
           "opening": "Hello,",
           "body": "Thank you for contacting KAT VR.\n\nWe have received your technical inquiry and our team will review it shortly.\n\nFor quick reference:\n{{OurCompatibilityOrSoftwareInfo}}\n\nRelevant page:\n{{OurCatalogOrPageURL}}\n\nOur technical team will follow up with the most suitable software / integration guidance shortly.",
           "signature": "Best regards,\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.523Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         }
       }
     },
@@ -109,7 +109,7 @@
         "{{OurReplySignature}}"
       ],
       "note": "所有 finance 相关模板默认追加付款防诈骗说明块。 人工二次收集：付款主体；币种；PI / invoice 修改项；是否关联 shipment / order",
-      "updatedAt": "2026-03-06T12:13:14.524Z",
+      "updatedAt": "2026-03-06T12:52:47.207Z",
       "versions": {
         "zh-CN": {
           "locale": "zh-CN",
@@ -121,7 +121,7 @@
           "opening": "您好，",
           "body": "感谢您联系 KAT VR。\n\n我们已收到您的发票 / 付款相关请求，财务团队正在查看。\n\n付款安全说明：\n{{OurPaymentSecurityNotice}}\n\n如果您的请求与报价或出货相关，财务与销售团队会在后续跟进中协调下一步处理。",
           "signature": "此致\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.524Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         },
         "en-US": {
           "locale": "en-US",
@@ -133,7 +133,7 @@
           "opening": "Hello,",
           "body": "Thank you for contacting KAT VR.\n\nWe have received your invoice / payment-related request and our finance team is reviewing it.\n\nFor payment security:\n{{OurPaymentSecurityNotice}}\n\nIf your request is linked to a quotation or shipment, our finance and sales teams will coordinate the next step in follow-up.",
           "signature": "Best regards,\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.524Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         }
       }
     },
@@ -155,7 +155,7 @@
         "{{OurReplySignature}}"
       ],
       "note": "物流模板给基线条款，不在首封里立即追问一长串。 人工二次收集：目的国 / 城市；是否有中国 forwarder；电池 / 配件 / 整套货物范围；期望条款（EXW / FCA / CIF / DDP）",
-      "updatedAt": "2026-03-06T12:13:14.523Z",
+      "updatedAt": "2026-03-06T12:52:47.207Z",
       "versions": {
         "zh-CN": {
           "locale": "zh-CN",
@@ -167,7 +167,7 @@
           "opening": "您好，",
           "body": "感谢您联系 KAT VR。\n\n我们已收到您的物流相关咨询，团队正在查看。\n\n一般物流参考如下：\n{{OurShippingLeadTimeNote}}\n\n相关产品 / 包装范围：\n{{OurRecommendedProduct}}\n\n参考页面：\n{{OurCatalogOrPageURL}}\n\n物流团队会尽快继续跟进并补充下一步信息。",
           "signature": "此致\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.523Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         },
         "en-US": {
           "locale": "en-US",
@@ -179,7 +179,7 @@
           "opening": "Hello,",
           "body": "Thank you for contacting KAT VR.\n\nWe have received your logistics inquiry and our team is reviewing it.\n\nFor general shipping reference:\n{{OurShippingLeadTimeNote}}\n\nRelevant product / package:\n{{OurRecommendedProduct}}\n\nReference page:\n{{OurCatalogOrPageURL}}\n\nA logistics follow-up will be shared shortly.",
           "signature": "Best regards,\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.523Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         }
       }
     },
@@ -203,7 +203,7 @@
         "{{OurReplySignature}}"
       ],
       "note": "报价模板只展示我方产品与报价流程信息，不在模板中放 Qty/Budget 占位符。 人工二次收集：SKU / 套装；数量；目的地；贸易条款；是否需要整套 business solution",
-      "updatedAt": "2026-03-06T12:13:14.523Z",
+      "updatedAt": "2026-03-06T12:52:47.207Z",
       "versions": {
         "zh-CN": {
           "locale": "zh-CN",
@@ -215,7 +215,7 @@
           "opening": "您好，",
           "body": "感谢您联系 KAT VR。\n\n我们已收到您的报价请求，销售团队正在查看。\n\n相关产品范围：\n{{OurRecommendedProduct}}\n\n定位参考：\n{{OurProductPositioning}}\n\n参考资料：\n{{OurCatalogOrPageURL}}\n\n商务说明：\n{{OurShippingLeadTimeNote}}\n\n安全提醒：\n{{OurPaymentSecurityNotice}}\n\n后续会由团队结合您的需求提供更有针对性的报价。",
           "signature": "此致\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.523Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         },
         "en-US": {
           "locale": "en-US",
@@ -227,7 +227,7 @@
           "opening": "Hello,",
           "body": "Thank you for contacting KAT VR.\n\nWe have received your quotation request and our sales team is reviewing it.\n\nRelevant product scope:\n{{OurRecommendedProduct}}\n\nReference positioning:\n{{OurProductPositioning}}\n\nReference materials:\n{{OurCatalogOrPageURL}}\n\nCommercial note:\n{{OurShippingLeadTimeNote}}\n\nSecurity reminder:\n{{OurPaymentSecurityNotice}}\n\nA tailored quotation will be shared by our team in follow-up.",
           "signature": "Best regards,\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.523Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         }
       }
     },
@@ -250,7 +250,7 @@
         "{{OurReplySignature}}"
       ],
       "note": "采购与订单确认用单独模板，避免和普通报价混在一起。 人工二次收集：最终 SKU / 配置；consignee / billing entity；shipping docs；是否缺件 / 补发 / 改单",
-      "updatedAt": "2026-03-06T12:13:14.524Z",
+      "updatedAt": "2026-03-06T12:52:47.207Z",
       "versions": {
         "zh-CN": {
           "locale": "zh-CN",
@@ -262,7 +262,7 @@
           "opening": "您好，",
           "body": "感谢您联系 KAT VR。\n\n我们已收到您的订单 / 采购相关请求，团队正在查看。\n\n相关产品范围：\n{{OurRecommendedProduct}}\n\n参考信息：\n{{OurProductPositioning}}\n\n商务 / 物流说明：\n{{OurShippingLeadTimeNote}}\n\n安全提醒：\n{{OurPaymentSecurityNotice}}\n\n后续会由团队结合实际订单情况继续跟进下一步商务安排。",
           "signature": "此致\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.524Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         },
         "en-US": {
           "locale": "en-US",
@@ -274,7 +274,7 @@
           "opening": "Hello,",
           "body": "Thank you for contacting KAT VR.\n\nWe have received your order / procurement-related request and our team is reviewing it.\n\nRelevant product scope:\n{{OurRecommendedProduct}}\n\nReference information:\n{{OurProductPositioning}}\n\nCommercial / shipping note:\n{{OurShippingLeadTimeNote}}\n\nSecurity reminder:\n{{OurPaymentSecurityNotice}}\n\nOur team will follow up with the next commercial step shortly.",
           "signature": "Best regards,\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.524Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         }
       }
     },
@@ -296,7 +296,7 @@
         "{{OurReplySignature}}"
       ],
       "note": "教育训练项目需要方案式回复。 人工二次收集：教育 / 训练场景；部署规模；内容来源；是否需要 SDK / station / headset / bundle",
-      "updatedAt": "2026-03-06T12:13:14.524Z",
+      "updatedAt": "2026-03-06T12:52:47.207Z",
       "versions": {
         "zh-CN": {
           "locale": "zh-CN",
@@ -308,7 +308,7 @@
           "opening": "您好，",
           "body": "感谢您联系 KAT VR。\n\n我们已收到您的教育 / 培训相关咨询，团队正在查看。\n\n方案参考：\n{{OurBusinessSolutionBlock}}\n\n软件 / 技术参考：\n{{OurCompatibilityOrSoftwareInfo}}\n\n参考页面：\n{{OurCatalogOrPageURL}}\n\n相关同事会尽快继续跟进，并给出更合适的方案建议。",
           "signature": "此致\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.524Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         },
         "en-US": {
           "locale": "en-US",
@@ -320,7 +320,7 @@
           "opening": "Hello,",
           "body": "Thank you for contacting KAT VR.\n\nWe have received your education / training-related inquiry and our team is reviewing it.\n\nFor solution reference:\n{{OurBusinessSolutionBlock}}\n\nSoftware / technical reference:\n{{OurCompatibilityOrSoftwareInfo}}\n\nReference page:\n{{OurCatalogOrPageURL}}\n\nA specialist will follow up with a suitable solution recommendation shortly.",
           "signature": "Best regards,\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.524Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         }
       }
     },
@@ -344,7 +344,7 @@
         "{{OurReplySignature}}"
       ],
       "note": "这类表单要先展示我方 business solution，而不是反问客户一串字段。 人工二次收集：商业场景：VR arcade / 展厅 / 教育 / 训练 / 活动；是否要整套 business kit；数量与部署地区；是否需要会议 / 访厂",
-      "updatedAt": "2026-03-06T12:13:14.523Z",
+      "updatedAt": "2026-03-06T12:52:47.207Z",
       "versions": {
         "zh-CN": {
           "locale": "zh-CN",
@@ -356,7 +356,7 @@
           "opening": "您好，",
           "body": "感谢您联系 KAT VR。\n\n我们已收到您的商业咨询，B2B 团队正在查看。\n\n对于商业部署，我们通常会先介绍以下 KAT VR 商业方案范围：\n{{OurBusinessSolutionBlock}}\n\n当前建议重点关注的产品：\n{{OurRecommendedProduct}}\n\n产品定位：\n{{OurProductPositioning}}\n\n参考亮点：\n{{OurProductHighlights}}\n\n商业页面 / 资料入口：\n{{OurCatalogOrPageURL}}\n\n销售团队会尽快结合您的场景继续跟进，并提供更合适的商业建议。",
           "signature": "此致\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.523Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         },
         "en-US": {
           "locale": "en-US",
@@ -368,7 +368,7 @@
           "opening": "Hello,",
           "body": "Thank you for reaching out to KAT VR.\n\nWe have received your business inquiry and our B2B team is reviewing it.\n\nFor commercial deployment, we typically introduce the following KAT VR business scope:\n{{OurBusinessSolutionBlock}}\n\nRecommended product focus:\n{{OurRecommendedProduct}}\n\nPositioning:\n{{OurProductPositioning}}\n\nReference highlights:\n{{OurProductHighlights}}\n\nBusiness page / catalog:\n{{OurCatalogOrPageURL}}\n\nOur sales team will follow up with the most suitable business recommendation shortly.",
           "signature": "Best regards,\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.523Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         }
       }
     },
@@ -391,7 +391,7 @@
         "{{OurReplySignature}}"
       ],
       "note": "比较页 / 下载页先给产品分层与资料入口。 人工二次收集：personal / business 判断；使用空间与人群；是否更关注 treadmill / loco / software / accessories",
-      "updatedAt": "2026-03-06T12:13:14.523Z",
+      "updatedAt": "2026-03-06T12:52:47.207Z",
       "versions": {
         "zh-CN": {
           "locale": "zh-CN",
@@ -403,7 +403,7 @@
           "opening": "您好，",
           "body": "感谢您联系 KAT VR。\n\n我们已收到您的需求，团队会进一步评估更适合您场景的方案。\n\n供您快速了解当前产品线：\n{{OurPortfolioBlock}}\n\n当前建议方向：\n{{OurRecommendedProduct}}\n\n定位摘要：\n{{OurProductPositioning}}\n\n参考页面：\n{{OurCatalogOrPageURL}}\n\n相关同事会尽快继续跟进，并给出更贴合您需求的建议。",
           "signature": "此致\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.523Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         },
         "en-US": {
           "locale": "en-US",
@@ -415,7 +415,7 @@
           "opening": "Hello,",
           "body": "Thank you for contacting KAT VR.\n\nWe have received your request and our team will review the best-fit option for your scenario.\n\nFor a quick overview of the lineup:\n{{OurPortfolioBlock}}\n\nCurrent recommended direction:\n{{OurRecommendedProduct}}\n\nPositioning summary:\n{{OurProductPositioning}}\n\nReference page:\n{{OurCatalogOrPageURL}}\n\nA specialist will follow up with a more tailored recommendation shortly.",
           "signature": "Best regards,\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.523Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         }
       }
     },
@@ -439,7 +439,7 @@
         "{{OurReplySignature}}"
       ],
       "note": "这是最大入口，默认使用产品说明型自动回复。 人工二次收集：使用场景；型号偏好；数量；目的地国家 / 城市",
-      "updatedAt": "2026-03-06T12:13:14.518Z",
+      "updatedAt": "2026-03-06T12:52:47.206Z",
       "versions": {
         "zh-CN": {
           "locale": "zh-CN",
@@ -451,7 +451,7 @@
           "opening": "您好，",
           "body": "感谢您联系 KAT VR。\n\n我们已收到您的留言，相关团队会尽快查看。\n\n供您快速参考，我们当前优先推荐的相关产品为：\n{{OurRecommendedProduct}}\n\n{{OurProductPositioning}}\n\n重点信息：\n{{OurProductHighlights}}\n\n补充参考：\n{{OurCompatibilityOrSoftwareInfo}}\n\n产品页面 / 资料入口：\n{{OurCatalogOrPageURL}}\n\n稍后会由相关同事根据您的需求继续跟进，并提供更合适的建议。",
           "signature": "此致\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.523Z"
+          "updatedAt": "2026-03-06T12:52:47.206Z"
         },
         "en-US": {
           "locale": "en-US",
@@ -463,7 +463,7 @@
           "opening": "Hello,",
           "body": "Thank you for contacting KAT VR.\n\nWe have received your message and a member of our team will review it shortly.\n\nFor quick reference, the most relevant option from our lineup is:\n{{OurRecommendedProduct}}\n\n{{OurProductPositioning}}\n\nKey information:\n{{OurProductHighlights}}\n\nAdditional reference:\n{{OurCompatibilityOrSoftwareInfo}}\n\nProduct page / catalog:\n{{OurCatalogOrPageURL}}\n\nA specialist from our team will follow up with the most suitable recommendation shortly.",
           "signature": "Best regards,\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.523Z"
+          "updatedAt": "2026-03-06T12:52:47.206Z"
         }
       }
     },
@@ -485,7 +485,7 @@
         "{{OurReplySignature}}"
       ],
       "note": "仅用于新的外部合作提案，不用于回复我方 campaign 的回信。 人工二次收集：dealer / creator / training partner 类型；区域市场；audience / 渠道能力；过往合作案例",
-      "updatedAt": "2026-03-06T12:13:14.524Z",
+      "updatedAt": "2026-03-06T12:52:47.207Z",
       "versions": {
         "zh-CN": {
           "locale": "zh-CN",
@@ -497,7 +497,7 @@
           "opening": "您好，",
           "body": "感谢您联系 KAT VR。\n\n我们已收到您的合作相关信息，商务发展团队正在查看。\n\n供您快速了解 KAT VR：\n{{OurPortfolioBlock}}\n\n业务范围：\n{{OurBusinessSolutionBlock}}\n\n参考页面：\n{{OurCatalogOrPageURL}}\n\n团队会尽快继续跟进，并确认更匹配的合作方向。",
           "signature": "此致\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.524Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         },
         "en-US": {
           "locale": "en-US",
@@ -509,7 +509,7 @@
           "opening": "Hello,",
           "body": "Thank you for contacting KAT VR.\n\nWe have received your partnership-related message and our business development team is reviewing it.\n\nFor a quick overview of KAT VR:\n{{OurPortfolioBlock}}\n\nBusiness scope:\n{{OurBusinessSolutionBlock}}\n\nReference page:\n{{OurCatalogOrPageURL}}\n\nOur team will follow up shortly regarding the most relevant cooperation direction.",
           "signature": "Best regards,\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.524Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         }
       }
     },
@@ -530,7 +530,7 @@
         "{{OurReplySignature}}"
       ],
       "note": "兜底用简洁模板，避免误答。 人工二次收集：先做人审，判断归类到 sales / support / logistics / finance / tech",
-      "updatedAt": "2026-03-06T12:13:14.524Z",
+      "updatedAt": "2026-03-06T12:52:47.207Z",
       "versions": {
         "zh-CN": {
           "locale": "zh-CN",
@@ -542,7 +542,7 @@
           "opening": "您好，",
           "body": "感谢您联系 KAT VR。\n\n我们已收到您的留言，相关团队会尽快查看。\n\n供您快速了解我们的产品线：\n{{OurPortfolioBlock}}\n\n参考页面：\n{{OurCatalogOrPageURL}}\n\n稍后会由合适的团队成员继续跟进。",
           "signature": "此致\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.524Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         },
         "en-US": {
           "locale": "en-US",
@@ -554,7 +554,7 @@
           "opening": "Hello,",
           "body": "Thank you for contacting KAT VR.\n\nWe have received your message and our team will review it shortly.\n\nFor a quick overview of our lineup:\n{{OurPortfolioBlock}}\n\nReference page:\n{{OurCatalogOrPageURL}}\n\nA relevant team member will follow up shortly.",
           "signature": "Best regards,\n{{OurReplySignature}}",
-          "updatedAt": "2026-03-06T12:13:14.524Z"
+          "updatedAt": "2026-03-06T12:52:47.207Z"
         }
       }
     }
@@ -565,6 +565,31 @@
       "KATVR_企业邮箱自动回复模板_v2_重新生成.md",
       "KATVR_企业邮箱自动回复规则_v2_重新生成.yaml"
     ],
+    "pluginActivationGuide": {
+      "overview": "编辑器仍保留有插件激活方案。安装 Tampermonkey 并启用 `alimail-activator.user.js` 后，点击“一键在 AliMail 激活”会把当前模板载荷带到 AliMail 页面，脚本会自动尝试打开自动回复设置、填写主题/正文并点击保存。",
+      "installSteps": [
+        "在浏览器安装 Tampermonkey 扩展。",
+        "打开 `https://raw.githubusercontent.com/YJLi-new/autoresponder-editor/main/alimail-activator.user.js`，按 Tampermonkey 提示安装脚本。",
+        "在 Tampermonkey Dashboard 确认脚本已启用，并允许匹配 `https://qiye.aliyun.com/*` 与 `https://mail.aliyun.com/*`。",
+        "首次安装后刷新一次 AliMail 企业邮箱页面，确保脚本开始接管该域名。"
+      ],
+      "usageSteps": [
+        "在编辑器中填写指定邮箱，并确认当前模板内容、占位符实际信息和激活范围无误。",
+        "点击“一键在 AliMail 激活”；编辑器会把激活载荷附加到 AliMail 链接中并打开企业邮箱。",
+        "若插件运行成功，AliMail 页面会出现 `AliMail 激活器：开始处理激活请求...` 的提示，并继续尝试打开自动回复面板和填写内容。",
+        "如果插件能定位到保存按钮，会自动点保存；如果只填充未保存，页面会提示你手动确认并点击保存。"
+      ],
+      "successChecks": [
+        "AliMail 页面出现 `AliMail 激活器：已激活当前模板。` 或 `已同步 X 个模板，并激活当前模板。` 的提示。",
+        "进入 AliMail 自动回复设置，检查主题和正文是否已替换为当前编辑器中的实际内容，而不是 `{{Our*}}` 占位符。",
+        "用外部邮箱发送一封测试邮件，确认目标邮箱能回出最新自动回复。"
+      ],
+      "troubleshooting": [
+        "如果页面没有任何激活器提示，优先检查 Tampermonkey 是否启用、脚本是否启用，以及当前域名是否为 `qiye.aliyun.com` / `mail.aliyun.com`。",
+        "如果脚本提示未找到自动回复入口或保存按钮，通常是 AliMail 页面结构变化；先手动保存一次，再把最新页面截图或 DOM 文本提供给维护者更新脚本。",
+        "如果浏览器拦截新窗口，允许本站弹窗，或在提示时选择当前页打开 AliMail。"
+      ]
+    },
     "keywordRegexGuide": {
       "purpose": "“关键词/正则”用于说明该模板通常匹配哪些邮件线索，便于维护模板与人工核对分类；它是规则基线说明，不会被当前网页或 AliMail 手动激活流程直接执行。",
       "syntax": "统一写成标准 JavaScript 正则文本格式 `/pattern/flags`。推荐默认使用 `i` 做不区分大小写匹配；多个候选词用 `|` 连接。",

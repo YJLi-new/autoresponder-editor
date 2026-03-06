@@ -51,6 +51,13 @@ function createEmptyPolicySummary() {
   return {
     title: "",
     sourceFiles: [],
+    pluginActivationGuide: {
+      overview: "",
+      installSteps: [],
+      usageSteps: [],
+      successChecks: [],
+      troubleshooting: [],
+    },
     keywordRegexGuide: {
       purpose: "",
       syntax: "",
@@ -654,6 +661,13 @@ function normalizePolicySummary(input) {
   return {
     title: String(input.title || fallback.title),
     sourceFiles: normalizeStringArray(input.sourceFiles),
+    pluginActivationGuide: {
+      overview: String(input.pluginActivationGuide?.overview || ""),
+      installSteps: normalizeStringArray(input.pluginActivationGuide?.installSteps),
+      usageSteps: normalizeStringArray(input.pluginActivationGuide?.usageSteps),
+      successChecks: normalizeStringArray(input.pluginActivationGuide?.successChecks),
+      troubleshooting: normalizeStringArray(input.pluginActivationGuide?.troubleshooting),
+    },
     keywordRegexGuide: {
       purpose: String(input.keywordRegexGuide?.purpose || ""),
       syntax: String(input.keywordRegexGuide?.syntax || ""),
@@ -1149,6 +1163,13 @@ function renderPolicySummary() {
 
   const policy = state.policySummary;
   const sections = [
+    buildPolicySection("有插件激活", [
+      policy.pluginActivationGuide.overview,
+      ...policy.pluginActivationGuide.installSteps.map((item) => `安装：${item}`),
+      ...policy.pluginActivationGuide.usageSteps.map((item) => `使用：${item}`),
+      ...policy.pluginActivationGuide.successChecks.map((item) => `验收：${item}`),
+      ...policy.pluginActivationGuide.troubleshooting.map((item) => `排查：${item}`),
+    ]),
     buildPolicySection("关键词/正则", [
       policy.keywordRegexGuide.purpose,
       policy.keywordRegexGuide.syntax,
@@ -1214,6 +1235,7 @@ function buildPolicySection(title, items, trustedHtml = false) {
 function hasPolicySummary(policySummary) {
   return Boolean(
     policySummary?.title ||
+      policySummary?.pluginActivationGuide?.overview ||
       policySummary?.keywordRegexGuide?.purpose ||
       policySummary?.placeholderPolicy?.allowed?.length ||
       policySummary?.routingGroups?.length ||
@@ -1513,13 +1535,14 @@ async function activateInAliMail() {
     copiedPacket = false;
   }
 
-  const opened = window.open(ALIMAIL_WEBMAIL_URL, "_blank", "noopener,noreferrer");
+  const activationUrl = buildAliMailActivationUrl(envelope);
+  const opened = window.open(activationUrl, "_blank", "noopener,noreferrer");
   if (!opened) {
     const useCurrentTab = window.confirm(
       "浏览器拦截了新窗口。是否在当前页打开 AliMail 并继续激活？（当前页内容已自动保存）",
     );
     if (useCurrentTab) {
-      window.location.assign(ALIMAIL_WEBMAIL_URL);
+      window.location.assign(activationUrl);
       return;
     }
     setStatus(appEls.status, "无法打开 AliMail，请允许该站点弹窗后重试。", true);
@@ -1537,7 +1560,7 @@ async function activateInAliMail() {
 
   setStatus(
     appEls.status,
-    `${modeMessage}${copyMessage} 请按下方“无插件激活步骤”在 AliMail 保存规则。${warningMessage}`,
+    `${modeMessage}${copyMessage} 若已安装插件，AliMail 页面会尝试自动填写；若未安装插件，请按下方“无插件激活步骤”手动保存。${warningMessage}`,
     false,
   );
 }
@@ -1624,6 +1647,21 @@ function buildAliMailActivationEnvelope(config) {
     activeTemplate,
     templates,
   };
+}
+
+function buildAliMailActivationUrl(envelope) {
+  const payload = encodeActivationEnvelope(envelope);
+  return `${ALIMAIL_WEBMAIL_URL}?alimailActivate=${payload}`;
+}
+
+function encodeActivationEnvelope(envelope) {
+  const json = JSON.stringify(envelope);
+  const bytes = new TextEncoder().encode(json);
+  let binary = "";
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
 function buildAliMailActivationPayload(group, version) {

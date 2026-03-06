@@ -40,7 +40,7 @@ node scripts/generate-template-data.mjs \
 
 ## 激活方式
 
-阿里邮箱开放平台没有提供可直接写入自动回复正文的公开接口，因此默认使用无插件引导模式：
+阿里邮箱开放平台没有提供可直接写入自动回复正文的公开接口，因此默认使用无插件引导模式；同时仍保留基于 Tampermonkey 的有插件激活方案。
 
 1. 编辑器保存当前模板
 2. 自动复制主题 / 正文 / 完整激活包
@@ -48,6 +48,12 @@ node scripts/generate-template-data.mjs \
 4. 按页面中的 `无插件激活步骤` 在规则页手动粘贴并保存
 
 `alimail-activator.user.js` 仍保留为高级用法，可选安装，但不再是默认前提。
+
+有插件方案安装入口：
+
+```text
+https://raw.githubusercontent.com/YJLi-new/autoresponder-editor/main/alimail-activator.user.js
+```
 
 ## 项目结构
 
