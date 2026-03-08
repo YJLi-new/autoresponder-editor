@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AliMail Auto-Reply Template Studio</title>
-    <link rel="icon" type="image/png" sizes="40x40" href="favicon.png?v=20260307-6" />
-    <link rel="shortcut icon" href="favicon.ico?v=20260307-6" />
+    <link rel="icon" type="image/png" sizes="40x40" href="favicon.png?v=20260308-1" />
+    <link rel="shortcut icon" href="favicon.ico?v=20260308-1" />
     <script>
       (() => {
         try {
@@ -30,7 +30,7 @@
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260307-6" />
+    <link rel="stylesheet" href="styles.css?v=20260308-1" />
   </head>
   <body>
     <div class="bg-shape bg-shape-1"></div>
@@ -261,6 +261,18 @@
           <form id="placeholderValuesForm" class="placeholder-values-form"></form>
         </section>
 
+        <section class="panel rule-engine-panel">
+          <div class="panel-head">
+            <div>
+              <h3>Rule Engine</h3>
+              <p class="repo-badge">
+                维护全局排除、覆盖规则、人工复核和产品识别信号。这些配置是分类基线，不会直接在 AliMail 页面执行。
+              </p>
+            </div>
+          </div>
+          <div id="ruleEngineGrid" class="rule-engine-grid"></div>
+        </section>
+
         <section class="panel policy-box policy-footer">
           <p class="policy-title">V2 Rules Baseline</p>
           <div id="policySummaryContent" class="policy-content"></div>
@@ -361,6 +373,22 @@
       </div>
     </div>
 
-    <script src="app.js?v=20260307-6" defer></script>
+    <div id="ruleEngineModal" class="modal-overlay hidden" aria-hidden="true">
+      <div class="modal-card rule-modal-card" role="dialog" aria-modal="true" aria-labelledby="ruleEngineTitle">
+        <p class="eyebrow">Rule Engine</p>
+        <h3 id="ruleEngineTitle">编辑规则区</h3>
+        <p id="ruleEngineIntro" class="modal-text"></p>
+        <form id="ruleEngineForm" class="modal-form">
+          <div id="ruleEngineEditorBody" class="rule-editor-body"></div>
+        </form>
+        <div id="ruleEngineStatus" class="status" aria-live="polite"></div>
+        <div class="modal-actions">
+          <button id="ruleEngineCancelBtn" class="btn ghost" type="button">取消</button>
+          <button id="ruleEngineSaveBtn" class="btn primary" type="button">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js?v=20260308-1" defer></script>
   </body>
 </html>

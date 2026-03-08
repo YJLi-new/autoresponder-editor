@@ -634,6 +634,93 @@ textarea {
   gap: 12px;
 }
 
+.rule-engine-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.rule-engine-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rule-engine-card {
+  border: 1px solid var(--line-soft);
+  border-radius: 16px;
+  background: var(--surface);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.rule-engine-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rule-engine-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-text);
+}
+
+.rule-engine-intro {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.rule-engine-meta {
+  margin: 0;
+  color: var(--accent-ui);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rule-engine-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.rule-engine-list li {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  min-width: 0;
+}
+
+.rule-engine-list strong {
+  color: var(--accent-ui);
+  font-size: 13px;
+}
+
+.rule-engine-list span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.rule-engine-list code {
+  overflow-wrap: anywhere;
+}
+
+.rule-engine-policy-pillbox {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .placeholder-values-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -719,8 +806,105 @@ textarea {
   width: min(100%, 880px);
 }
 
+.rule-modal-card {
+  width: min(100%, 920px);
+}
+
 .modal-form {
   margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.rule-editor-body {
+  display: grid;
+  gap: 12px;
+}
+
+.rule-editor-entry {
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  background: var(--surface);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.rule-editor-entry-static {
+  background: var(--panel-strong);
+}
+
+.rule-editor-entry-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rule-editor-entry-title,
+.rule-editor-entry-subtitle {
+  margin: 0;
+  color: var(--accent-ui);
+  font-weight: 700;
+}
+
+.rule-editor-entry-title {
+  font-size: 14px;
+}
+
+.rule-editor-entry-subtitle {
+  font-size: 13px;
+}
+
+.rule-editor-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.rule-scope-editor {
+  display: grid;
+  gap: 8px;
+}
+
+.rule-scope-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.rule-scope-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rule-scope-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: var(--surface-soft);
+  color: var(--text-soft-2);
+  width: auto;
+}
+
+.rule-scope-option input {
+  margin: 0;
+}
+
+.rule-condition-list {
+  display: grid;
+  gap: 10px;
+}
+
+.rule-condition-entry {
+  border: 1px dashed var(--line-dashed);
+  border-radius: 12px;
+  background: var(--panel-strong);
+  padding: 10px;
   display: grid;
   gap: 10px;
 }
@@ -1061,6 +1245,16 @@ textarea {
   grid-column: 1 / -1;
 }
 
+.policy-section-rule-engine .policy-group:nth-child(1),
+.policy-section-rule-engine .policy-group:nth-child(2),
+.policy-section-rule-engine .policy-group:nth-child(3) {
+  grid-column: span 4;
+}
+
+.policy-section-rule-engine .policy-group:nth-child(4) {
+  grid-column: span 12;
+}
+
 .policy-inline-code {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 0.92em;
@@ -1216,6 +1410,10 @@ textarea {
     grid-template-columns: 1fr;
   }
 
+  .rule-engine-grid {
+    grid-template-columns: 1fr;
+  }
+
   .policy-group-grid {
     grid-template-columns: 1fr;
   }
@@ -1227,6 +1425,10 @@ textarea {
   .policy-section-source .policy-group:nth-child(3),
   .policy-section-dedupe .policy-group:first-child,
   .policy-section-dedupe .policy-group:last-child,
+  .policy-section-rule-engine .policy-group:nth-child(1),
+  .policy-section-rule-engine .policy-group:nth-child(2),
+  .policy-section-rule-engine .policy-group:nth-child(3),
+  .policy-section-rule-engine .policy-group:nth-child(4),
   .policy-section-keywords-clean .policy-group,
   .policy-section-keywords-clean .policy-group-wide,
   .policy-section-manual-clean .policy-group,

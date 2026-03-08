@@ -18,20 +18,151 @@ const ROUTING_LABELS = {
 const EXCLUSION_SUMMARY =
   "命中内部非表单、自动回复/退信、渠道 campaign 回信、付款安全公告回信时，不发送自动回复。";
 const KEYWORDS_REGEX_BY_TEMPLATE_ID = {
-  TPL_SUPPORT_AFTERSALES_ACK: "/support-detail|support|professionalsupport|shoes|dongle|customer care|spare parts/i",
-  TPL_SDK_TECH_ACK: "/sdk|vehicle hub|kat i\\/o|kat gateway|integration|technical compatibility/i",
-  TPL_INVOICE_PAYMENT_ACK: "/payment|invoice|\\bPI\\b|proforma|bank account/i",
-  TPL_SHIPPING_LOGISTICS_ACK: "/shipping|freight|\\bETA\\b|delivery timeline|forwarder|package/i",
-  TPL_QUOTE_PRICING_ACK: "/quote|quotation|\\bRFQ\\b|price list|pricing/i",
-  TPL_ORDER_PROCUREMENT_ACK: "/order|purchase|\\bPO\\b|bulk order/i",
-  TPL_EDU_TRAINING_ACK: "/educational|training solution|institution|simulation training/i",
+  TPL_SUPPORT_AFTERSALES_ACK:
+    "/(support-detail|professionalsupport|customer care|\\bafter[- ]?sales\\b|\\bwarranty\\b|\\bdongle\\b|\\bspare parts?\\b|\\breplacement parts?\\b|\\bshoe sensors?\\b|\\blost\\b.*\\b(sensor|shoe|dongle|part)\\b|\\bbroken\\b.*\\b(part|sensor|dongle|shoe)\\b)/i",
+  TPL_SDK_TECH_ACK:
+    "/(\\bsdk\\b|\\bapi\\b|\\bcode\\b|\\bunity\\b|\\bunreal\\b|\\bdocs?\\b|\\bdocumentation\\b|\\bkat i\\/o\\b|\\bkat gateway\\b|\\bvehicle hub\\b|\\bnexus\\b|\\bplugin\\b|\\blicen[sc]e\\b|\\bfirmware\\b|\\bdriver\\b|\\bintegration\\b|\\btechnical compatibility\\b)/i",
+  TPL_INVOICE_PAYMENT_ACK:
+    "/(\\bpayment(?: terms?)?\\b|\\binvoice\\b|\\bproforma(?: invoice)?\\b|\\bPI\\b|\\bbank (?:account|details?)\\b|\\bwire transfer\\b|\\bremit\\b|\\bbeneficiary\\b)/i",
+  TPL_SHIPPING_LOGISTICS_ACK:
+    "/(\\bshipping(?: cost| fee)?\\b|\\bship(?:ping)?\\b|\\bfreight\\b|\\bETA\\b|\\bdelivery(?: timeline| time| option)?s?\\b|\\blead time\\b|\\bforwarder\\b|\\bcustoms\\b|\\bair freight\\b|\\bsea freight\\b|\\bassembly\\b|\\binstall(?:ation)?\\b|\\bDDP\\b|\\bEXW\\b|\\bFCA\\b|\\bCIF\\b)/i",
+  TPL_QUOTE_PRICING_ACK:
+    "/(\\bquote\\b|\\bquotation\\b|\\bRFQ\\b|\\bprice list\\b|\\bpricing\\b|\\bprice\\b|\\bcost\\b|\\bMOQ\\b|\\bminimum order quantity\\b)/i",
+  TPL_ORDER_PROCUREMENT_ACK:
+    "/(\\border\\b|\\bpurchas(?:e|ing|ed)\\b|\\bprocurement\\b|\\bPO\\b|\\bpurchase order\\b|\\bbulk order\\b|\\bbulk purchase\\b|\\border cancellation\\b|\\brefund status\\b)/i",
+  TPL_EDU_TRAINING_ACK:
+    "/(\\beducation(?:al)?\\b|\\btraining(?: solution)?\\b|\\binstitution(?:s)?\\b|\\bhigher education\\b|\\buniversity\\b|\\bcollege\\b|\\bschool\\b|\\bfaculty\\b|\\blecturer\\b|\\bclassroom\\b|\\bimmersive history\\b|\\bsimulation training\\b)/i",
   TPL_B2B_BUSINESS_ACK:
-    "/business|primeday|primeday-fall|warehouse|fitnessday|memberday|flashsale|kat-walk-mini-s-bfcm|commercial|arcade|reseller|dealer/i",
-  TPL_PRODUCT_SELECTION_COMPARE_ACK: "/models-comparison|download/i",
+    "/(primeday(?:-fall)?|fitnessday|memberday|flashsale|kat-walk-mini-s-bfcm|\\bvr arcade\\b|\\barcade\\b|\\bcommercial(?: use| deployment)?\\b|\\bvr business\\b|\\bbusiness inquiry\\b|\\bbusiness solution\\b|\\bfor business use\\b|\\bbuisness\\b|\\breseller\\b|\\bwholesale\\b|\\bvenue\\b)/i",
+  TPL_PRODUCT_SELECTION_COMPARE_ACK:
+    "/(models-comparison|download|\\bcompare\\b|\\bcomparison\\b|\\bdifference between\\b|\\bwhich model\\b|\\bproduct selection\\b|\\bkat walk mini s\\b.*\\b(c2|c2pe|c2 core|c2 plus)\\b|\\b(c2|c2pe|c2 core|c2 plus)\\b.*\\bkat walk mini s\\b)/i",
   TPL_WEBSITE_PRODUCT_ACK:
-    "/product page form|homepage form|product inquiry|new contact form from (kat-walk-[^\\s]*|kat-pro|kat-loco-s|kat-nexus)|No\\.\\d{5,}/i",
-  TPL_PARTNERSHIP_CHANNEL_ACK: "/dealer|creator|distribution|partnership proposal/i",
+    "/(product page form|homepage form|product inquiry|new contact form from (kat-walk-[^\\s]*|kat-pro|kat-loco-s|kat-nexus)|\\binterested in your products?\\b|\\binquiry about\\b.*\\bkat\\b|\\bkat walk\\b|\\bvr treadmill\\b|\\bvr treamill\\b|\\bkat walk mini s\\b|\\bkat walk c2\\b|\\babout the kat walk\\b)/i",
+  TPL_PARTNERSHIP_CHANNEL_ACK:
+    "/(\\bpartnership(?: proposal| inquiry)?\\b|\\bpartner(?:ship)?\\b|\\bcollab(?:oration)?\\b|\\bcreator\\b|\\binfluencer\\b|\\bdistribution\\b|\\bdistributor\\b|\\bauthorized dealer\\b|\\bdealer\\b|\\bchannel partner\\b)/i",
   TPL_GENERAL_ACK: "/^.+$/i",
+};
+const PRIORITY_OVERRIDES_BY_TEMPLATE_ID = {
+  TPL_SUPPORT_AFTERSALES_ACK: 900,
+  TPL_SDK_TECH_ACK: 890,
+  TPL_INVOICE_PAYMENT_ACK: 880,
+  TPL_QUOTE_PRICING_ACK: 860,
+  TPL_SHIPPING_LOGISTICS_ACK: 855,
+  TPL_ORDER_PROCUREMENT_ACK: 850,
+  TPL_EDU_TRAINING_ACK: 840,
+  TPL_PARTNERSHIP_CHANNEL_ACK: 835,
+  TPL_B2B_BUSINESS_ACK: 830,
+  TPL_PRODUCT_SELECTION_COMPARE_ACK: 820,
+  TPL_WEBSITE_PRODUCT_ACK: 810,
+  TPL_GENERAL_ACK: 790,
+};
+const CLASSIFICATION_RULES = {
+  exclusions: [
+    {
+      id: "EXCLUSION_SYSTEM_NOTICE",
+      label: "系统 / 安全通知",
+      scope: ["from", "subject", "body"],
+      pattern: "/(来自no-reply@mailsupport\\.aliyun\\.com的退信|【阿里云邮】|异地登录|绑定手机)/i",
+      action: "suppress_auto_reply",
+    },
+    {
+      id: "EXCLUSION_VENDOR_REGISTRATION",
+      label: "供应商注册 / 税务资料",
+      scope: ["subject", "body"],
+      pattern: "/(supplier registration|w-?8|vendor onboarding)/i",
+      action: "suppress_auto_reply",
+    },
+    {
+      id: "EXCLUSION_SEO_LINK_BUILDING",
+      label: "SEO / 外链投放",
+      scope: ["subject", "body"],
+      pattern: "/(guest post|publish an article|do-follow link|link insertion|casino|fintech)/i",
+      action: "suppress_auto_reply",
+    },
+  ],
+  overrides: [
+    {
+      id: "OVERRIDE_SUPPORT_DETAIL_CREATOR",
+      label: "support-detail 被误用于合作提案时改走 Partnership",
+      conditions: [
+        {
+          scope: ["subject", "body"],
+          pattern: "/support-detail|professionalsupport/i",
+        },
+        {
+          scope: ["subject", "body"],
+          pattern: "/(creator|podcast|review|showcas(e|ing)|product testing|collab|influencer)/i",
+        },
+      ],
+      action: {
+        mode: "force_template",
+        templateId: "TPL_PARTNERSHIP_CHANNEL_ACK",
+      },
+    },
+  ],
+  reviewRules: [
+    {
+      id: "REVIEW_BLANK_NUMBERED_FORM",
+      label: "未分类编号表单先走人工复核",
+      scope: ["subject"],
+      pattern: "/new contact form from \\(No\\.\\d{5,}\\)/i",
+      action: {
+        mode: "manual_review",
+        suggestedTemplateId: "TPL_GENERAL_ACK",
+      },
+    },
+  ],
+  productProfiles: [
+    {
+      id: "kat-walk-mini-s",
+      displayNameZh: "KAT Walk Mini S",
+      displayNameEn: "KAT Walk Mini S",
+      pagePattern: "/kat-walk-mini-s/i",
+      contentPattern: "/\\bkat walk mini s\\b/i",
+    },
+    {
+      id: "kat-walk-c2-plus",
+      displayNameZh: "KAT Walk C2 Plus",
+      displayNameEn: "KAT Walk C2 Plus",
+      pagePattern: "/kat-walk-c-2-plus/i",
+      contentPattern: "/\\bkat walk c2\\+?\\b|\\bc2pe\\b|\\bc2 plus\\b/i",
+    },
+    {
+      id: "kat-walk-c2-core",
+      displayNameZh: "KAT Walk C2 Core",
+      displayNameEn: "KAT Walk C2 Core",
+      pagePattern: "/kat-walk-c-2-core/i",
+      contentPattern: "/\\bc2 core\\b/i",
+    },
+    {
+      id: "kat-pro-walk-mecha",
+      displayNameZh: "KAT Pro Walk Mecha",
+      displayNameEn: "KAT Pro Walk Mecha",
+      pagePattern: "/kat-pro/i",
+      contentPattern: "/\\bkat pro\\b|\\bwalk mecha\\b/i",
+    },
+    {
+      id: "kat-loco-s",
+      displayNameZh: "KAT Loco S",
+      displayNameEn: "KAT Loco S",
+      pagePattern: "/kat-loco-s/i",
+      contentPattern: "/\\bkat loco s\\b|\\bloco s\\b/i",
+    },
+    {
+      id: "kat-vehicle-hub-nexus",
+      displayNameZh: "Vehicle Hub / Nexus",
+      displayNameEn: "Vehicle Hub / Nexus",
+      pagePattern: "/kat-walk-c-2-series-vehicle-hub|kat-nexus/i",
+      contentPattern: "/\\bvehicle hub\\b|\\bnexus\\b/i",
+    },
+  ],
+  resolutionPolicy: {
+    mode: "neutral_unless_exact_match",
+    precedence: ["pagePattern", "contentPattern"],
+    multiMatchBehavior: "neutral",
+    familyMatchBehavior: "neutral",
+    noMatchBehavior: "neutral",
+  },
 };
 
 const TEMPLATE_LOCALIZATION = {
@@ -43,8 +174,12 @@ const TEMPLATE_LOCALIZATION = {
     enSubject: "Re: KAT VR product inquiry received",
     zhOpening: "您好，",
     zhBody:
-      "感谢您联系 KAT VR。\n\n我们已收到您的留言，相关团队会尽快查看。\n\n供您快速参考，我们当前优先推荐的相关产品为：\n{{OurRecommendedProduct}}\n\n{{OurProductPositioning}}\n\n重点信息：\n{{OurProductHighlights}}\n\n补充参考：\n{{OurCompatibilityOrSoftwareInfo}}\n\n产品页面 / 资料入口：\n{{OurCatalogOrPageURL}}\n\n稍后会由相关同事根据您的需求继续跟进，并提供更合适的建议。",
+      "感谢您联系 KAT VR。\n\n我们已收到您的产品咨询，团队会结合您留言所在页面或实际场景确认更合适的型号。\n\n供您先快速了解当前产品线：\n{{OurPortfolioBlock}}\n\n如果您已经有明确型号偏好，我们会在后续跟进中按该产品提供更具体的资料、兼容性和报价信息。\n\n参考页面：\n{{OurCatalogOrPageURL}}",
     zhSignature: "此致\n{{OurReplySignature}}",
+    enOpening: "Hello,",
+    enBody:
+      "Thank you for contacting KAT VR.\n\nWe have received your product inquiry and our team will review the specific page or scenario you mentioned before recommending the best-fit model.\n\nFor a quick overview of our lineup:\n{{OurPortfolioBlock}}\n\nIf you already have a preferred model, our team will follow up with information specific to that product.\n\nReference page:\n{{OurCatalogOrPageURL}}",
+    enSignature: "Best regards,\n{{OurReplySignature}}",
   },
   TPL_B2B_BUSINESS_ACK: {
     category: "B2B 商业线索确认",
@@ -54,8 +189,12 @@ const TEMPLATE_LOCALIZATION = {
     enSubject: "Re: KAT VR business inquiry received",
     zhOpening: "您好，",
     zhBody:
-      "感谢您联系 KAT VR。\n\n我们已收到您的商业咨询，B2B 团队正在查看。\n\n对于商业部署，我们通常会先介绍以下 KAT VR 商业方案范围：\n{{OurBusinessSolutionBlock}}\n\n当前建议重点关注的产品：\n{{OurRecommendedProduct}}\n\n产品定位：\n{{OurProductPositioning}}\n\n参考亮点：\n{{OurProductHighlights}}\n\n商业页面 / 资料入口：\n{{OurCatalogOrPageURL}}\n\n销售团队会尽快结合您的场景继续跟进，并提供更合适的商业建议。",
+      "感谢您联系 KAT VR。\n\n我们已收到您的商业咨询，B2B 团队正在查看。\n\nKAT VR 商业方案通常覆盖以下范围：\n{{OurBusinessSolutionBlock}}\n\n供您先快速了解当前产品线：\n{{OurPortfolioBlock}}\n\n参考页面：\n{{OurCatalogOrPageURL}}\n\n销售团队会结合您的场景、数量和部署需求继续跟进，并提供更合适的商业建议。",
     zhSignature: "此致\n{{OurReplySignature}}",
+    enOpening: "Hello,",
+    enBody:
+      "Thank you for contacting KAT VR.\n\nWe have received your business inquiry and our B2B team is reviewing it.\n\nKAT VR business solutions usually cover the following scope:\n{{OurBusinessSolutionBlock}}\n\nFor a quick overview of our lineup:\n{{OurPortfolioBlock}}\n\nReference page:\n{{OurCatalogOrPageURL}}\n\nOur sales team will follow up based on your scenario, quantity and deployment needs and provide a more suitable commercial recommendation.",
+    enSignature: "Best regards,\n{{OurReplySignature}}",
   },
   TPL_PRODUCT_SELECTION_COMPARE_ACK: {
     category: "产品选型 / 对比咨询确认",
@@ -65,8 +204,12 @@ const TEMPLATE_LOCALIZATION = {
     enSubject: "Re: KAT VR product selection inquiry received",
     zhOpening: "您好，",
     zhBody:
-      "感谢您联系 KAT VR。\n\n我们已收到您的需求，团队会进一步评估更适合您场景的方案。\n\n供您快速了解当前产品线：\n{{OurPortfolioBlock}}\n\n当前建议方向：\n{{OurRecommendedProduct}}\n\n定位摘要：\n{{OurProductPositioning}}\n\n参考页面：\n{{OurCatalogOrPageURL}}\n\n相关同事会尽快继续跟进，并给出更贴合您需求的建议。",
+      "感谢您联系 KAT VR。\n\n我们已收到您的产品选型 / 对比咨询，团队会结合您的使用场景继续评估更合适的型号。\n\n供您先快速了解当前产品线：\n{{OurPortfolioBlock}}\n\n如果您已经在比较具体型号，我们会在后续跟进中补充差异点、适用场景和兼容性信息。\n\n参考页面：\n{{OurCatalogOrPageURL}}\n\n相关同事会尽快继续跟进，并给出更贴合您需求的建议。",
     zhSignature: "此致\n{{OurReplySignature}}",
+    enOpening: "Hello,",
+    enBody:
+      "Thank you for contacting KAT VR.\n\nWe have received your product selection / comparison inquiry, and our team will continue evaluating the most suitable model for your scenario.\n\nFor a quick overview of our lineup:\n{{OurPortfolioBlock}}\n\nIf you are already comparing specific models, we will follow up with the key differences, suitable scenarios and compatibility details.\n\nReference page:\n{{OurCatalogOrPageURL}}\n\nOur team will follow up shortly with a more tailored recommendation.",
+    enSignature: "Best regards,\n{{OurReplySignature}}",
   },
   TPL_SUPPORT_AFTERSALES_ACK: {
     category: "售后支持确认",
@@ -98,8 +241,12 @@ const TEMPLATE_LOCALIZATION = {
     enSubject: "Re: KAT VR quotation request received",
     zhOpening: "您好，",
     zhBody:
-      "感谢您联系 KAT VR。\n\n我们已收到您的报价请求，销售团队正在查看。\n\n相关产品范围：\n{{OurRecommendedProduct}}\n\n定位参考：\n{{OurProductPositioning}}\n\n参考资料：\n{{OurCatalogOrPageURL}}\n\n商务说明：\n{{OurShippingLeadTimeNote}}\n\n安全提醒：\n{{OurPaymentSecurityNotice}}\n\n后续会由团队结合您的需求提供更有针对性的报价。",
+      "感谢您联系 KAT VR。\n\n我们已收到您的报价请求，销售团队正在查看。\n\n我们会根据型号、数量、目的地和贸易条款提供更有针对性的报价。\n\n供您先快速了解当前产品线：\n{{OurPortfolioBlock}}\n\n参考资料：\n{{OurCatalogOrPageURL}}\n\n商务说明：\n{{OurShippingLeadTimeNote}}\n\n付款安全提醒：\n{{OurPaymentSecurityNotice}}\n\n后续会由团队结合您的需求提供更有针对性的报价。",
     zhSignature: "此致\n{{OurReplySignature}}",
+    enOpening: "Hello,",
+    enBody:
+      "Thank you for contacting KAT VR.\n\nWe have received your quotation request and our sales team is reviewing it.\n\nWe will provide a more targeted quotation based on the model, quantity, destination and trade terms.\n\nFor a quick overview of our lineup:\n{{OurPortfolioBlock}}\n\nReference materials:\n{{OurCatalogOrPageURL}}\n\nCommercial note:\n{{OurShippingLeadTimeNote}}\n\nPayment security reminder:\n{{OurPaymentSecurityNotice}}\n\nOur team will follow up with a more tailored quotation.",
+    enSignature: "Best regards,\n{{OurReplySignature}}",
   },
   TPL_SHIPPING_LOGISTICS_ACK: {
     category: "物流 / 交付咨询确认",
@@ -109,8 +256,12 @@ const TEMPLATE_LOCALIZATION = {
     enSubject: "Re: KAT VR logistics inquiry received",
     zhOpening: "您好，",
     zhBody:
-      "感谢您联系 KAT VR。\n\n我们已收到您的物流相关咨询，团队正在查看。\n\n一般物流参考如下：\n{{OurShippingLeadTimeNote}}\n\n相关产品 / 包装范围：\n{{OurRecommendedProduct}}\n\n参考页面：\n{{OurCatalogOrPageURL}}\n\n物流团队会尽快继续跟进并补充下一步信息。",
+      "感谢您联系 KAT VR。\n\n我们已收到您的物流相关咨询，团队正在查看。\n\n一般物流参考如下：\n{{OurShippingLeadTimeNote}}\n\n如果您的问题涉及目的地可达性、运输方式、交期、安装或 EXW / FCA / CIF / DDP 等条款，物流团队会在后续跟进中确认更合适的路线与下一步安排。\n\n参考页面：\n{{OurCatalogOrPageURL}}\n\n物流团队会尽快继续跟进并补充下一步信息。",
     zhSignature: "此致\n{{OurReplySignature}}",
+    enOpening: "Hello,",
+    enBody:
+      "Thank you for contacting KAT VR.\n\nWe have received your logistics inquiry and our team is reviewing it.\n\nFor general shipping reference:\n{{OurShippingLeadTimeNote}}\n\nIf your inquiry concerns destination availability, shipping method, lead time, assembly, installation, or trade terms such as EXW / FCA / CIF / DDP, our logistics team will confirm the most suitable route and next step in follow-up.\n\nReference page:\n{{OurCatalogOrPageURL}}\n\nA logistics follow-up will be shared shortly.",
+    enSignature: "Best regards,\n{{OurReplySignature}}",
   },
   TPL_INVOICE_PAYMENT_ACK: {
     category: "发票 / 付款确认",
@@ -131,8 +282,12 @@ const TEMPLATE_LOCALIZATION = {
     enSubject: "Re: KAT VR order request received",
     zhOpening: "您好，",
     zhBody:
-      "感谢您联系 KAT VR。\n\n我们已收到您的订单 / 采购相关请求，团队正在查看。\n\n相关产品范围：\n{{OurRecommendedProduct}}\n\n参考信息：\n{{OurProductPositioning}}\n\n商务 / 物流说明：\n{{OurShippingLeadTimeNote}}\n\n安全提醒：\n{{OurPaymentSecurityNotice}}\n\n后续会由团队结合实际订单情况继续跟进下一步商务安排。",
+      "感谢您联系 KAT VR。\n\n我们已收到您的订单 / 采购相关请求，团队正在查看。\n\n如果您的请求涉及 PO 确认、单据更新、出货安排、订单变更或取消，团队会按实际情况继续处理。\n\n商务 / 物流说明：\n{{OurShippingLeadTimeNote}}\n\n付款安全提醒：\n{{OurPaymentSecurityNotice}}\n\n后续会由团队结合实际订单情况继续跟进下一步商务安排。",
     zhSignature: "此致\n{{OurReplySignature}}",
+    enOpening: "Hello,",
+    enBody:
+      "Thank you for contacting KAT VR.\n\nWe have received your order / procurement-related request and our team is reviewing it.\n\nIf your request concerns PO confirmation, document update, shipment arrangement, order change or cancellation, our team will review the next step accordingly.\n\nCommercial / logistics note:\n{{OurShippingLeadTimeNote}}\n\nPayment security reminder:\n{{OurPaymentSecurityNotice}}\n\nOur team will continue the next commercial step based on your actual order situation.",
+    enSignature: "Best regards,\n{{OurReplySignature}}",
   },
   TPL_EDU_TRAINING_ACK: {
     category: "教育 / 培训方案确认",
@@ -182,11 +337,12 @@ const policySummary = buildPolicySummary(templatePath, rulesPath, templateMarkdo
 const groups = buildGroups(templates, ruleMeta, routingGroups);
 
 const payload = {
-  version: 3,
+  version: 4,
   updatedAt: new Date().toISOString(),
   source: "KATVR v2 regenerated rules and templates",
   groups,
   policySummary,
+  classificationRules: CLASSIFICATION_RULES,
 };
 
 process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
@@ -206,49 +362,55 @@ function buildGroups(templateSections, rulesByTemplate, routes) {
       }
 
       const english = splitEnglishTemplate(template.englishBody);
+      const englishOpening = localization.enOpening || english.opening;
+      const englishBody = localization.enBody || english.body;
+      const englishSignature = localization.enSignature || english.signature;
       const routeGroup = routes.get(rule.routeTo);
       const routingLabel = buildRoutingLabel(rule.routeTo, routeGroup);
+      const priority = PRIORITY_OVERRIDES_BY_TEMPLATE_ID[templateId] ?? rule.priority;
+      const versions = {
+        "zh-CN": {
+          locale: "zh-CN",
+          name: localization.zhName,
+          startAt: "",
+          endAt: "",
+          scope: "external",
+          subject: localization.zhSubject,
+          opening: localization.zhOpening,
+          body: localization.zhBody,
+          signature: localization.zhSignature,
+          updatedAt: new Date().toISOString(),
+        },
+        "en-US": {
+          locale: "en-US",
+          name: localization.enName,
+          startAt: "",
+          endAt: "",
+          scope: "external",
+          subject: localization.enSubject,
+          opening: englishOpening,
+          body: englishBody,
+          signature: englishSignature,
+          updatedAt: new Date().toISOString(),
+        },
+      };
+      const placeholders = collectVersionPlaceholders(versions);
 
       return {
         groupId: templateId,
         category: localization.category,
         direction: "inbox",
         ruleId: rule.id,
-        priority: rule.priority,
+        priority,
         matchFields: rule.matchFields,
         keywords: KEYWORDS_REGEX_BY_TEMPLATE_ID[templateId] || template.appliesTo,
         exclusions: templateId === "TPL_PARTNERSHIP_CHANNEL_ACK" ? `${EXCLUSION_SUMMARY} 不用于回复我方 partnership campaign 回信。` : EXCLUSION_SUMMARY,
         routing: routingLabel,
         sla: `自动确认后由${routingLabel.replace(/（.*$/, "")}继续人工跟进。`,
-        placeholders: template.placeholders,
+        placeholders,
         note: `${rule.note} 人工二次收集：${template.manualFollowup.join("；")}`,
         updatedAt: new Date().toISOString(),
-        versions: {
-          "zh-CN": {
-            locale: "zh-CN",
-            name: localization.zhName,
-            startAt: "",
-            endAt: "",
-            scope: "external",
-            subject: localization.zhSubject,
-            opening: localization.zhOpening,
-            body: localization.zhBody,
-            signature: localization.zhSignature,
-            updatedAt: new Date().toISOString(),
-          },
-          "en-US": {
-            locale: "en-US",
-            name: localization.enName,
-            startAt: "",
-            endAt: "",
-            scope: "external",
-            subject: localization.enSubject,
-            opening: english.opening,
-            body: english.body,
-            signature: english.signature,
-            updatedAt: new Date().toISOString(),
-          },
-        },
+        versions,
       };
     })
     .sort((left, right) => right.priority - left.priority);
@@ -289,7 +451,7 @@ function buildPolicySummary(templateSourcePath, rulesSourcePath, mdText, yamlTex
     },
     keywordRegexGuide: {
       purpose:
-        "“关键词/正则”用于说明该模板通常匹配哪些邮件线索，便于维护模板与人工核对分类；它是规则基线说明，不会被当前网页或 AliMail 手动激活流程直接执行。",
+        "“关键词/正则”描述的是模板层匹配线索；全局排除、覆盖和人工复核则放在独立的 Rule Engine 里。当前网页和 AliMail 激活流程不会直接执行这些规则，它们主要用于维护分类基线和后续可消费的结构化配置。",
       syntax:
         "统一写成标准 JavaScript 正则文本格式 `/pattern/flags`。推荐默认使用 `i` 做不区分大小写匹配；多个候选词用 `|` 连接。",
       flags: [
@@ -301,11 +463,12 @@ function buildPolicySummary(templateSourcePath, rulesSourcePath, mdText, yamlTex
         "对字面量符号需要转义，例如匹配 `No.12345` 时应写 `No\\.\\d{5,}`。",
         "优先保留高信号词，不要把整句业务说明直接写进正则，避免模式过宽、难维护。",
         "如果一类线索来自固定页面或表单入口，可把稳定 slug 纳入正则，例如 `models-comparison`、`kat-walk-[^\\s]*`。",
+        "高风险裸词应收窄，例如不要直接用 `business` 或 `support`；优先改成高信号短语和带边界的词。",
         "这栏描述的是模板适用线索，不等于 AliMail 页面中的最终规则条件；手动激活时仍需按页面引导把主题和正文保存到邮箱规则里。",
       ],
       examples: [
-        "/payment|invoice|\\bPI\\b|proforma|bank account/i",
-        "/product page form|homepage form|product inquiry|new contact form from (kat-walk-[^\\\\s]*|kat-pro|kat-loco-s|kat-nexus)|No\\.\\d{5,}/i",
+        "/(\\bpayment(?: terms?)?\\b|\\binvoice\\b|\\bproforma(?: invoice)?\\b|\\bPI\\b|\\bbank (?:account|details?)\\b)/i",
+        "/(product page form|homepage form|product inquiry|new contact form from (kat-walk-[^\\\\s]*|kat-pro|kat-loco-s|kat-nexus)|\\bkat walk\\b|\\bvr treadmill\\b)/i",
       ],
     },
     subjectStrategy: {
@@ -475,6 +638,16 @@ function splitEnglishTemplate(rawText) {
     body: lines.slice(2, signoffIndex).join("\n").trim(),
     signature: lines.slice(signoffIndex).join("\n").trim(),
   };
+}
+
+function collectVersionPlaceholders(versions) {
+  const tokens = new Set();
+  Object.values(versions || {}).forEach((version) => {
+    const content = [version.subject, version.opening, version.body, version.signature].join("\n");
+    const matches = content.match(/\{\{[^}]+\}\}/g) || [];
+    matches.forEach((token) => tokens.add(token));
+  });
+  return Array.from(tokens);
 }
 
 function parseMarkdownBullets(block) {

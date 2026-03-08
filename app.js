@@ -1,10 +1,10 @@
 const STORAGE_KEYS = {
-  localTemplateGroups: "ali_editor_local_template_groups_v2_20260306",
+  localTemplateGroups: "ali_editor_local_template_groups_v3_20260308",
   activationPrefs: "ali_editor_activation_prefs",
   unlockMarker: "ali_editor_unlock_marker",
   themeMode: "ali_editor_theme_mode",
 };
-const TEMPLATE_DATA_VERSION = 3;
+const TEMPLATE_DATA_VERSION = 4;
 
 const LOCALE_ORDER = ["zh-CN", "en-US"];
 const LOCALE_LABELS = {
@@ -13,19 +13,28 @@ const LOCALE_LABELS = {
 };
 const ALIMAIL_WEBMAIL_URL = "https://qiye.aliyun.com/alimail/entries/v5.1/mail/inbox/all";
 const DEFAULT_KEYWORDS_REGEX_BY_GROUP_ID = {
-  TPL_SUPPORT_AFTERSALES_ACK: "/support-detail|support|professionalsupport|shoes|dongle|customer care|spare parts/i",
-  TPL_SDK_TECH_ACK: "/sdk|vehicle hub|kat i\\/o|kat gateway|integration|technical compatibility/i",
-  TPL_INVOICE_PAYMENT_ACK: "/payment|invoice|\\bPI\\b|proforma|bank account/i",
-  TPL_SHIPPING_LOGISTICS_ACK: "/shipping|freight|\\bETA\\b|delivery timeline|forwarder|package/i",
-  TPL_QUOTE_PRICING_ACK: "/quote|quotation|\\bRFQ\\b|price list|pricing/i",
-  TPL_ORDER_PROCUREMENT_ACK: "/order|purchase|\\bPO\\b|bulk order/i",
-  TPL_EDU_TRAINING_ACK: "/educational|training solution|institution|simulation training/i",
+  TPL_SUPPORT_AFTERSALES_ACK:
+    "/(support-detail|professionalsupport|customer care|\\bafter[- ]?sales\\b|\\bwarranty\\b|\\bdongle\\b|\\bspare parts?\\b|\\breplacement parts?\\b|\\bshoe sensors?\\b|\\blost\\b.*\\b(sensor|shoe|dongle|part)\\b|\\bbroken\\b.*\\b(part|sensor|dongle|shoe)\\b)/i",
+  TPL_SDK_TECH_ACK:
+    "/(\\bsdk\\b|\\bapi\\b|\\bcode\\b|\\bunity\\b|\\bunreal\\b|\\bdocs?\\b|\\bdocumentation\\b|\\bkat i\\/o\\b|\\bkat gateway\\b|\\bvehicle hub\\b|\\bnexus\\b|\\bplugin\\b|\\blicen[sc]e\\b|\\bfirmware\\b|\\bdriver\\b|\\bintegration\\b|\\btechnical compatibility\\b)/i",
+  TPL_INVOICE_PAYMENT_ACK:
+    "/(\\bpayment(?: terms?)?\\b|\\binvoice\\b|\\bproforma(?: invoice)?\\b|\\bPI\\b|\\bbank (?:account|details?)\\b|\\bwire transfer\\b|\\bremit\\b|\\bbeneficiary\\b)/i",
+  TPL_SHIPPING_LOGISTICS_ACK:
+    "/(\\bshipping(?: cost| fee)?\\b|\\bship(?:ping)?\\b|\\bfreight\\b|\\bETA\\b|\\bdelivery(?: timeline| time| option)?s?\\b|\\blead time\\b|\\bforwarder\\b|\\bcustoms\\b|\\bair freight\\b|\\bsea freight\\b|\\bassembly\\b|\\binstall(?:ation)?\\b|\\bDDP\\b|\\bEXW\\b|\\bFCA\\b|\\bCIF\\b)/i",
+  TPL_QUOTE_PRICING_ACK:
+    "/(\\bquote\\b|\\bquotation\\b|\\bRFQ\\b|\\bprice list\\b|\\bpricing\\b|\\bprice\\b|\\bcost\\b|\\bMOQ\\b|\\bminimum order quantity\\b)/i",
+  TPL_ORDER_PROCUREMENT_ACK:
+    "/(\\border\\b|\\bpurchas(?:e|ing|ed)\\b|\\bprocurement\\b|\\bPO\\b|\\bpurchase order\\b|\\bbulk order\\b|\\bbulk purchase\\b|\\border cancellation\\b|\\brefund status\\b)/i",
+  TPL_EDU_TRAINING_ACK:
+    "/(\\beducation(?:al)?\\b|\\btraining(?: solution)?\\b|\\binstitution(?:s)?\\b|\\bhigher education\\b|\\buniversity\\b|\\bcollege\\b|\\bschool\\b|\\bfaculty\\b|\\blecturer\\b|\\bclassroom\\b|\\bimmersive history\\b|\\bsimulation training\\b)/i",
   TPL_B2B_BUSINESS_ACK:
-    "/business|primeday|primeday-fall|warehouse|fitnessday|memberday|flashsale|kat-walk-mini-s-bfcm|commercial|arcade|reseller|dealer/i",
-  TPL_PRODUCT_SELECTION_COMPARE_ACK: "/models-comparison|download/i",
+    "/(primeday(?:-fall)?|fitnessday|memberday|flashsale|kat-walk-mini-s-bfcm|\\bvr arcade\\b|\\barcade\\b|\\bcommercial(?: use| deployment)?\\b|\\bvr business\\b|\\bbusiness inquiry\\b|\\bbusiness solution\\b|\\bfor business use\\b|\\bbuisness\\b|\\breseller\\b|\\bwholesale\\b|\\bvenue\\b)/i",
+  TPL_PRODUCT_SELECTION_COMPARE_ACK:
+    "/(models-comparison|download|\\bcompare\\b|\\bcomparison\\b|\\bdifference between\\b|\\bwhich model\\b|\\bproduct selection\\b|\\bkat walk mini s\\b.*\\b(c2|c2pe|c2 core|c2 plus)\\b|\\b(c2|c2pe|c2 core|c2 plus)\\b.*\\bkat walk mini s\\b)/i",
   TPL_WEBSITE_PRODUCT_ACK:
-    "/product page form|homepage form|product inquiry|new contact form from (kat-walk-[^\\s]*|kat-pro|kat-loco-s|kat-nexus)|No\\.\\d{5,}/i",
-  TPL_PARTNERSHIP_CHANNEL_ACK: "/dealer|creator|distribution|partnership proposal/i",
+    "/(product page form|homepage form|product inquiry|new contact form from (kat-walk-[^\\s]*|kat-pro|kat-loco-s|kat-nexus)|\\binterested in your products?\\b|\\binquiry about\\b.*\\bkat\\b|\\bkat walk\\b|\\bvr treadmill\\b|\\bvr treamill\\b|\\bkat walk mini s\\b|\\bkat walk c2\\b|\\babout the kat walk\\b)/i",
+  TPL_PARTNERSHIP_CHANNEL_ACK:
+    "/(\\bpartnership(?: proposal| inquiry)?\\b|\\bpartner(?:ship)?\\b|\\bcollab(?:oration)?\\b|\\bcreator\\b|\\binfluencer\\b|\\bdistribution\\b|\\bdistributor\\b|\\bauthorized dealer\\b|\\bdealer\\b|\\bchannel partner\\b)/i",
   TPL_GENERAL_ACK: "/^.+$/i",
 };
 const PLACEHOLDER_ALIASES = {
@@ -146,6 +155,24 @@ const DETAILED_PLUGIN_GUIDE_SECTIONS = [
     ],
   },
 ];
+const RULE_ENGINE_SECTIONS = {
+  exclusions: {
+    title: "全局排除",
+    intro: "命中这些规则时，不建议发送自动回复。用于挡住系统通知、供应商注册、SEO 外链这类不应回复的邮件。",
+  },
+  overrides: {
+    title: "覆盖规则",
+    intro: "当某些页面 slug 被误用，或同一封邮件同时带有多个信号时，用覆盖规则把它强制切到更合适的模板。",
+  },
+  reviewRules: {
+    title: "人工复核",
+    intro: "这类规则会把高风险线索先标记为人工判断，不直接归入产品或销售模板。",
+  },
+  productProfiles: {
+    title: "产品识别",
+    intro: "这里只维护产品页 slug 和高置信度产品词，用于后续结构化消费；当前站点正文仍默认走中性回法。",
+  },
+};
 
 const fields = {
   category: document.getElementById("categoryInput"),
@@ -211,6 +238,22 @@ function createEmptyPolicySummary() {
   };
 }
 
+function createEmptyClassificationRules() {
+  return {
+    exclusions: [],
+    overrides: [],
+    reviewRules: [],
+    productProfiles: [],
+    resolutionPolicy: {
+      mode: "neutral_unless_exact_match",
+      precedence: ["pagePattern", "contentPattern"],
+      multiMatchBehavior: "neutral",
+      familyMatchBehavior: "neutral",
+      noMatchBehavior: "neutral",
+    },
+  };
+}
+
 const appEls = {
   app: document.getElementById("editorApp"),
   themeToggleBtn: document.getElementById("themeToggleBtn"),
@@ -265,6 +308,15 @@ const appEls = {
   targetMailboxInput: document.getElementById("targetMailboxInput"),
   activateModeSelect: document.getElementById("activateModeSelect"),
   localeButtons: Array.from(document.querySelectorAll("#editorLocaleSwitch .locale-btn")),
+  ruleEngineGrid: document.getElementById("ruleEngineGrid"),
+  ruleEngineModal: document.getElementById("ruleEngineModal"),
+  ruleEngineForm: document.getElementById("ruleEngineForm"),
+  ruleEngineTitle: document.getElementById("ruleEngineTitle"),
+  ruleEngineIntro: document.getElementById("ruleEngineIntro"),
+  ruleEngineEditorBody: document.getElementById("ruleEngineEditorBody"),
+  ruleEngineStatus: document.getElementById("ruleEngineStatus"),
+  ruleEngineCancelBtn: document.getElementById("ruleEngineCancelBtn"),
+  ruleEngineSaveBtn: document.getElementById("ruleEngineSaveBtn"),
   policySummaryContent: document.getElementById("policySummaryContent"),
   meta: {
     templateId: document.getElementById("metaTemplateId"),
@@ -283,6 +335,7 @@ const state = {
   accessConfig: null,
   groups: [],
   policySummary: createEmptyPolicySummary(),
+  classificationRules: createEmptyClassificationRules(),
   theme: document.documentElement.dataset.theme === "dark" ? "dark" : "light",
   selectedGroupId: null,
   selectedLocale: "zh-CN",
@@ -290,6 +343,7 @@ const state = {
   pendingDeleteGroupId: null,
   pluginGuideOpen: false,
   metaEditorGroupId: null,
+  ruleEditorSection: null,
   activationGuide: null,
   activationPrefs: {
     targetMailbox: "",
@@ -307,6 +361,7 @@ async function boot() {
   await Promise.all([loadInitialGroups(), loadAccessConfig()]);
   restoreActivationPrefs();
   renderActivationPrefs();
+  renderRuleEngine();
   renderPolicySummary();
   renderPluginGuideModal();
   renderManualGuide(state.activationPrefs.targetMailbox, state.activationPrefs.mode, []);
@@ -362,6 +417,19 @@ function bindEvents() {
       closeMetaEditor();
     }
   });
+  appEls.ruleEngineGrid?.addEventListener("click", onRuleEngineGridClick);
+  appEls.ruleEngineEditorBody?.addEventListener("click", onRuleEngineEditorClick);
+  appEls.ruleEngineCancelBtn?.addEventListener("click", closeRuleEditor);
+  appEls.ruleEngineSaveBtn?.addEventListener("click", saveRuleEditor);
+  appEls.ruleEngineForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    saveRuleEditor();
+  });
+  appEls.ruleEngineModal?.addEventListener("click", (event) => {
+    if (event.target === appEls.ruleEngineModal) {
+      closeRuleEditor();
+    }
+  });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && state.pendingDeleteGroupId) {
       closeDeleteConfirm();
@@ -373,6 +441,10 @@ function bindEvents() {
     }
     if (event.key === "Escape" && state.metaEditorGroupId) {
       closeMetaEditor();
+      return;
+    }
+    if (event.key === "Escape" && state.ruleEditorSection) {
+      closeRuleEditor();
     }
   });
 
@@ -787,6 +859,7 @@ function hideApp() {
   closeDeleteConfirm();
   closePluginGuideModal(false);
   closeMetaEditor();
+  closeRuleEditor(false);
   authEls.gate.classList.remove("hidden");
   appEls.app.classList.add("hidden");
   appEls.app.setAttribute("aria-hidden", "true");
@@ -798,6 +871,10 @@ async function loadInitialGroups() {
 
   const cached = loadLocalEditorState();
   state.policySummary = mergePolicySummaryWithStarter(starter.policySummary, cached.policySummary);
+  state.classificationRules = mergeClassificationRulesWithStarter(
+    starter.classificationRules,
+    cached.classificationRules,
+  );
 
   if (cached.groups.length > 0) {
     state.groups = cached.groups;
@@ -823,6 +900,7 @@ async function readStarterData() {
     return {
       groups: [],
       policySummary: createEmptyPolicySummary(),
+      classificationRules: createEmptyClassificationRules(),
     };
   }
 }
@@ -830,7 +908,9 @@ async function readStarterData() {
 async function resetTemplatesFromStarter() {
   const starter = await readStarterData();
   state.policySummary = starter.policySummary;
+  state.classificationRules = starter.classificationRules;
   renderPlaceholderValuesEditor();
+  renderRuleEngine();
   renderPolicySummary();
 
   if (starter.groups.length === 0) {
@@ -851,6 +931,7 @@ function parseTemplateDataPayload(payload) {
   return {
     groups: parseTemplateGroupsPayload(payload),
     policySummary: normalizePolicySummary(payload?.policySummary),
+    classificationRules: normalizeClassificationRules(payload?.classificationRules),
   };
 }
 
@@ -919,6 +1000,118 @@ function normalizePolicySummary(input) {
       pricingControl: normalizeStringArray(input.manualFlowNorms?.pricingControl),
     },
     defaultBlocks: ensureDefaultBlockCoverage(normalizePolicyDefaults(input.defaultBlocks), allowedPlaceholders),
+  };
+}
+
+function normalizeClassificationRules(input) {
+  const fallback = createEmptyClassificationRules();
+  if (!input || typeof input !== "object") {
+    return fallback;
+  }
+
+  return {
+    exclusions: normalizeClassificationExclusions(input.exclusions),
+    overrides: normalizeClassificationOverrides(input.overrides),
+    reviewRules: normalizeClassificationReviewRules(input.reviewRules),
+    productProfiles: normalizeProductProfiles(input.productProfiles),
+    resolutionPolicy: normalizeResolutionPolicy(input.resolutionPolicy),
+  };
+}
+
+function normalizeClassificationExclusions(input) {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .filter((entry) => entry && typeof entry === "object")
+    .map((entry) => ({
+      id: String(entry.id || "").trim(),
+      label: String(entry.label || "").trim(),
+      scope: normalizeScopeArray(entry.scope),
+      pattern: String(entry.pattern || "").trim(),
+      action: String(entry.action || "suppress_auto_reply").trim() || "suppress_auto_reply",
+    }));
+}
+
+function normalizeClassificationReviewRules(input) {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .filter((entry) => entry && typeof entry === "object")
+    .map((entry) => ({
+      id: String(entry.id || "").trim(),
+      label: String(entry.label || "").trim(),
+      scope: normalizeScopeArray(entry.scope),
+      pattern: String(entry.pattern || "").trim(),
+      action: {
+        mode: String(entry.action?.mode || "manual_review").trim() || "manual_review",
+        suggestedTemplateId: String(entry.action?.suggestedTemplateId || "").trim(),
+      },
+    }));
+}
+
+function normalizeClassificationOverrides(input) {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .filter((entry) => entry && typeof entry === "object")
+    .map((entry) => ({
+      id: String(entry.id || "").trim(),
+      label: String(entry.label || "").trim(),
+      conditions: Array.isArray(entry.conditions)
+        ? entry.conditions
+            .filter((condition) => condition && typeof condition === "object")
+            .map((condition) => ({
+              scope: normalizeScopeArray(condition.scope),
+              pattern: String(condition.pattern || "").trim(),
+            }))
+        : [],
+      action: {
+        mode: String(entry.action?.mode || "force_template").trim() || "force_template",
+        templateId: String(entry.action?.templateId || "").trim(),
+      },
+    }));
+}
+
+function normalizeProductProfiles(input) {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .filter((entry) => entry && typeof entry === "object")
+    .map((entry) => ({
+      id: String(entry.id || "").trim(),
+      displayNameZh: String(entry.displayNameZh || "").trim(),
+      displayNameEn: String(entry.displayNameEn || "").trim(),
+      pagePattern: String(entry.pagePattern || "").trim(),
+      contentPattern: String(entry.contentPattern || "").trim(),
+    }));
+}
+
+function normalizeResolutionPolicy(input) {
+  const fallback = createEmptyClassificationRules().resolutionPolicy;
+  if (!input || typeof input !== "object") {
+    return fallback;
+  }
+
+  return {
+    mode: String(input.mode || fallback.mode).trim() || fallback.mode,
+    precedence:
+      Array.isArray(input.precedence) && input.precedence.length > 0
+        ? input.precedence.map((entry) => String(entry || "").trim()).filter(Boolean)
+        : fallback.precedence.slice(),
+    multiMatchBehavior:
+      String(input.multiMatchBehavior || fallback.multiMatchBehavior).trim() || fallback.multiMatchBehavior,
+    familyMatchBehavior:
+      String(input.familyMatchBehavior || fallback.familyMatchBehavior).trim() || fallback.familyMatchBehavior,
+    noMatchBehavior:
+      String(input.noMatchBehavior || fallback.noMatchBehavior).trim() || fallback.noMatchBehavior,
   };
 }
 
@@ -1096,6 +1289,18 @@ function normalizeStringArray(input) {
   return input.map((entry) => String(entry).trim()).filter(Boolean);
 }
 
+function normalizeScopeArray(input) {
+  const allowed = new Set(["from", "subject", "body"]);
+  const values = Array.isArray(input)
+    ? input
+    : typeof input === "string"
+      ? input.split(/[\s,，/|]+/)
+      : [];
+  return values
+    .map((entry) => String(entry || "").trim().toLowerCase())
+    .filter((entry) => allowed.has(entry));
+}
+
 function normalizeObjectArray(input, keys) {
   if (!Array.isArray(input)) {
     return [];
@@ -1163,6 +1368,35 @@ function ensureDefaultBlockCoverage(defaultBlocks, allowedPlaceholders = []) {
   });
 
   return Array.from(merged.values());
+}
+
+function mergeClassificationRulesWithStarter(starterRules, cachedRules) {
+  const starter = normalizeClassificationRules(starterRules);
+  const cached = normalizeClassificationRules(cachedRules);
+
+  if (
+    cached.exclusions.length === 0 &&
+    cached.overrides.length === 0 &&
+    cached.reviewRules.length === 0 &&
+    cached.productProfiles.length === 0
+  ) {
+    return starter;
+  }
+
+  return {
+    exclusions: cached.exclusions.length > 0 ? cached.exclusions : starter.exclusions,
+    overrides: cached.overrides.length > 0 ? cached.overrides : starter.overrides,
+    reviewRules: cached.reviewRules.length > 0 ? cached.reviewRules : starter.reviewRules,
+    productProfiles: cached.productProfiles.length > 0 ? cached.productProfiles : starter.productProfiles,
+    resolutionPolicy: {
+      ...starter.resolutionPolicy,
+      ...cached.resolutionPolicy,
+      precedence:
+        Array.isArray(cached.resolutionPolicy?.precedence) && cached.resolutionPolicy.precedence.length > 0
+          ? cached.resolutionPolicy.precedence
+          : starter.resolutionPolicy.precedence,
+    },
+  };
 }
 
 function createGroup() {
@@ -1390,6 +1624,522 @@ function renderPlaceholderValuesEditor() {
   });
 }
 
+function renderRuleEngine() {
+  if (!appEls.ruleEngineGrid) return;
+
+  const cards = [
+    buildRuleEngineCard("exclusions"),
+    buildRuleEngineCard("overrides"),
+    buildRuleEngineCard("reviewRules"),
+    buildRuleEngineCard("productProfiles"),
+  ].join("");
+
+  appEls.ruleEngineGrid.innerHTML = cards;
+}
+
+function buildRuleEngineCard(section) {
+  const meta = RULE_ENGINE_SECTIONS[section];
+  const count = getRuleEngineSectionCount(section);
+  const items = buildRuleEngineCardItems(section);
+
+  return `
+    <article class="rule-engine-card">
+      <div class="rule-engine-card-head">
+        <div>
+          <p class="rule-engine-title">${escapeHtml(meta.title)}</p>
+          <p class="rule-engine-intro">${escapeHtml(meta.intro)}</p>
+        </div>
+        <button class="btn ghost compact" type="button" data-rule-section="${escapeHtml(section)}">编辑</button>
+      </div>
+      <p class="rule-engine-meta">${escapeHtml(`${count} 条配置`)}</p>
+      ${items}
+    </article>`;
+}
+
+function buildRuleEngineCardItems(section) {
+  if (section === "exclusions") {
+    const entries = (state.classificationRules.exclusions || []).map(
+      (entry) => `<li><strong>${escapeHtml(entry.label || entry.id || "未命名规则")}</strong><span>${escapeHtml(formatScopeLabel(entry.scope))}</span><code>${escapeHtml(entry.pattern || "")}</code></li>`,
+    );
+    return `<ul class="rule-engine-list">${entries.join("") || "<li>暂无规则</li>"}</ul>`;
+  }
+
+  if (section === "overrides") {
+    const entries = (state.classificationRules.overrides || []).map((entry) => {
+      const conditions = (entry.conditions || [])
+        .map((condition) => `${condition.pattern || ""} @ ${formatScopeLabel(condition.scope)}`)
+        .join(" + ");
+      return `<li><strong>${escapeHtml(entry.label || entry.id || "未命名规则")}</strong><span>${escapeHtml(entry.action?.templateId || "")}</span><code>${escapeHtml(conditions)}</code></li>`;
+    });
+    return `<ul class="rule-engine-list">${entries.join("") || "<li>暂无规则</li>"}</ul>`;
+  }
+
+  if (section === "reviewRules") {
+    const entries = (state.classificationRules.reviewRules || []).map(
+      (entry) => `<li><strong>${escapeHtml(entry.label || entry.id || "未命名规则")}</strong><span>${escapeHtml(entry.action?.suggestedTemplateId || "")}</span><code>${escapeHtml(entry.pattern || "")}</code></li>`,
+    );
+    return `<ul class="rule-engine-list">${entries.join("") || "<li>暂无规则</li>"}</ul>`;
+  }
+
+  const products = (state.classificationRules.productProfiles || []).map((entry) => {
+    const title = entry.displayNameZh || entry.displayNameEn || entry.id || "未命名产品";
+    return `<li><strong>${escapeHtml(title)}</strong><span>${escapeHtml(entry.id || "")}</span><code>${escapeHtml(entry.pagePattern || "")}</code></li>`;
+  });
+  const policy = state.classificationRules.resolutionPolicy || createEmptyClassificationRules().resolutionPolicy;
+  return `
+    <div class="rule-engine-policy-pillbox">
+      <span class="policy-code-pill"><code class="policy-inline-code">${escapeHtml(policy.mode || "neutral_unless_exact_match")}</code></span>
+      <span class="policy-code-pill"><code class="policy-inline-code">${escapeHtml((policy.precedence || []).join(" -> "))}</code></span>
+      <span class="policy-code-pill"><code class="policy-inline-code">multi=${escapeHtml(policy.multiMatchBehavior || "neutral")}</code></span>
+    </div>
+    <ul class="rule-engine-list">${products.join("") || "<li>暂无 profile</li>"}</ul>`;
+}
+
+function getRuleEngineSectionCount(section) {
+  if (section === "exclusions") return state.classificationRules.exclusions.length;
+  if (section === "overrides") return state.classificationRules.overrides.length;
+  if (section === "reviewRules") return state.classificationRules.reviewRules.length;
+  if (section === "productProfiles") return state.classificationRules.productProfiles.length;
+  return 0;
+}
+
+function onRuleEngineGridClick(event) {
+  const button = event.target.closest("[data-rule-section]");
+  if (!button) return;
+  openRuleEditor(button.dataset.ruleSection || "");
+}
+
+function openRuleEditor(section) {
+  if (!RULE_ENGINE_SECTIONS[section]) return;
+
+  state.ruleEditorSection = section;
+  if (appEls.ruleEngineTitle) {
+    appEls.ruleEngineTitle.textContent = RULE_ENGINE_SECTIONS[section].title;
+  }
+  if (appEls.ruleEngineIntro) {
+    appEls.ruleEngineIntro.textContent = RULE_ENGINE_SECTIONS[section].intro;
+  }
+  setStatus(appEls.ruleEngineStatus, "", false);
+  renderRuleEditorBody(section, cloneRuleEditorSection(section));
+  appEls.ruleEngineModal?.classList.remove("hidden");
+  appEls.ruleEngineModal?.setAttribute("aria-hidden", "false");
+  appEls.ruleEngineEditorBody?.querySelector("input, textarea")?.focus();
+}
+
+function closeRuleEditor(restoreFocus = true) {
+  const section = state.ruleEditorSection;
+  state.ruleEditorSection = null;
+  appEls.ruleEngineModal?.classList.add("hidden");
+  appEls.ruleEngineModal?.setAttribute("aria-hidden", "true");
+  setStatus(appEls.ruleEngineStatus, "", false);
+  if (restoreFocus && section) {
+    appEls.ruleEngineGrid?.querySelector(`[data-rule-section="${section}"]`)?.focus();
+  }
+}
+
+function cloneRuleEditorSection(section) {
+  const source =
+    section === "exclusions"
+      ? state.classificationRules.exclusions
+      : section === "overrides"
+        ? state.classificationRules.overrides
+        : section === "reviewRules"
+          ? state.classificationRules.reviewRules
+          : state.classificationRules.productProfiles;
+  return JSON.parse(JSON.stringify(source || []));
+}
+
+function renderRuleEditorBody(section, draft) {
+  if (!appEls.ruleEngineEditorBody) return;
+
+  if (section === "exclusions") {
+    appEls.ruleEngineEditorBody.innerHTML = renderExclusionEditor(draft);
+    return;
+  }
+  if (section === "overrides") {
+    appEls.ruleEngineEditorBody.innerHTML = renderOverrideEditor(draft);
+    return;
+  }
+  if (section === "reviewRules") {
+    appEls.ruleEngineEditorBody.innerHTML = renderReviewEditor(draft);
+    return;
+  }
+  if (section === "productProfiles") {
+    appEls.ruleEngineEditorBody.innerHTML = renderProductProfileEditor(draft);
+  }
+}
+
+function renderExclusionEditor(entries) {
+  const content = (entries || [])
+    .map(
+      (entry, index) => `
+        <section class="rule-editor-entry" data-index="${index}">
+          <div class="rule-editor-entry-head">
+            <p class="rule-editor-entry-title">排除规则 ${index + 1}</p>
+            <button class="btn danger compact" type="button" data-action="remove-item" data-index="${index}">删除</button>
+          </div>
+          <div class="inline-grid">
+            <label>规则 ID<input type="text" data-field="id" value="${escapeHtml(entry.id || "")}" /></label>
+            <label>名称<input type="text" data-field="label" value="${escapeHtml(entry.label || "")}" /></label>
+          </div>
+          ${buildScopeEditorHtml(entry.scope)}
+          <label>正则<textarea class="regex-text" rows="3" data-field="pattern">${escapeHtml(entry.pattern || "")}</textarea></label>
+          <p class="rule-editor-note">动作固定为：抑制自动回复</p>
+        </section>`,
+    )
+    .join("");
+
+  return `${content}<button class="btn ghost" type="button" data-action="add-item">新增排除规则</button>`;
+}
+
+function renderReviewEditor(entries) {
+  const content = (entries || [])
+    .map(
+      (entry, index) => `
+        <section class="rule-editor-entry" data-index="${index}">
+          <div class="rule-editor-entry-head">
+            <p class="rule-editor-entry-title">人工复核规则 ${index + 1}</p>
+            <button class="btn danger compact" type="button" data-action="remove-item" data-index="${index}">删除</button>
+          </div>
+          <div class="inline-grid">
+            <label>规则 ID<input type="text" data-field="id" value="${escapeHtml(entry.id || "")}" /></label>
+            <label>名称<input type="text" data-field="label" value="${escapeHtml(entry.label || "")}" /></label>
+          </div>
+          ${buildScopeEditorHtml(entry.scope)}
+          <label>正则<textarea class="regex-text" rows="3" data-field="pattern">${escapeHtml(entry.pattern || "")}</textarea></label>
+          <label>建议模板 ID<input type="text" data-field="suggestedTemplateId" value="${escapeHtml(entry.action?.suggestedTemplateId || "")}" /></label>
+          <p class="rule-editor-note">动作固定为：人工复核</p>
+        </section>`,
+    )
+    .join("");
+
+  return `${content}<button class="btn ghost" type="button" data-action="add-item">新增人工复核规则</button>`;
+}
+
+function renderOverrideEditor(entries) {
+  const content = (entries || [])
+    .map(
+      (entry, index) => `
+        <section class="rule-editor-entry" data-index="${index}">
+          <div class="rule-editor-entry-head">
+            <p class="rule-editor-entry-title">覆盖规则 ${index + 1}</p>
+            <button class="btn danger compact" type="button" data-action="remove-item" data-index="${index}">删除</button>
+          </div>
+          <div class="inline-grid">
+            <label>规则 ID<input type="text" data-field="id" value="${escapeHtml(entry.id || "")}" /></label>
+            <label>名称<input type="text" data-field="label" value="${escapeHtml(entry.label || "")}" /></label>
+          </div>
+          <label>强制切换到的模板 ID<input type="text" data-field="templateId" value="${escapeHtml(entry.action?.templateId || "")}" /></label>
+          <div class="rule-condition-list">
+            ${(entry.conditions || [])
+              .map(
+                (condition, conditionIndex) => `
+                  <section class="rule-condition-entry" data-condition-index="${conditionIndex}">
+                    <div class="rule-editor-entry-head">
+                      <p class="rule-editor-entry-subtitle">条件 ${conditionIndex + 1}</p>
+                      <button class="btn danger compact" type="button" data-action="remove-condition" data-index="${index}" data-condition-index="${conditionIndex}">删除条件</button>
+                    </div>
+                    ${buildScopeEditorHtml(condition.scope, "condition")}
+                    <label>正则<textarea class="regex-text" rows="3" data-field="conditionPattern">${escapeHtml(condition.pattern || "")}</textarea></label>
+                  </section>`,
+              )
+              .join("")}
+          </div>
+          <button class="btn ghost compact" type="button" data-action="add-condition" data-index="${index}">新增条件</button>
+        </section>`,
+    )
+    .join("");
+
+  return `${content}<button class="btn ghost" type="button" data-action="add-item">新增覆盖规则</button>`;
+}
+
+function renderProductProfileEditor(entries) {
+  const policy = state.classificationRules.resolutionPolicy || createEmptyClassificationRules().resolutionPolicy;
+  const content = (entries || [])
+    .map(
+      (entry, index) => `
+        <section class="rule-editor-entry" data-index="${index}">
+          <div class="rule-editor-entry-head">
+            <p class="rule-editor-entry-title">产品 profile ${index + 1}</p>
+            <button class="btn danger compact" type="button" data-action="remove-item" data-index="${index}">删除</button>
+          </div>
+          <div class="inline-grid">
+            <label>Profile ID<input type="text" data-field="id" value="${escapeHtml(entry.id || "")}" /></label>
+            <label>中文名<input type="text" data-field="displayNameZh" value="${escapeHtml(entry.displayNameZh || "")}" /></label>
+          </div>
+          <label>英文名<input type="text" data-field="displayNameEn" value="${escapeHtml(entry.displayNameEn || "")}" /></label>
+          <label>页面 slug / pagePattern<textarea class="regex-text" rows="2" data-field="pagePattern">${escapeHtml(entry.pagePattern || "")}</textarea></label>
+          <label>正文 / 主题信号 contentPattern<textarea class="regex-text" rows="2" data-field="contentPattern">${escapeHtml(entry.contentPattern || "")}</textarea></label>
+        </section>`,
+    )
+    .join("");
+
+  return `
+    <section class="rule-editor-entry rule-editor-entry-static">
+      <p class="rule-editor-entry-title">当前解析策略</p>
+      <div class="rule-engine-policy-pillbox">
+        <span class="policy-code-pill"><code class="policy-inline-code">${escapeHtml(policy.mode || "neutral_unless_exact_match")}</code></span>
+        <span class="policy-code-pill"><code class="policy-inline-code">${escapeHtml((policy.precedence || []).join(" -> "))}</code></span>
+        <span class="policy-code-pill"><code class="policy-inline-code">multi=${escapeHtml(policy.multiMatchBehavior || "neutral")}</code></span>
+        <span class="policy-code-pill"><code class="policy-inline-code">family=${escapeHtml(policy.familyMatchBehavior || "neutral")}</code></span>
+      </div>
+      <p class="rule-editor-note">当前版本不在页面里自动按 profile 改正文；这里只维护后续可消费的结构化识别信号。</p>
+    </section>
+    ${content}
+    <button class="btn ghost" type="button" data-action="add-item">新增产品 profile</button>`;
+}
+
+function buildScopeEditorHtml(selected, field = "scope") {
+  const values = new Set(normalizeScopeArray(selected));
+  const options = [
+    { key: "from", label: "From" },
+    { key: "subject", label: "Subject" },
+    { key: "body", label: "Body" },
+  ];
+
+  return `
+    <div class="rule-scope-editor" data-field-group="${field}">
+      <span class="rule-scope-label">作用域</span>
+      <div class="rule-scope-options">
+        ${options
+          .map(
+            (option) => `
+              <label class="rule-scope-option">
+                <input type="checkbox" data-field="${field}" value="${option.key}" ${values.has(option.key) ? "checked" : ""} />
+                <span>${option.label}</span>
+              </label>`,
+          )
+          .join("")}
+      </div>
+    </div>`;
+}
+
+function onRuleEngineEditorClick(event) {
+  const button = event.target.closest("[data-action]");
+  if (!button || !state.ruleEditorSection) return;
+
+  const section = state.ruleEditorSection;
+  const draft = collectRuleEditorEntries(section);
+  const action = button.dataset.action;
+
+  if (action === "add-item") {
+    draft.push(createEmptyRuleEntry(section));
+    renderRuleEditorBody(section, draft);
+    return;
+  }
+
+  const index = Number(button.dataset.index);
+  if (!Number.isInteger(index) || index < 0) return;
+
+  if (action === "remove-item") {
+    draft.splice(index, 1);
+    renderRuleEditorBody(section, draft);
+    return;
+  }
+
+  if (action === "add-condition" && section === "overrides") {
+    draft[index]?.conditions?.push(createEmptyOverrideCondition());
+    renderRuleEditorBody(section, draft);
+    return;
+  }
+
+  if (action === "remove-condition" && section === "overrides") {
+    const conditionIndex = Number(button.dataset.conditionIndex);
+    if (!Number.isInteger(conditionIndex) || conditionIndex < 0) return;
+    draft[index]?.conditions?.splice(conditionIndex, 1);
+    renderRuleEditorBody(section, draft);
+  }
+}
+
+function createEmptyRuleEntry(section) {
+  if (section === "exclusions") {
+    return { id: "", label: "", scope: ["subject"], pattern: "", action: "suppress_auto_reply" };
+  }
+  if (section === "reviewRules") {
+    return {
+      id: "",
+      label: "",
+      scope: ["subject"],
+      pattern: "",
+      action: { mode: "manual_review", suggestedTemplateId: "" },
+    };
+  }
+  if (section === "overrides") {
+    return {
+      id: "",
+      label: "",
+      conditions: [createEmptyOverrideCondition()],
+      action: { mode: "force_template", templateId: "" },
+    };
+  }
+  return {
+    id: "",
+    displayNameZh: "",
+    displayNameEn: "",
+    pagePattern: "",
+    contentPattern: "",
+  };
+}
+
+function createEmptyOverrideCondition() {
+  return {
+    scope: ["subject"],
+    pattern: "",
+  };
+}
+
+function collectRuleEditorEntries(section) {
+  const entries = Array.from(appEls.ruleEngineEditorBody?.querySelectorAll(".rule-editor-entry[data-index]") || []);
+
+  if (section === "exclusions") {
+    return entries.map((entry) => ({
+      id: readRuleEditorValue(entry, "id"),
+      label: readRuleEditorValue(entry, "label"),
+      scope: readRuleScopeValues(entry, "scope"),
+      pattern: readRuleEditorValue(entry, "pattern"),
+      action: "suppress_auto_reply",
+    }));
+  }
+
+  if (section === "reviewRules") {
+    return entries.map((entry) => ({
+      id: readRuleEditorValue(entry, "id"),
+      label: readRuleEditorValue(entry, "label"),
+      scope: readRuleScopeValues(entry, "scope"),
+      pattern: readRuleEditorValue(entry, "pattern"),
+      action: {
+        mode: "manual_review",
+        suggestedTemplateId: readRuleEditorValue(entry, "suggestedTemplateId"),
+      },
+    }));
+  }
+
+  if (section === "overrides") {
+    return entries.map((entry) => ({
+      id: readRuleEditorValue(entry, "id"),
+      label: readRuleEditorValue(entry, "label"),
+      conditions: Array.from(entry.querySelectorAll(".rule-condition-entry")).map((condition) => ({
+        scope: readRuleScopeValues(condition, "condition"),
+        pattern: readRuleEditorValue(condition, "conditionPattern"),
+      })),
+      action: {
+        mode: "force_template",
+        templateId: readRuleEditorValue(entry, "templateId"),
+      },
+    }));
+  }
+
+  return entries.map((entry) => ({
+    id: readRuleEditorValue(entry, "id"),
+    displayNameZh: readRuleEditorValue(entry, "displayNameZh"),
+    displayNameEn: readRuleEditorValue(entry, "displayNameEn"),
+    pagePattern: readRuleEditorValue(entry, "pagePattern"),
+    contentPattern: readRuleEditorValue(entry, "contentPattern"),
+  }));
+}
+
+function readRuleEditorValue(container, field) {
+  return String(container.querySelector(`[data-field="${field}"]`)?.value || "").trim();
+}
+
+function readRuleScopeValues(container, field) {
+  return normalizeScopeArray(
+    Array.from(container.querySelectorAll(`input[data-field="${field}"]:checked`)).map((input) => input.value),
+  );
+}
+
+function saveRuleEditor() {
+  const section = state.ruleEditorSection;
+  if (!section) return;
+
+  const entries = collectRuleEditorEntries(section);
+  const validation = validateRuleEngineSection(section, entries);
+  if (validation.length > 0) {
+    setStatus(appEls.ruleEngineStatus, validation.join("；"), true);
+    return;
+  }
+
+  state.classificationRules[section] = entries;
+  persistLocalGroups();
+  renderRuleEngine();
+  renderPolicySummary();
+  closeRuleEditor();
+  setStatus(appEls.status, "已更新 Rule Engine 配置。", false);
+}
+
+function validateRuleEngineSection(section, entries) {
+  const errors = [];
+  const ids = new Set();
+
+  entries.forEach((entry, index) => {
+    const label = `${RULE_ENGINE_SECTIONS[section]?.title || section} 第 ${index + 1} 条`;
+
+    if (!entry.id) {
+      errors.push(`${label} 缺少 ID`);
+    } else if (ids.has(entry.id)) {
+      errors.push(`${label} 的 ID 重复`);
+    } else {
+      ids.add(entry.id);
+    }
+
+    if (section === "exclusions" || section === "reviewRules") {
+      if (entry.scope.length === 0) {
+        errors.push(`${label} 至少选择一个作用域`);
+      }
+      if (!entry.pattern || !isValidRegexText(entry.pattern)) {
+        errors.push(`${label} 的正则格式无效`);
+      }
+      if (section === "reviewRules" && !entry.action?.suggestedTemplateId) {
+        errors.push(`${label} 缺少建议模板 ID`);
+      }
+    }
+
+    if (section === "overrides") {
+      if (!entry.action?.templateId) {
+        errors.push(`${label} 缺少目标模板 ID`);
+      }
+      if (!Array.isArray(entry.conditions) || entry.conditions.length === 0) {
+        errors.push(`${label} 至少保留一个条件`);
+      }
+      (entry.conditions || []).forEach((condition, conditionIndex) => {
+        if (condition.scope.length === 0) {
+          errors.push(`${label} 的条件 ${conditionIndex + 1} 至少选择一个作用域`);
+        }
+        if (!condition.pattern || !isValidRegexText(condition.pattern)) {
+          errors.push(`${label} 的条件 ${conditionIndex + 1} 正则格式无效`);
+        }
+      });
+    }
+
+    if (section === "productProfiles") {
+      if (!entry.displayNameZh && !entry.displayNameEn) {
+        errors.push(`${label} 至少填写一个展示名称`);
+      }
+      if (!entry.pagePattern && !entry.contentPattern) {
+        errors.push(`${label} 至少填写 pagePattern 或 contentPattern`);
+      }
+      if (entry.pagePattern && !isValidRegexText(entry.pagePattern)) {
+        errors.push(`${label} 的 pagePattern 格式无效`);
+      }
+      if (entry.contentPattern && !isValidRegexText(entry.contentPattern)) {
+        errors.push(`${label} 的 contentPattern 格式无效`);
+      }
+    }
+  });
+
+  return errors;
+}
+
+function formatScopeLabel(scope) {
+  const labels = {
+    from: "From",
+    subject: "Subject",
+    body: "Body",
+  };
+  const normalized = normalizeScopeArray(scope);
+  return normalized.length > 0 ? normalized.map((item) => labels[item] || item).join(" / ") : "未指定";
+}
+
 function renderPolicySummary() {
   if (!appEls.policySummaryContent) return;
 
@@ -1397,6 +2147,7 @@ function renderPolicySummary() {
   const sections = [
     buildPluginActivationPolicySection(policy.pluginActivationGuide),
     buildKeywordRegexPolicySection(policy.keywordRegexGuide),
+    buildRuleEnginePolicySection(state.classificationRules),
     buildRichPolicySection("来源与主题策略", {
       className: "policy-section-source",
       groups: [
@@ -1581,6 +2332,49 @@ function buildKeywordRegexPolicySection(guide) {
   });
 }
 
+function buildRuleEnginePolicySection(rules) {
+  const exclusions = (rules?.exclusions || []).map(
+    (entry) =>
+      `${entry.label || entry.id || "未命名规则"}：\`${entry.pattern || ""}\` | 作用域：${formatScopeLabel(entry.scope)}`,
+  );
+  const overrides = (rules?.overrides || []).map((entry) => {
+    const conditions = (entry.conditions || [])
+      .map((condition) => `\`${condition.pattern || ""}\` @ ${formatScopeLabel(condition.scope)}`)
+      .join(" + ");
+    return `${entry.label || entry.id || "未命名规则"}：${conditions} -> \`${entry.action?.templateId || ""}\``;
+  });
+  const reviews = (rules?.reviewRules || []).map(
+    (entry) =>
+      `${entry.label || entry.id || "未命名规则"}：\`${entry.pattern || ""}\` @ ${formatScopeLabel(entry.scope)} -> \`${entry.action?.suggestedTemplateId || ""}\``,
+  );
+  const products = (rules?.productProfiles || []).map((entry) => {
+    const name = entry.displayNameZh || entry.displayNameEn || entry.id || "未命名产品";
+    const signals = [entry.pagePattern ? `页：\`${entry.pagePattern}\`` : "", entry.contentPattern ? `文：\`${entry.contentPattern}\`` : ""]
+      .filter(Boolean)
+      .join(" | ");
+    return `${name}${signals ? `：${signals}` : ""}`;
+  });
+  const policyItems = [
+    rules?.resolutionPolicy?.mode ? `解析策略：\`${rules.resolutionPolicy.mode}\`` : "",
+    Array.isArray(rules?.resolutionPolicy?.precedence) && rules.resolutionPolicy.precedence.length > 0
+      ? `优先级：\`${rules.resolutionPolicy.precedence.join(" -> ")}\``
+      : "",
+    rules?.resolutionPolicy?.multiMatchBehavior ? `多命中：\`${rules.resolutionPolicy.multiMatchBehavior}\`` : "",
+    rules?.resolutionPolicy?.noMatchBehavior ? `无命中：\`${rules.resolutionPolicy.noMatchBehavior}\`` : "",
+  ].filter(Boolean);
+
+  return buildRichPolicySection("规则引擎", {
+    className: "policy-section-rule-engine",
+    intro: "模板关键词只负责描述模板线索；真正的全局排除、覆盖、人工复核和产品识别信号统一维护在 Rule Engine 中。",
+    groups: [
+      { title: "全局排除", items: exclusions, meta: `${exclusions.length} 条` },
+      { title: "覆盖规则", items: overrides, meta: `${overrides.length} 条` },
+      { title: "人工复核", items: reviews, meta: `${reviews.length} 条` },
+      { title: "产品识别", items: [...policyItems, ...products], meta: `${products.length} 个 profile`, className: "policy-group-wide" },
+    ],
+  });
+}
+
 function buildRoutingTeamsPolicySection(routingGroups) {
   const groups = (routingGroups || [])
     .map((group) => ({
@@ -1747,6 +2541,7 @@ function persistLocalGroups() {
       updatedAt: new Date().toISOString(),
       groups: state.groups,
       policySummary: state.policySummary,
+      classificationRules: state.classificationRules,
     }),
   );
 }
@@ -1762,14 +2557,23 @@ function loadLocalEditorState() {
     }
 
     const payload = JSON.parse(raw);
+    if (Number(payload?.version) < TEMPLATE_DATA_VERSION) {
+      return {
+        groups: [],
+        policySummary: createEmptyPolicySummary(),
+        classificationRules: createEmptyClassificationRules(),
+      };
+    }
     return {
       groups: parseTemplateGroupsPayload(payload),
       policySummary: normalizePolicySummary(payload?.policySummary),
+      classificationRules: normalizeClassificationRules(payload?.classificationRules),
     };
   } catch (_error) {
     return {
       groups: [],
       policySummary: createEmptyPolicySummary(),
+      classificationRules: createEmptyClassificationRules(),
     };
   }
 }
@@ -1882,6 +2686,7 @@ function exportTemplatesAsFile() {
     updatedAt: new Date().toISOString(),
     groups: state.groups,
     policySummary: state.policySummary,
+    classificationRules: state.classificationRules,
   };
 
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
@@ -1912,9 +2717,14 @@ async function onImportFile(event) {
     if (hasPolicySummary(parsed.policySummary)) {
       state.policySummary = parsed.policySummary;
     }
+    state.classificationRules = mergeClassificationRulesWithStarter(
+      state.classificationRules,
+      parsed.classificationRules,
+    );
     state.selectedGroupId = parsed.groups[0].groupId;
     state.selectedLocale = "zh-CN";
     persistLocalGroups();
+    renderRuleEngine();
     renderPolicySummary();
     renderList();
     selectGroup(state.selectedGroupId, state.selectedLocale);
