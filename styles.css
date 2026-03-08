@@ -259,6 +259,8 @@ textarea {
   padding: 10px 12px;
   background: var(--surface);
   color: var(--text);
+  width: 100%;
+  min-width: 0;
 }
 
 textarea {
@@ -363,6 +365,10 @@ textarea {
   min-width: 0;
 }
 
+.form-panel > * {
+  min-width: 0;
+}
+
 .preview-panel > * {
   min-width: 0;
 }
@@ -391,12 +397,16 @@ textarea {
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 12px;
+  min-width: 0;
 }
 
 .panel-head-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .locale-switch {
@@ -406,6 +416,9 @@ textarea {
   border-radius: 999px;
   padding: 3px;
   background: var(--surface);
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
 }
 
 .locale-btn {
@@ -528,6 +541,7 @@ textarea {
 .template-form {
   display: grid;
   gap: 10px;
+  min-width: 0;
 }
 
 .meta-box {
@@ -539,6 +553,7 @@ textarea {
   gap: 6px;
   font-size: 12px;
   color: var(--text-soft);
+  min-width: 0;
 }
 
 .meta-box-head {
@@ -593,6 +608,7 @@ textarea {
   margin-top: 12px;
   border-top: 1px dashed var(--line);
   padding-top: 10px;
+  min-width: 0;
 }
 
 .token-row p {
@@ -605,6 +621,7 @@ textarea {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .chip {
