@@ -684,6 +684,10 @@ textarea {
   min-width: 0;
 }
 
+.rule-engine-card--fill {
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
 .rule-engine-card-head {
   display: flex;
   align-items: flex-start;
@@ -720,6 +724,12 @@ textarea {
   gap: 8px;
 }
 
+.rule-engine-card--fill .rule-engine-list {
+  height: 100%;
+  align-content: stretch;
+  grid-auto-rows: minmax(0, 1fr);
+}
+
 .rule-engine-list li {
   display: grid;
   gap: 4px;
@@ -728,6 +738,11 @@ textarea {
   border-radius: 12px;
   background: var(--surface-soft);
   min-width: 0;
+}
+
+.rule-engine-card--fill .rule-engine-list li {
+  height: 100%;
+  align-content: start;
 }
 
 .rule-engine-list strong {

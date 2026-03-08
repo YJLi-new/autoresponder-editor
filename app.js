@@ -1643,9 +1643,13 @@ function buildRuleEngineCard(section) {
   const meta = RULE_ENGINE_SECTIONS[section];
   const count = getRuleEngineSectionCount(section);
   const items = buildRuleEngineCardItems(section);
+  const cardClass =
+    section === "overrides" || section === "reviewRules"
+      ? "rule-engine-card rule-engine-card--fill"
+      : "rule-engine-card";
 
   return `
-    <article class="rule-engine-card">
+    <article class="${cardClass}">
       <div class="rule-engine-card-head">
         <div>
           <p class="rule-engine-title">${escapeHtml(meta.title)}</p>
