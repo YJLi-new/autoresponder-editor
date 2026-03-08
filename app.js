@@ -263,6 +263,7 @@ const appEls = {
   addBtn: document.getElementById("addTemplateBtn"),
   deleteBtn: document.getElementById("deleteTemplateBtn"),
   exportBtn: document.getElementById("exportBtn"),
+  exportRuleDraftBtn: document.getElementById("exportRuleDraftBtn"),
   importBtn: document.getElementById("importBtn"),
   resetBtn: document.getElementById("resetBtn"),
   importInput: document.getElementById("importInput"),
@@ -480,6 +481,7 @@ function bindEvents() {
   });
 
   appEls.exportBtn.addEventListener("click", exportTemplatesAsFile);
+  appEls.exportRuleDraftBtn?.addEventListener("click", exportClassificationRuleDraft);
   appEls.importBtn.addEventListener("click", () => appEls.importInput.click());
   appEls.importInput.addEventListener("change", onImportFile);
   appEls.resetBtn.addEventListener("click", resetTemplatesFromStarter);
@@ -2699,6 +2701,40 @@ function exportTemplatesAsFile() {
   anchor.download = `auto-reply-template-groups-${new Date().toISOString().slice(0, 10)}.json`;
   anchor.click();
   URL.revokeObjectURL(url);
+}
+
+function exportClassificationRuleDraft() {
+  const payload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    source: "katvr-autoreply-studio",
+    resolutionPolicy: state.classificationRules.resolutionPolicy,
+    classificationRules: state.classificationRules,
+    templates: state.groups.map((group) => ({
+      templateId: group.groupId,
+      category: group.category,
+      priority: group.priority,
+      matchFields: group.matchFields,
+      keywords: group.keywords,
+      routing: group.routing,
+      sla: group.sla,
+      exclusions: group.exclusions,
+      placeholders: group.placeholders,
+      note: group.note,
+    })),
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {
+    type: "application/json;charset=utf-8",
+  });
+
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `classification-rule-draft-${new Date().toISOString().slice(0, 10)}.json`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+  setStatus(appEls.status, "已导出分类规则草案。", false);
 }
 
 async function onImportFile(event) {
