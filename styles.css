@@ -562,6 +562,7 @@ textarea {
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 2px;
+  min-width: 0;
 }
 
 .meta-box-title {
@@ -569,6 +570,9 @@ textarea {
   font-size: 12px;
   font-weight: 700;
   color: var(--accent-text);
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
 }
 
 .icon-btn {
@@ -582,6 +586,8 @@ textarea {
   color: var(--accent-ui);
   cursor: pointer;
   transition: 0.2s ease;
+  flex: 0 0 auto;
+  align-self: flex-start;
 }
 
 .icon-btn:hover {
@@ -598,10 +604,16 @@ textarea {
 .meta-box p {
   margin: 0;
   line-height: 1.45;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .meta-box strong {
   color: var(--accent-text);
+}
+
+.meta-box span {
+  overflow-wrap: anywhere;
 }
 
 .token-row {
