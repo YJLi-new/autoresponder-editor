@@ -3098,6 +3098,7 @@ function buildAliMailActivationPayload(group, version) {
     templateId: group.groupId,
     locale: version.locale,
     category: group.category,
+    priority: Number.isFinite(Number(group.priority)) ? Number(group.priority) : null,
     ruleName: `KATVR ${group.groupId} ${LOCALE_LABELS[version.locale] || version.locale}`,
     matchFields: group.matchFields || "",
     keywordsText: group.keywords || "",

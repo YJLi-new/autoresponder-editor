@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KATVR AliMail Auto Reply Activator
 // @namespace    https://yjli-new.github.io/autoresponder-editor/
-// @version      1.1.11
+// @version      1.1.12
 // @description  Read activation payload from URL and apply auto-reply settings in AliMail enterprise web.
 // @match        https://qiye.aliyun.com/*
 // @match        https://mail.aliyun.com/*
@@ -305,6 +305,12 @@
       throw new Error("自动回复正文输入框未成功写入内容。");
     }
 
+    const shouldStopOtherRules = shouldStopProcessingOtherRules(template);
+    const stopProcessingApplied = setStopProcessingOtherRules(form, shouldStopOtherRules);
+    if (shouldStopOtherRules && !stopProcessingApplied) {
+      throw new Error("规则内容已填写，但未能设置“停止处理其他规则”。");
+    }
+
     await sleep(260);
     const saveButton =
       findFirstVisible(form.querySelectorAll('button[type="submit"]')) ||
@@ -478,6 +484,35 @@
       return false;
     }
     return setInputValue(input, value);
+  }
+
+  function shouldStopProcessingOtherRules(template) {
+    const templateId = String(template?.templateId || "").trim();
+    const priority = Number(template?.priority);
+    const exactHighPriorityTemplates = new Set([
+      "TPL_SUPPORT_AFTERSALES_ACK",
+      "TPL_SDK_TECH_ACK",
+      "TPL_INVOICE_PAYMENT_ACK",
+    ]);
+
+    if (exactHighPriorityTemplates.has(templateId)) {
+      return true;
+    }
+
+    return Number.isFinite(priority) && priority >= 880;
+  }
+
+  function setStopProcessingOtherRules(form, checked) {
+    const targetLabel = Array.from(form.querySelectorAll("label")).find((node) => {
+      if (!isVisible(node)) return false;
+      return normalize(node.textContent || "").includes(normalize("停止处理其他规则"));
+    });
+
+    if (!targetLabel) {
+      return false;
+    }
+
+    return setCheckboxState(targetLabel, checked);
   }
 
   function applyScope(scope) {
@@ -893,6 +928,29 @@
       input;
     safeClick(clickable);
     return Boolean(input.checked || container.querySelector(".ant-checkbox-checked"));
+  }
+
+  function setCheckboxState(container, checked) {
+    const input = container?.querySelector?.('input[type="checkbox"]') ||
+      (container?.matches?.('input[type="checkbox"]') ? container : null);
+    if (!input) {
+      return false;
+    }
+
+    const current = Boolean(input.checked || input.closest("label")?.querySelector(".ant-checkbox-checked"));
+    if (current === Boolean(checked)) {
+      return true;
+    }
+
+    const clickable =
+      input.closest("label") ||
+      container.querySelector?.("label") ||
+      input.nextElementSibling ||
+      input;
+    safeClick(clickable);
+
+    const next = Boolean(input.checked || input.closest("label")?.querySelector(".ant-checkbox-checked"));
+    return next === Boolean(checked);
   }
 
   async function waitForElement(selector, timeoutMs) {
