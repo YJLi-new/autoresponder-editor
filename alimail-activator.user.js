@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KATVR AliMail Auto Reply Activator
 // @namespace    https://yjli-new.github.io/autoresponder-editor/
-// @version      1.1.1
+// @version      1.1.2
 // @description  Read activation payload from URL and apply auto-reply settings in AliMail enterprise web.
 // @match        https://qiye.aliyun.com/*
 // @match        https://mail.aliyun.com/*
@@ -12,8 +12,7 @@
 (function () {
   "use strict";
 
-  const search = new URLSearchParams(window.location.search);
-  const encoded = search.get("alimailActivate");
+  const encoded = readActivationParam();
   if (!encoded) {
     return;
   }
@@ -25,11 +24,25 @@
     return;
   }
 
-  removeQueryParam("alimailActivate");
+  removeActivationParam();
   run(envelope).catch((error) => {
     console.error("[AliMail Activator] failed:", error);
     showNotice(`AliMail 激活失败：${error.message}`, true);
   });
+
+  function readActivationParam() {
+    const hash = String(window.location.hash || "").replace(/^#/, "");
+    if (hash) {
+      const hashParams = new URLSearchParams(hash);
+      const fromHash = hashParams.get("alimailActivate");
+      if (fromHash) {
+        return fromHash;
+      }
+    }
+
+    const search = new URLSearchParams(window.location.search);
+    return search.get("alimailActivate");
+  }
 
   function parsePayload(base64UrlText) {
     try {
@@ -70,9 +83,13 @@
     return null;
   }
 
-  function removeQueryParam(key) {
+  function removeActivationParam() {
     const url = new URL(window.location.href);
-    url.searchParams.delete(key);
+    url.searchParams.delete("alimailActivate");
+    const hashParams = new URLSearchParams(String(url.hash || "").replace(/^#/, ""));
+    hashParams.delete("alimailActivate");
+    const nextHash = hashParams.toString();
+    url.hash = nextHash ? `#${nextHash}` : "";
     window.history.replaceState({}, "", url.toString());
   }
 

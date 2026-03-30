@@ -2996,7 +2996,7 @@ function buildAliMailActivationEnvelope(config) {
 
 function buildAliMailActivationUrl(envelope) {
   const payload = encodeActivationEnvelope(envelope);
-  return `${ALIMAIL_WEBMAIL_URL}?alimailActivate=${payload}`;
+  return `${ALIMAIL_WEBMAIL_URL}#alimailActivate=${payload}`;
 }
 
 function encodeActivationEnvelope(envelope) {
