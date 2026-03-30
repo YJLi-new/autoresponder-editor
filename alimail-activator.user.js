@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KATVR AliMail Auto Reply Activator
 // @namespace    https://yjli-new.github.io/autoresponder-editor/
-// @version      1.1.4
+// @version      1.1.5
 // @description  Read activation payload from URL and apply auto-reply settings in AliMail enterprise web.
 // @match        https://qiye.aliyun.com/*
 // @match        https://mail.aliyun.com/*
@@ -17,6 +17,7 @@
   const WINDOW_NAME_PREFIX = "katvrAlimailActivate:";
   const activation = readActivationParam();
   if (!activation.encoded) {
+    showIdleNotice();
     return;
   }
 
@@ -402,7 +403,18 @@
     return new Promise((resolve) => window.setTimeout(resolve, ms));
   }
 
-  function showNotice(text, isError) {
+  function showIdleNotice() {
+    if (!String(window.location.pathname || "").includes("/alimail/")) {
+      return;
+    }
+    if (window.__katvrActivatorIdleShown) {
+      return;
+    }
+    window.__katvrActivatorIdleShown = true;
+    showNotice("AliMail 激活器：已加载，等待激活指令。", false, 4200);
+  }
+
+  function showNotice(text, isError, timeoutMs) {
     const id = "katvr-alimail-activator-toast";
     let toast = document.getElementById(id);
     if (!toast) {
@@ -431,6 +443,6 @@
       if (toast && toast.parentNode) {
         toast.parentNode.removeChild(toast);
       }
-    }, 10000);
+    }, Number.isFinite(timeoutMs) ? timeoutMs : 10000);
   }
 })();
