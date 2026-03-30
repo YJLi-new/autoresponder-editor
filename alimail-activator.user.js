@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KATVR AliMail Auto Reply Activator
 // @namespace    https://yjli-new.github.io/autoresponder-editor/
-// @version      1.1.9
+// @version      1.1.10
 // @description  Read activation payload from URL and apply auto-reply settings in AliMail enterprise web.
 // @match        https://qiye.aliyun.com/*
 // @match        https://mail.aliyun.com/*
@@ -381,30 +381,14 @@
     }
     await sleep(320);
 
-    const tagsBase =
-      container.querySelector('[data-testid="tags-input-base"]') ||
-      container.querySelector('[data-testid="keywords-input-container"]') ||
-      container;
-
-    safeClick(tagsBase);
-    await sleep(260);
-
-    const field =
-      (await waitForEditableFieldIn(tagsBase, 1600)) ||
-      findFirstVisible(
-        Array.from(form.querySelectorAll("input, textarea, [contenteditable='true']")).filter((element) => {
-          if (!isTextEntryElement(element)) return false;
-          return container.contains(element) || element === document.activeElement;
-        }),
-      ) ||
-      (isTextEntryElement(document.activeElement) ? document.activeElement : null);
-
-    if (!field) {
-      return false;
+    for (const rawValue of values) {
+      const inserted = await insertKeywordTag(container, form, rawValue);
+      if (!inserted) {
+        return false;
+      }
     }
 
-    values.forEach((value, index) => appendKeywordValue(field, value, index === 0));
-    return true;
+    return values.length > 0;
   }
 
   async function addKeywordsNearLabel(labels, values) {
@@ -426,11 +410,14 @@
     }
 
     let applied = false;
-    values.forEach((value, index) => {
-      if (!value) return;
-      appendKeywordValue(field, value, index === 0);
-      applied = true;
-    });
+    for (const value of values) {
+      if (!value) continue;
+      const inserted = await appendKeywordValue(field, value, !applied);
+      applied = applied || inserted;
+      if (!inserted) {
+        return false;
+      }
+    }
     return applied;
   }
 
@@ -588,7 +575,11 @@
     );
   }
 
-  function setInputValue(element, value) {
+  function setInputValue(element, value, options) {
+    const config = {
+      blur: true,
+      ...options,
+    };
     const text = String(value);
     element.focus();
 
@@ -619,28 +610,23 @@
       element.dispatchEvent(new Event("input", { bubbles: true }));
     }
     element.dispatchEvent(new Event("change", { bubbles: true }));
-    element.blur();
+    if (config.blur) {
+      element.blur();
+    }
     return readElementTextValue(element) === text;
   }
 
-  function appendKeywordValue(element, value, overwrite) {
+  async function appendKeywordValue(element, value, overwrite) {
     const text = String(value || "").trim();
     if (!text) {
-      return;
+      return false;
     }
 
     element.focus();
-    if (element.matches("[contenteditable='true']")) {
-      if (overwrite) {
-        element.innerText = text;
-      } else {
-        element.innerText = text;
-      }
-    } else {
-      element.value = text;
+    if (!setInputValue(element, text, { blur: false })) {
+      return false;
     }
-
-    element.dispatchEvent(new Event("input", { bubbles: true }));
+    await sleep(80);
     element.dispatchEvent(
       new KeyboardEvent("keydown", {
         key: "Enter",
@@ -656,7 +642,62 @@
         bubbles: true,
       }),
     );
+    try {
+      element.dispatchEvent(
+        new KeyboardEvent("keypress", {
+          key: "Enter",
+          code: "Enter",
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    } catch (_error) {
+      // Ignore unsupported keypress construction.
+    }
     element.dispatchEvent(new Event("change", { bubbles: true }));
+    await sleep(80);
+    if (overwrite) {
+      element.blur();
+    }
+    return true;
+  }
+
+  async function insertKeywordTag(container, form, value) {
+    const text = String(value || "").trim();
+    if (!text) {
+      return false;
+    }
+
+    const tagsBase =
+      container.querySelector('[data-testid="tags-input-base"]') ||
+      container.querySelector('[data-testid="keywords-input-container"]') ||
+      container;
+
+    safeClick(tagsBase);
+    await sleep(180);
+
+    const field =
+      (await waitForEditableFieldIn(tagsBase, 1400)) ||
+      findFirstVisible(
+        Array.from(form.querySelectorAll("input, textarea, [contenteditable='true']")).filter((element) => {
+          if (!isEditableTextField(element)) return false;
+          if (!container.contains(element) && element !== document.activeElement) return false;
+          return normalize(element.id || "") !== "name";
+        }),
+      ) ||
+      (isEditableTextField(document.activeElement) ? document.activeElement : null);
+
+    if (!field) {
+      return false;
+    }
+
+    const typed = await appendKeywordValue(field, text, true);
+    if (!typed) {
+      return false;
+    }
+
+    await sleep(160);
+    return normalize(container.textContent || "").includes(normalize(text));
   }
 
   async function confirmMailRuleSubmission(form, ruleName, timeoutMs) {
