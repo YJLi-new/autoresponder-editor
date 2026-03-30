@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KATVR AliMail Auto Reply Activator
 // @namespace    https://yjli-new.github.io/autoresponder-editor/
-// @version      1.1.7
+// @version      1.1.8
 // @description  Read activation payload from URL and apply auto-reply settings in AliMail enterprise web.
 // @match        https://qiye.aliyun.com/*
 // @match        https://mail.aliyun.com/*
@@ -244,42 +244,50 @@
     await ensureMailRulePanel();
     await sleep(400);
 
-    const createButton = await waitForClickable(["新建规则", "新建收信规则", "Create Rule", "New Rule"], 6000);
+    const createButton = (await waitForMailRuleCreateButton(6000)) || (await waitForClickable(["新建规则", "新建收信规则", "Create Rule", "New Rule"], 4000));
     if (!createButton) {
       throw new Error("已进入收信规则页，但未找到“新建规则”按钮。");
     }
     safeClick(createButton);
-    await sleep(900);
+    await sleep(500);
 
-    await waitForElement('[data-testid="auto-reply-action-editor"]', 8000);
+    const form = await waitForMailRuleForm(8000);
+    if (!form) {
+      throw new Error("已点击“新建收信规则”，但未等到规则编辑表单出现。");
+    }
 
-    setFieldByLabel(["规则名称", "名称", "Rule Name", "Name"], template.ruleName || buildFallbackRuleName(template));
+    const nameApplied = setMailRuleName(form, template.ruleName || buildFallbackRuleName(template));
+    if (!nameApplied) {
+      throw new Error("已进入收信规则编辑页，但未找到“规则名称”输入框。");
+    }
 
-    const keywordsApplied = await applyRuleKeywords(template);
+    const keywordsApplied = await applyRuleKeywords(template, form);
     if (!keywordsApplied) {
       throw new Error("已进入收信规则编辑页，但未找到可填写的关键词条件输入框。");
     }
 
-    const actionApplied = enableAutoReplyAction();
+    const actionApplied = await enableAutoReplyAction(form);
     if (!actionApplied) {
       throw new Error("已进入收信规则编辑页，但未找到“自动回复”动作。");
     }
-    await sleep(400);
 
-    const replyEditor = await waitForEditableField(
-      '[data-testid="auto-reply-action-editor"] [data-testid="auto-reply-textarea"]',
+    const replyEditor = await waitForEditableFieldIn(
+      form,
       4000,
+      '[data-testid="auto-reply-action-editor"] [data-testid="auto-reply-textarea"]',
     );
-    const bodyApplied =
-      (replyEditor ? setInputValue(replyEditor, template.bodyText || "") || true : false) ||
-      setFieldByLabel(["自动回复", "回复内容", "正文", "Body", "Content"], template.bodyText || "") ||
-      setBody(template.bodyText || "");
+    const bodyApplied = replyEditor ? setInputValue(replyEditor, template.bodyText || "") : false;
     if (!bodyApplied) {
       throw new Error("已进入收信规则编辑页，但未找到自动回复内容输入框。");
     }
+    if (!String(replyEditor.value || "").includes(String((template.bodyText || "").split("\n")[0] || "").slice(0, 16))) {
+      throw new Error("自动回复正文输入框未成功写入内容。");
+    }
 
     await sleep(260);
-    const saveButton = findClickableByText(["确定", "保存", "创建", "OK", "Save"]);
+    const saveButton =
+      findFirstVisible(form.querySelectorAll('button[type="submit"]')) ||
+      findClickableWithin(form, ["确定", "保存", "创建", "OK", "Save"]);
     if (saveButton) {
       safeClick(saveButton);
       return;
@@ -322,7 +330,7 @@
     }
   }
 
-  async function applyRuleKeywords(template) {
+  async function applyRuleKeywords(template, form) {
     const hints = Array.isArray(template.keywordHints)
       ? template.keywordHints.map((item) => String(item || "").trim()).filter(Boolean).slice(0, 8)
       : [];
@@ -340,7 +348,7 @@
     }
 
     for (const testId of targetedContainers) {
-      const applied = await addKeywordsByTestId(testId, hints);
+      const applied = await addKeywordsByTestId(form, testId, hints);
       if (applied) {
         return true;
       }
@@ -357,14 +365,16 @@
     return false;
   }
 
-  async function addKeywordsByTestId(testId, values) {
-    const container = document.querySelector(`[data-testid="${testId}"]`);
+  async function addKeywordsByTestId(form, testId, values) {
+    const container = form.querySelector(`[data-testid="${testId}"]`);
     if (!container || !isVisible(container)) {
       return false;
     }
 
-    ensureCheckboxChecked(container);
-    await sleep(220);
+    if (!ensureCheckboxChecked(container)) {
+      return false;
+    }
+    await sleep(320);
 
     const tagsBase =
       container.querySelector('[data-testid="tags-input-base"]') ||
@@ -372,12 +382,12 @@
       container;
 
     safeClick(tagsBase);
-    await sleep(180);
+    await sleep(260);
 
     const field =
-      (await waitForEditableFieldIn(tagsBase, 1200)) ||
+      (await waitForEditableFieldIn(tagsBase, 1600)) ||
       findFirstVisible(
-        Array.from(document.querySelectorAll("input, textarea, [contenteditable='true']")).filter((element) => {
+        Array.from(form.querySelectorAll("input, textarea, [contenteditable='true']")).filter((element) => {
           if (!isTextEntryElement(element)) return false;
           return container.contains(element) || element === document.activeElement;
         }),
@@ -419,10 +429,18 @@
     return applied;
   }
 
-  function enableAutoReplyAction() {
-    const container = document.querySelector('[data-testid="auto-reply-action-editor"]');
+  async function enableAutoReplyAction(form) {
+    const container = form.querySelector('[data-testid="auto-reply-action-editor"]');
     if (container && isVisible(container)) {
-      return ensureCheckboxChecked(container);
+      if (!ensureCheckboxChecked(container)) {
+        return false;
+      }
+      const replyEditor = await waitForEditableFieldIn(
+        form,
+        3000,
+        '[data-testid="auto-reply-action-editor"] [data-testid="auto-reply-textarea"]',
+      );
+      return Boolean(replyEditor);
     }
 
     const actionTarget = findClickableByText(["自动回复", "回复邮件", "Auto Reply"]);
@@ -437,6 +455,17 @@
     const templateId = String(template.templateId || "KATVR_RULE").trim();
     const locale = String(template.locale || "").trim();
     return locale ? `${templateId} ${locale}` : templateId;
+  }
+
+  function setMailRuleName(form, value) {
+    const input =
+      form.querySelector('#name') ||
+      form.querySelector('input[id="name"]') ||
+      findInputNearLabel(["规则名称", "名称", "Rule Name", "Name"]);
+    if (!isEditableTextField(input)) {
+      return false;
+    }
+    return setInputValue(input, value);
   }
 
   function applyScope(scope) {
@@ -616,9 +645,62 @@
     return null;
   }
 
+  async function waitForMailRuleCreateButton(timeoutMs) {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      const button =
+        Array.from(document.querySelectorAll("button"))
+          .find((node) => isVisible(node) && normalize(node.textContent || "") === normalize("新建收信规则")) ||
+        null;
+      if (button) {
+        return button;
+      }
+      await sleep(220);
+    }
+    return null;
+  }
+
+  async function waitForMailRuleForm(timeoutMs) {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      const form = findMailRuleForm();
+      if (form) {
+        return form;
+      }
+      await sleep(220);
+    }
+    return null;
+  }
+
+  function findMailRuleForm() {
+    return (
+      findFirstVisible(
+        Array.from(document.querySelectorAll("form")).filter(
+          (form) =>
+            form.querySelector('[data-testid="subject-condition"]') &&
+            form.querySelector('[data-testid="auto-reply-action-editor"]') &&
+            form.querySelector('button[type="submit"]'),
+        ),
+      ) || null
+    );
+  }
+
   function findClickableByText(labels) {
     const selectors = ["button", "a", "[role='button']", ".ant-btn", ".btn", "span", "div"];
     const nodes = Array.from(document.querySelectorAll(selectors.join(",")));
+    const labelNorms = labels.map((label) => normalize(label));
+
+    return nodes.find((node) => {
+      if (!isVisible(node)) return false;
+      const text = normalize(node.textContent || "");
+      if (!text) return false;
+      return labelNorms.some((label) => text.includes(label));
+    });
+  }
+
+  function findClickableWithin(root, labels) {
+    const selectors = ["button", "a", "[role='button']", ".ant-btn", ".btn", "span", "div"];
+    const nodes = Array.from(root.querySelectorAll(selectors.join(",")));
     const labelNorms = labels.map((label) => normalize(label));
 
     return nodes.find((node) => {
@@ -695,14 +777,23 @@
     return null;
   }
 
-  async function waitForEditableFieldIn(container, timeoutMs) {
+  async function waitForEditableFieldIn(container, timeoutMs, selector) {
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
-      const node = findFirstVisible(
-        Array.from(container.querySelectorAll("input, textarea, [contenteditable='true']")).filter(isEditableTextField),
-      );
-      if (node) {
-        return node;
+      if (selector) {
+        const node = container.querySelector(selector);
+        if (isEditableTextField(node)) {
+          return node;
+        }
+      } else {
+        const node = findFirstVisible(
+          Array.from(container.querySelectorAll("input, textarea, [contenteditable='true']")).filter(
+            isEditableTextField,
+          ),
+        );
+        if (node) {
+          return node;
+        }
       }
       await sleep(180);
     }
