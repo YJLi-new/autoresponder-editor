@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KATVR AliMail Auto Reply Activator
 // @namespace    https://yjli-new.github.io/autoresponder-editor/
-// @version      1.1.6
+// @version      1.1.7
 // @description  Read activation payload from URL and apply auto-reply settings in AliMail enterprise web.
 // @match        https://qiye.aliyun.com/*
 // @match        https://mail.aliyun.com/*
@@ -251,6 +251,8 @@
     safeClick(createButton);
     await sleep(900);
 
+    await waitForElement('[data-testid="auto-reply-action-editor"]', 8000);
+
     setFieldByLabel(["规则名称", "名称", "Rule Name", "Name"], template.ruleName || buildFallbackRuleName(template));
 
     const keywordsApplied = await applyRuleKeywords(template);
@@ -264,7 +266,12 @@
     }
     await sleep(400);
 
+    const replyEditor = await waitForEditableField(
+      '[data-testid="auto-reply-action-editor"] [data-testid="auto-reply-textarea"]',
+      4000,
+    );
     const bodyApplied =
+      (replyEditor ? setInputValue(replyEditor, template.bodyText || "") || true : false) ||
       setFieldByLabel(["自动回复", "回复内容", "正文", "Body", "Content"], template.bodyText || "") ||
       setBody(template.bodyText || "");
     if (!bodyApplied) {
@@ -324,15 +331,22 @@
     }
 
     const matchFields = normalize(template.matchFields || "");
-    const targets = [];
+    const targetedContainers = [];
     if (matchFields.includes("subject")) {
-      targets.push(["主题", "Subject"]);
+      targetedContainers.push("subject-condition");
     }
     if (matchFields.includes("body")) {
-      targets.push(["正文", "邮件正文", "Body", "Content"]);
+      targetedContainers.push("body-condition");
     }
-    targets.push(["关键字", "关键词", "Keyword"]);
 
+    for (const testId of targetedContainers) {
+      const applied = await addKeywordsByTestId(testId, hints);
+      if (applied) {
+        return true;
+      }
+    }
+
+    const targets = [["主题", "Subject"], ["正文", "邮件正文", "Body", "Content"], ["关键字", "关键词", "Keyword"]];
     for (const labels of targets) {
       const applied = await addKeywordsNearLabel(labels, hints);
       if (applied) {
@@ -341,6 +355,41 @@
     }
 
     return false;
+  }
+
+  async function addKeywordsByTestId(testId, values) {
+    const container = document.querySelector(`[data-testid="${testId}"]`);
+    if (!container || !isVisible(container)) {
+      return false;
+    }
+
+    ensureCheckboxChecked(container);
+    await sleep(220);
+
+    const tagsBase =
+      container.querySelector('[data-testid="tags-input-base"]') ||
+      container.querySelector('[data-testid="keywords-input-container"]') ||
+      container;
+
+    safeClick(tagsBase);
+    await sleep(180);
+
+    const field =
+      (await waitForEditableFieldIn(tagsBase, 1200)) ||
+      findFirstVisible(
+        Array.from(document.querySelectorAll("input, textarea, [contenteditable='true']")).filter((element) => {
+          if (!isTextEntryElement(element)) return false;
+          return container.contains(element) || element === document.activeElement;
+        }),
+      ) ||
+      (isTextEntryElement(document.activeElement) ? document.activeElement : null);
+
+    if (!field) {
+      return false;
+    }
+
+    values.forEach((value, index) => appendKeywordValue(field, value, index === 0));
+    return true;
   }
 
   async function addKeywordsNearLabel(labels, values) {
@@ -371,6 +420,11 @@
   }
 
   function enableAutoReplyAction() {
+    const container = document.querySelector('[data-testid="auto-reply-action-editor"]');
+    if (container && isVisible(container)) {
+      return ensureCheckboxChecked(container);
+    }
+
     const actionTarget = findClickableByText(["自动回复", "回复邮件", "Auto Reply"]);
     if (!actionTarget) {
       return false;
@@ -513,6 +567,7 @@
     element.dispatchEvent(new Event("input", { bubbles: true }));
     element.dispatchEvent(new Event("change", { bubbles: true }));
     element.blur();
+    return true;
   }
 
   function appendKeywordValue(element, value, overwrite) {
@@ -598,6 +653,62 @@
     return rect.width > 0 && rect.height > 0;
   }
 
+  function ensureCheckboxChecked(container) {
+    const input = container.querySelector('input[type="checkbox"]');
+    if (!input) {
+      return false;
+    }
+    if (input.checked) {
+      return true;
+    }
+
+    const clickable =
+      input.closest("label") ||
+      container.querySelector("label") ||
+      input.nextElementSibling ||
+      input;
+    safeClick(clickable);
+    return Boolean(input.checked || container.querySelector(".ant-checkbox-checked"));
+  }
+
+  async function waitForElement(selector, timeoutMs) {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      const node = document.querySelector(selector);
+      if (node && isVisible(node)) {
+        return node;
+      }
+      await sleep(220);
+    }
+    return null;
+  }
+
+  async function waitForEditableField(selector, timeoutMs) {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      const node = document.querySelector(selector);
+      if (isEditableTextField(node)) {
+        return node;
+      }
+      await sleep(220);
+    }
+    return null;
+  }
+
+  async function waitForEditableFieldIn(container, timeoutMs) {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      const node = findFirstVisible(
+        Array.from(container.querySelectorAll("input, textarea, [contenteditable='true']")).filter(isEditableTextField),
+      );
+      if (node) {
+        return node;
+      }
+      await sleep(180);
+    }
+    return null;
+  }
+
   function isTextEntryElement(element) {
     if (!element || !isVisible(element)) return false;
     if (element.matches("textarea, [contenteditable='true']")) {
@@ -606,6 +717,14 @@
 
     const type = String(element.type || "text").toLowerCase();
     return !["hidden", "checkbox", "radio", "button", "submit", "reset", "file", "range", "color"].includes(type);
+  }
+
+  function isEditableTextField(element) {
+    if (!isTextEntryElement(element)) return false;
+    if (element.matches("[contenteditable='true']")) {
+      return String(element.getAttribute("contenteditable")).toLowerCase() !== "false";
+    }
+    return !element.disabled && !element.readOnly;
   }
 
   function normalize(text) {
