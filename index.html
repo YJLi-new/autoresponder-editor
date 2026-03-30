@@ -158,7 +158,7 @@
                 <p><strong>路由部门：</strong><span id="metaRouting"></span></p>
                 <p><strong>建议 SLA：</strong><span id="metaSla"></span></p>
                 <p><strong>匹配字段：</strong><span id="metaMatchFields"></span></p>
-                <p><strong>关键词/正则：</strong><span id="metaKeywords" class="regex-text"></span></p>
+                <p><strong>关键词：</strong><span id="metaKeywords" class="regex-text"></span></p>
                 <p><strong>排除条件：</strong><span id="metaExclusions"></span></p>
                 <p><strong>占位符：</strong><span id="metaPlaceholders"></span></p>
                 <p><strong>备注：</strong><span id="metaNote"></span></p>
@@ -228,7 +228,7 @@
                 激活范围
                 <select id="activateModeSelect">
                   <option value="current">仅当前模板</option>
-                  <option value="all">全部模板（生成索引并激活当前）</option>
+                  <option value="all">全部模板（逐条建立英文规则）</option>
                 </select>
               </label>
             </div>
@@ -342,12 +342,12 @@
           </label>
 
           <label>
-            关键词/正则
+            关键词
             <textarea
               id="metaEditorKeywords"
               class="regex-text"
               rows="3"
-              placeholder="/payment|invoice|\\bPI\\b|proforma|bank account/i"
+              placeholder="payment; invoice; proforma invoice; PI; bank account"
             ></textarea>
           </label>
 

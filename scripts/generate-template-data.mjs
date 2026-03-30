@@ -17,30 +17,30 @@ const ROUTING_LABELS = {
 
 const EXCLUSION_SUMMARY =
   "命中内部非表单、自动回复/退信、渠道 campaign 回信、付款安全公告回信时，不发送自动回复。";
-const KEYWORDS_REGEX_BY_TEMPLATE_ID = {
+const KEYWORDS_BY_TEMPLATE_ID = {
   TPL_SUPPORT_AFTERSALES_ACK:
-    "/(support-detail|professionalsupport|customer care|\\bafter[- ]?sales\\b|\\bwarranty\\b|\\bdongle\\b|\\bspare parts?\\b|\\breplacement parts?\\b|\\bshoe sensors?\\b|\\blost\\b.*\\b(sensor|shoe|dongle|part)\\b|\\bbroken\\b.*\\b(part|sensor|dongle|shoe)\\b)/i",
+    "after sales; warranty; dongle; spare parts; replacement parts; customer care",
   TPL_SDK_TECH_ACK:
-    "/(\\bsdk\\b|\\bapi\\b|\\bcode\\b|\\bunity\\b|\\bunreal\\b|\\bdocs?\\b|\\bdocumentation\\b|\\bkat i\\/o\\b|\\bkat gateway\\b|\\bvehicle hub\\b|\\bnexus\\b|\\bplugin\\b|\\blicen[sc]e\\b|\\bfirmware\\b|\\bdriver\\b|\\bintegration\\b|\\btechnical compatibility\\b)/i",
+    "sdk; api; code; unity; unreal; kat gateway; kat i/o; nexus",
   TPL_INVOICE_PAYMENT_ACK:
-    "/(\\bpayment(?: terms?)?\\b|\\binvoice\\b|\\bproforma(?: invoice)?\\b|\\bPI\\b|\\bbank (?:account|details?)\\b|\\bwire transfer\\b|\\bremit\\b|\\bbeneficiary\\b)/i",
+    "payment; invoice; proforma invoice; PI; bank account; wire transfer",
   TPL_SHIPPING_LOGISTICS_ACK:
-    "/(\\bshipping(?: cost| fee)?\\b|\\bship(?:ping)?\\b|\\bfreight\\b|\\bETA\\b|\\bdelivery(?: timeline| time| option)?s?\\b|\\blead time\\b|\\bforwarder\\b|\\bcustoms\\b|\\bair freight\\b|\\bsea freight\\b|\\bassembly\\b|\\binstall(?:ation)?\\b|\\bDDP\\b|\\bEXW\\b|\\bFCA\\b|\\bCIF\\b)/i",
+    "shipping; freight; delivery; lead time; forwarder; EXW; DDP",
   TPL_QUOTE_PRICING_ACK:
-    "/(\\bquote\\b|\\bquotation\\b|\\bRFQ\\b|\\bprice list\\b|\\bpricing\\b|\\bprice\\b|\\bcost\\b|\\bMOQ\\b|\\bminimum order quantity\\b)/i",
+    "quote; quotation; RFQ; price; pricing; MOQ",
   TPL_ORDER_PROCUREMENT_ACK:
-    "/(\\border\\b|\\bpurchas(?:e|ing|ed)\\b|\\bprocurement\\b|\\bPO\\b|\\bpurchase order\\b|\\bbulk order\\b|\\bbulk purchase\\b|\\border cancellation\\b|\\brefund status\\b)/i",
+    "order; purchase; PO; purchase order; bulk order; refund status",
   TPL_EDU_TRAINING_ACK:
-    "/(\\beducation(?:al)?\\b|\\btraining(?: solution)?\\b|\\binstitution(?:s)?\\b|\\bhigher education\\b|\\buniversity\\b|\\bcollege\\b|\\bschool\\b|\\bfaculty\\b|\\blecturer\\b|\\bclassroom\\b|\\bimmersive history\\b|\\bsimulation training\\b)/i",
+    "education; training; university; school; classroom; simulation training",
   TPL_B2B_BUSINESS_ACK:
-    "/(primeday(?:-fall)?|fitnessday|memberday|flashsale|kat-walk-mini-s-bfcm|\\bvr arcade\\b|\\barcade\\b|\\bcommercial(?: use| deployment)?\\b|\\bvr business\\b|\\bbusiness inquiry\\b|\\bbusiness solution\\b|\\bfor business use\\b|\\bbuisness\\b|\\breseller\\b|\\bwholesale\\b|\\bvenue\\b)/i",
+    "vr arcade; commercial; business inquiry; reseller; wholesale; venue",
   TPL_PRODUCT_SELECTION_COMPARE_ACK:
-    "/(models-comparison|download|\\bcompare\\b|\\bcomparison\\b|\\bdifference between\\b|\\bwhich model\\b|\\bproduct selection\\b|\\bkat walk mini s\\b.*\\b(c2|c2pe|c2 core|c2 plus)\\b|\\b(c2|c2pe|c2 core|c2 plus)\\b.*\\bkat walk mini s\\b)/i",
+    "compare; comparison; which model; difference between; product selection",
   TPL_WEBSITE_PRODUCT_ACK:
-    "/(product page form|homepage form|product inquiry|new contact form from (kat-walk-[^\\s]*|kat-pro|kat-loco-s|kat-nexus)|\\binterested in your products?\\b|\\binquiry about\\b.*\\bkat\\b|\\bkat walk\\b|\\bvr treadmill\\b|\\bvr treamill\\b|\\bkat walk mini s\\b|\\bkat walk c2\\b|\\babout the kat walk\\b)/i",
+    "product inquiry; kat walk; vr treadmill; kat walk mini s; kat walk c2; kat pro",
   TPL_PARTNERSHIP_CHANNEL_ACK:
-    "/(\\bpartnership(?: proposal| inquiry)?\\b|\\bpartner(?:ship)?\\b|\\bcollab(?:oration)?\\b|\\bcreator\\b|\\binfluencer\\b|\\bdistribution\\b|\\bdistributor\\b|\\bauthorized dealer\\b|\\bdealer\\b|\\bchannel partner\\b)/i",
-  TPL_GENERAL_ACK: "/^.+$/i",
+    "partnership; collab; creator; influencer; distribution; dealer",
+  TPL_GENERAL_ACK: "inquiry",
 };
 const PRIORITY_OVERRIDES_BY_TEMPLATE_ID = {
   TPL_SUPPORT_AFTERSALES_ACK: 900,
@@ -403,7 +403,7 @@ function buildGroups(templateSections, rulesByTemplate, routes) {
         ruleId: rule.id,
         priority,
         matchFields: rule.matchFields,
-        keywords: KEYWORDS_REGEX_BY_TEMPLATE_ID[templateId] || template.appliesTo,
+        keywords: KEYWORDS_BY_TEMPLATE_ID[templateId] || template.appliesTo,
         exclusions: templateId === "TPL_PARTNERSHIP_CHANNEL_ACK" ? `${EXCLUSION_SUMMARY} 不用于回复我方 partnership campaign 回信。` : EXCLUSION_SUMMARY,
         routing: routingLabel,
         sla: `自动确认后由${routingLabel.replace(/（.*$/, "")}继续人工跟进。`,
@@ -439,7 +439,7 @@ function buildPolicySummary(templateSourcePath, rulesSourcePath, mdText, yamlTex
         "如果插件能定位到保存按钮，会自动点保存；如果只填充未保存，页面会提示你手动确认并点击保存。",
       ],
       successChecks: [
-        "AliMail 页面出现 `AliMail 激活器：已激活当前模板。` 或 `已同步 X 个模板，并激活当前模板。` 的提示。",
+        "AliMail 页面出现 `AliMail 激活器：已创建当前模板对应的收信规则。` 或 `已创建 X 条收信规则。` 的提示。",
         "进入 AliMail 自动回复设置，检查主题和正文是否已替换为当前编辑器中的实际内容，而不是 `{{Our*}}` 占位符。",
         "用外部邮箱发送一封测试邮件，确认目标邮箱能回出最新自动回复。",
       ],
@@ -451,24 +451,23 @@ function buildPolicySummary(templateSourcePath, rulesSourcePath, mdText, yamlTex
     },
     keywordRegexGuide: {
       purpose:
-        "“关键词/正则”描述的是模板层匹配线索；全局排除、覆盖和人工复核则放在独立的 Rule Engine 里。当前网页和 AliMail 激活流程不会直接执行这些规则，它们主要用于维护分类基线和后续可消费的结构化配置。",
+        "AliMail 收信规则只支持关键词，不支持在页面里直接执行 JavaScript 正则。这里维护的是模板层的关键词线索；更复杂的排除、覆盖和人工复核逻辑统一放在 Rule Engine 中。",
       syntax:
-        "统一写成标准 JavaScript 正则文本格式 `/pattern/flags`。推荐默认使用 `i` 做不区分大小写匹配；多个候选词用 `|` 连接。",
+        "统一填写为普通关键词，推荐使用分号分隔，例如 `payment; invoice; proforma invoice; PI; bank account`。",
       flags: [
-        "`i`：大小写不敏感，适合邮件主题和正文关键词识别",
-        "`g`、`m` 默认不需要；只有在明确需要多行锚点时才考虑",
+        "AliMail 规则页最终保存的是“包含关键字”，不是 `/pattern/flags` 形式的正则。",
+        "建议优先使用高信号短语，避免只写过宽的裸词。",
       ],
       authoringRules: [
-        "对缩写词优先使用单词边界，例如 `\\bPI\\b`、`\\bPO\\b`、`\\bRFQ\\b`，避免误命中更长字符串。",
-        "对字面量符号需要转义，例如匹配 `No.12345` 时应写 `No\\.\\d{5,}`。",
-        "优先保留高信号词，不要把整句业务说明直接写进正则，避免模式过宽、难维护。",
-        "如果一类线索来自固定页面或表单入口，可把稳定 slug 纳入正则，例如 `models-comparison`、`kat-walk-[^\\s]*`。",
-        "高风险裸词应收窄，例如不要直接用 `business` 或 `support`；优先改成高信号短语和带边界的词。",
-        "这栏描述的是模板适用线索，不等于 AliMail 页面中的最终规则条件；手动激活时仍需按页面引导把主题和正文保存到邮箱规则里。",
+        "优先写客户真实会发来的主题词或短语，例如 `quotation`、`vr arcade`、`purchase order`。",
+        "多个候选词用分号分隔，避免把完整句子写进关键词框。",
+        "不要依赖 `No.12345` 这类过宽编号；优先用稳定页面词、产品词或业务词。",
+        "对容易误判的宽词要收窄，例如不要只写 `support` 或 `business`。",
+        "如果同一模板需要 5 到 8 个代表性关键词，优先保留命中率最高的那几个。",
       ],
       examples: [
-        "/(\\bpayment(?: terms?)?\\b|\\binvoice\\b|\\bproforma(?: invoice)?\\b|\\bPI\\b|\\bbank (?:account|details?)\\b)/i",
-        "/(product page form|homepage form|product inquiry|new contact form from (kat-walk-[^\\\\s]*|kat-pro|kat-loco-s|kat-nexus)|\\bkat walk\\b|\\bvr treadmill\\b)/i",
+        "payment; invoice; proforma invoice; PI; bank account",
+        "product inquiry; kat walk; vr treadmill; kat walk mini s; kat walk c2; kat pro",
       ],
     },
     subjectStrategy: {

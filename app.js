@@ -6,7 +6,9 @@ const STORAGE_KEYS = {
 };
 const TEMPLATE_DATA_VERSION = 4;
 
-const LOCALE_ORDER = ["zh-CN", "en-US"];
+const DEFAULT_LOCALE = "en-US";
+const SECONDARY_LOCALE = "zh-CN";
+const LOCALE_ORDER = [DEFAULT_LOCALE, SECONDARY_LOCALE];
 const LOCALE_LABELS = {
   "zh-CN": "中文",
   "en-US": "English",
@@ -53,31 +55,6 @@ const DEFAULT_ALIMAIL_RULE_KEYWORD_HINTS_BY_GROUP_ID = {
   ],
   TPL_PARTNERSHIP_CHANNEL_ACK: ["partnership", "collab", "creator", "influencer", "distribution", "dealer"],
   TPL_GENERAL_ACK: ["inquiry"],
-};
-const DEFAULT_KEYWORDS_REGEX_BY_GROUP_ID = {
-  TPL_SUPPORT_AFTERSALES_ACK:
-    "/(support-detail|professionalsupport|customer care|\\bafter[- ]?sales\\b|\\bwarranty\\b|\\bdongle\\b|\\bspare parts?\\b|\\breplacement parts?\\b|\\bshoe sensors?\\b|\\blost\\b.*\\b(sensor|shoe|dongle|part)\\b|\\bbroken\\b.*\\b(part|sensor|dongle|shoe)\\b)/i",
-  TPL_SDK_TECH_ACK:
-    "/(\\bsdk\\b|\\bapi\\b|\\bcode\\b|\\bunity\\b|\\bunreal\\b|\\bdocs?\\b|\\bdocumentation\\b|\\bkat i\\/o\\b|\\bkat gateway\\b|\\bvehicle hub\\b|\\bnexus\\b|\\bplugin\\b|\\blicen[sc]e\\b|\\bfirmware\\b|\\bdriver\\b|\\bintegration\\b|\\btechnical compatibility\\b)/i",
-  TPL_INVOICE_PAYMENT_ACK:
-    "/(\\bpayment(?: terms?)?\\b|\\binvoice\\b|\\bproforma(?: invoice)?\\b|\\bPI\\b|\\bbank (?:account|details?)\\b|\\bwire transfer\\b|\\bremit\\b|\\bbeneficiary\\b)/i",
-  TPL_SHIPPING_LOGISTICS_ACK:
-    "/(\\bshipping(?: cost| fee)?\\b|\\bship(?:ping)?\\b|\\bfreight\\b|\\bETA\\b|\\bdelivery(?: timeline| time| option)?s?\\b|\\blead time\\b|\\bforwarder\\b|\\bcustoms\\b|\\bair freight\\b|\\bsea freight\\b|\\bassembly\\b|\\binstall(?:ation)?\\b|\\bDDP\\b|\\bEXW\\b|\\bFCA\\b|\\bCIF\\b)/i",
-  TPL_QUOTE_PRICING_ACK:
-    "/(\\bquote\\b|\\bquotation\\b|\\bRFQ\\b|\\bprice list\\b|\\bpricing\\b|\\bprice\\b|\\bcost\\b|\\bMOQ\\b|\\bminimum order quantity\\b)/i",
-  TPL_ORDER_PROCUREMENT_ACK:
-    "/(\\border\\b|\\bpurchas(?:e|ing|ed)\\b|\\bprocurement\\b|\\bPO\\b|\\bpurchase order\\b|\\bbulk order\\b|\\bbulk purchase\\b|\\border cancellation\\b|\\brefund status\\b)/i",
-  TPL_EDU_TRAINING_ACK:
-    "/(\\beducation(?:al)?\\b|\\btraining(?: solution)?\\b|\\binstitution(?:s)?\\b|\\bhigher education\\b|\\buniversity\\b|\\bcollege\\b|\\bschool\\b|\\bfaculty\\b|\\blecturer\\b|\\bclassroom\\b|\\bimmersive history\\b|\\bsimulation training\\b)/i",
-  TPL_B2B_BUSINESS_ACK:
-    "/(primeday(?:-fall)?|fitnessday|memberday|flashsale|kat-walk-mini-s-bfcm|\\bvr arcade\\b|\\barcade\\b|\\bcommercial(?: use| deployment)?\\b|\\bvr business\\b|\\bbusiness inquiry\\b|\\bbusiness solution\\b|\\bfor business use\\b|\\bbuisness\\b|\\breseller\\b|\\bwholesale\\b|\\bvenue\\b)/i",
-  TPL_PRODUCT_SELECTION_COMPARE_ACK:
-    "/(models-comparison|download|\\bcompare\\b|\\bcomparison\\b|\\bdifference between\\b|\\bwhich model\\b|\\bproduct selection\\b|\\bkat walk mini s\\b.*\\b(c2|c2pe|c2 core|c2 plus)\\b|\\b(c2|c2pe|c2 core|c2 plus)\\b.*\\bkat walk mini s\\b)/i",
-  TPL_WEBSITE_PRODUCT_ACK:
-    "/(product page form|homepage form|product inquiry|new contact form from (kat-walk-[^\\s]*|kat-pro|kat-loco-s|kat-nexus)|\\binterested in your products?\\b|\\binquiry about\\b.*\\bkat\\b|\\bkat walk\\b|\\bvr treadmill\\b|\\bvr treamill\\b|\\bkat walk mini s\\b|\\bkat walk c2\\b|\\babout the kat walk\\b)/i",
-  TPL_PARTNERSHIP_CHANNEL_ACK:
-    "/(\\bpartnership(?: proposal| inquiry)?\\b|\\bpartner(?:ship)?\\b|\\bcollab(?:oration)?\\b|\\bcreator\\b|\\binfluencer\\b|\\bdistribution\\b|\\bdistributor\\b|\\bauthorized dealer\\b|\\bdealer\\b|\\bchannel partner\\b)/i",
-  TPL_GENERAL_ACK: "/^.+$/i",
 };
 const PLACEHOLDER_ALIASES = {
   "{{OurRecommendedProduct}}": "推荐产品",
@@ -182,7 +159,7 @@ const DETAILED_PLUGIN_GUIDE_SECTIONS = [
   {
     title: "8. 激活完成后如何验收",
     items: [
-      "页面出现 `AliMail 激活器：已激活当前模板。` 或类似成功提示。",
+      "页面出现 `AliMail 激活器：已创建当前模板对应的收信规则。` 或 `已创建 X 条收信规则。` 的提示。",
       "进入 AliMail 收信规则页，检查新建规则的关键词条件和自动回复内容是否已经是最终文字，而不是 `{{Our*}}` 占位符。",
       "用外部邮箱给目标邮箱发一封测试邮件，确认能收到最新自动回复。",
     ],
@@ -381,7 +358,7 @@ const state = {
   classificationRules: createEmptyClassificationRules(),
   theme: document.documentElement.dataset.theme === "dark" ? "dark" : "light",
   selectedGroupId: null,
-  selectedLocale: "zh-CN",
+  selectedLocale: DEFAULT_LOCALE,
   focusedField: null,
   pendingDeleteGroupId: null,
   pluginGuideOpen: false,
@@ -427,10 +404,10 @@ function bindEvents() {
     const created = createGroup();
     state.groups.unshift(created);
     state.selectedGroupId = created.groupId;
-    state.selectedLocale = "zh-CN";
+    state.selectedLocale = DEFAULT_LOCALE;
     persistLocalGroups();
     renderList();
-    selectGroup(created.groupId, "zh-CN");
+    selectGroup(created.groupId, DEFAULT_LOCALE);
   });
 
   appEls.editMetaBtn?.addEventListener("click", openMetaEditor);
@@ -716,12 +693,7 @@ function saveMetaEditor() {
     return;
   }
 
-  const rawKeywords = getFieldValue(appEls.metaEditorFields.keywords).trim();
-  if (rawKeywords && !isValidRegexText(rawKeywords)) {
-    setStatus(appEls.metaEditorStatus, "关键词/正则 请使用标准正则文本格式，例如 /payment|invoice|\\bPI\\b/i", true);
-    appEls.metaEditorFields.keywords?.focus();
-    return;
-  }
+  const rawKeywords = normalizeKeywordText(getFieldValue(appEls.metaEditorFields.keywords), nextGroupId);
 
   group.groupId = nextGroupId;
   group.ruleId = getFieldValue(appEls.metaEditorFields.ruleId).trim();
@@ -964,7 +936,7 @@ async function resetTemplatesFromStarter() {
 
   state.groups = starter.groups;
   state.selectedGroupId = starter.groups[0].groupId;
-  state.selectedLocale = "zh-CN";
+  state.selectedLocale = DEFAULT_LOCALE;
   persistLocalGroups();
   renderList();
   selectGroup(state.selectedGroupId, state.selectedLocale);
@@ -1014,11 +986,25 @@ function normalizePolicySummary(input) {
       troubleshooting: normalizeStringArray(input.pluginActivationGuide?.troubleshooting),
     },
     keywordRegexGuide: {
-      purpose: String(input.keywordRegexGuide?.purpose || ""),
-      syntax: String(input.keywordRegexGuide?.syntax || ""),
-      flags: normalizeStringArray(input.keywordRegexGuide?.flags),
-      authoringRules: normalizeStringArray(input.keywordRegexGuide?.authoringRules),
-      examples: normalizeStringArray(input.keywordRegexGuide?.examples),
+      purpose:
+        "AliMail 收信规则只支持关键词，不支持在页面里直接执行 JavaScript 正则。这里维护的是模板层的关键词线索；更复杂的排除、覆盖和人工复核逻辑统一放在 Rule Engine 中。",
+      syntax:
+        "统一填写为普通关键词，推荐使用分号分隔，例如 `payment; invoice; proforma invoice; PI; bank account`。",
+      flags: [
+        "AliMail 规则页最终保存的是“包含关键字”，不是 `/pattern/flags` 形式的正则。",
+        "建议优先使用高信号短语，避免只写过宽的裸词。",
+      ],
+      authoringRules: [
+        "优先写客户真实会发来的主题词或短语，例如 `quotation`、`vr arcade`、`purchase order`。",
+        "多个候选词用分号分隔，避免把完整句子写进关键词框。",
+        "不要依赖 `No.12345` 这类过宽编号；优先用稳定页面词、产品词或业务词。",
+        "对容易误判的宽词要收窄，例如不要只写 `support` 或 `business`。",
+        "如果同一模板需要 5 到 8 个代表性关键词，优先保留命中率最高的那几个。",
+      ],
+      examples: [
+        "payment; invoice; proforma invoice; PI; bank account",
+        "product inquiry; kat walk; vr treadmill; kat walk mini s; kat walk c2; kat pro",
+      ],
     },
     subjectStrategy: {
       source: String(input.subjectStrategy?.source || ""),
@@ -1166,7 +1152,7 @@ function normalizeLegacyTemplates(list) {
     if (!item || typeof item !== "object") return;
 
     const groupId = String(item.groupId || item.templateId || item.id || uid());
-    const locale = String(item.locale || "zh-CN");
+    const locale = String(item.locale || DEFAULT_LOCALE);
 
     if (!groupsMap.has(groupId)) {
       groupsMap.set(groupId, {
@@ -1245,7 +1231,7 @@ function normalizeGroup(input) {
 }
 
 function normalizeVersion(input, locale) {
-  const safeLocale = LOCALE_ORDER.includes(locale) ? locale : "zh-CN";
+  const safeLocale = LOCALE_ORDER.includes(locale) ? locale : DEFAULT_LOCALE;
   return {
     locale: safeLocale,
     name: String(input.name || (safeLocale === "zh-CN" ? "中文模板" : "English Template")),
@@ -1284,6 +1270,11 @@ function normalizePlaceholders(input) {
   return [];
 }
 
+function normalizeKeywordText(input, groupId = "") {
+  const hints = extractAliMailKeywordHints(input, groupId);
+  return hints.join("; ");
+}
+
 function parseEditorPlaceholders(input) {
   return String(input || "")
     .split(/[\n,，]+/)
@@ -1294,16 +1285,14 @@ function parseEditorPlaceholders(input) {
 function migrateKeywordsText(input, groupId = "") {
   const raw = String(input || "").trim();
   if (!raw) {
-    return "";
+    return getDefaultKeywordText(groupId);
   }
-  if (isValidRegexText(raw)) {
-    return raw;
-  }
-  return getDefaultKeywordsRegex(groupId) || raw;
+  return normalizeKeywordText(raw, groupId);
 }
 
-function getDefaultKeywordsRegex(groupId) {
-  return DEFAULT_KEYWORDS_REGEX_BY_GROUP_ID[String(groupId || "").trim()] || "";
+function getDefaultKeywordText(groupId) {
+  const preset = DEFAULT_ALIMAIL_RULE_KEYWORD_HINTS_BY_GROUP_ID[String(groupId || "").trim()];
+  return Array.isArray(preset) ? preset.join("; ") : "";
 }
 
 function isValidRegexText(input) {
@@ -1324,6 +1313,38 @@ function isValidRegexText(input) {
   } catch (_error) {
     return false;
   }
+}
+
+function extractAliMailKeywordHints(input, groupId = "") {
+  const preset = DEFAULT_ALIMAIL_RULE_KEYWORD_HINTS_BY_GROUP_ID[String(groupId || "").trim()];
+  if (Array.isArray(preset) && preset.length > 0) {
+    return preset.slice();
+  }
+
+  const raw = String(input || "").trim();
+  if (!raw) {
+    return [];
+  }
+
+  if (!isValidRegexText(raw)) {
+    return Array.from(
+      new Set(
+        raw
+          .split(/[;\n,，]+/)
+          .map((item) => String(item || "").trim())
+          .filter((item) => item.length >= 2 && item.length <= 40),
+      ),
+    ).slice(0, 8);
+  }
+
+  const matches = raw.match(/[A-Za-z0-9][A-Za-z0-9+/-]*(?: [A-Za-z0-9][A-Za-z0-9+/-]*)*/g) || [];
+  return Array.from(
+    new Set(
+      matches
+        .map((item) => item.trim())
+        .filter((item) => item.length >= 2 && item.length <= 40 && !/^i$/i.test(item)),
+    ),
+  ).slice(0, 8);
 }
 
 function normalizeStringArray(input) {
@@ -2368,12 +2389,12 @@ function buildPluginActivationPolicySection(guide) {
 }
 
 function buildKeywordRegexPolicySection(guide) {
-  return buildRichPolicySection("关键词/正则", {
+  return buildRichPolicySection("模板关键词", {
     className: "policy-section-keywords-clean",
     intro: guide.purpose,
     groups: [
-      { title: "标准格式", items: [guide.syntax] },
-      { title: "Flags", items: guide.flags },
+      { title: "填写格式", items: [guide.syntax] },
+      { title: "使用说明", items: guide.flags },
       { title: "编写原则", items: guide.authoringRules, className: "policy-group-wide" },
       { title: "示例", items: guide.examples.map((item) => `\`${item}\``), className: "policy-group-wide" },
     ],
@@ -2804,7 +2825,7 @@ async function onImportFile(event) {
       parsed.classificationRules,
     );
     state.selectedGroupId = parsed.groups[0].groupId;
-    state.selectedLocale = "zh-CN";
+    state.selectedLocale = DEFAULT_LOCALE;
     persistLocalGroups();
     renderRuleEngine();
     renderPolicySummary();
@@ -2940,7 +2961,7 @@ async function activateInAliMail() {
 
   const modeMessage =
     state.activationPrefs.mode === "all"
-      ? "已生成全部模板激活包，并定位到当前模板。"
+      ? "已生成全部模板激活包，AliMail 页面会逐条建立全部英文规则。"
       : "已生成当前模板激活包。";
   const copyMessage = copiedPacket
     ? "完整激活包已复制到剪贴板。"
@@ -2964,11 +2985,9 @@ function collectTemplatesForActivation(activeGroup, activeVersion, mode) {
 
   const entries = [];
   state.groups.forEach((group) => {
-    LOCALE_ORDER.forEach((locale) => {
-      const version = group.versions?.[locale];
-      if (!version) return;
-      entries.push({ group, version });
-    });
+    const version = group.versions?.[DEFAULT_LOCALE];
+    if (!version) return;
+    entries.push({ group, version });
   });
   return entries;
 }
@@ -3097,20 +3116,7 @@ function buildAliMailActivationPayload(group, version) {
 }
 
 function getAliMailRuleKeywordHints(group) {
-  const preset = DEFAULT_ALIMAIL_RULE_KEYWORD_HINTS_BY_GROUP_ID[group?.groupId];
-  if (Array.isArray(preset) && preset.length > 0) {
-    return preset.slice();
-  }
-
-  const text = String(group?.keywords || "");
-  const matches = text.match(/[A-Za-z0-9][A-Za-z0-9+/-]*(?: [A-Za-z0-9][A-Za-z0-9+/-]*)*/g) || [];
-  return Array.from(
-    new Set(
-      matches
-        .map((item) => item.trim())
-        .filter((item) => item.length >= 2 && item.length <= 40 && !/^i$/i.test(item)),
-    ),
-  ).slice(0, 8);
+  return extractAliMailKeywordHints(group?.keywords || "", group?.groupId);
 }
 
 function renderManualGuide(targetMailbox, mode, warnings) {

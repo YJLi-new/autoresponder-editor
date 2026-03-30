@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KATVR AliMail Auto Reply Activator
 // @namespace    https://yjli-new.github.io/autoresponder-editor/
-// @version      1.1.10
+// @version      1.1.11
 // @description  Read activation payload from URL and apply auto-reply settings in AliMail enterprise web.
 // @match        https://qiye.aliyun.com/*
 // @match        https://mail.aliyun.com/*
@@ -143,12 +143,32 @@
       saveTemplateBundle(envelope.targetMailbox || "default", envelope.templates);
     }
 
-    await applyTemplate(envelope.activeTemplate);
+    const templatesToApply =
+      envelope.mode === "all"
+        ? envelope.templates.filter((item) => item && typeof item === "object")
+        : [envelope.activeTemplate].filter((item) => item && typeof item === "object");
+
+    if (templatesToApply.length === 0) {
+      throw new Error("没有可创建的模板规则。");
+    }
+
+    for (let index = 0; index < templatesToApply.length; index += 1) {
+      const template = templatesToApply[index];
+      const progressLabel =
+        envelope.mode === "all"
+          ? `AliMail 激活器：正在创建第 ${index + 1}/${templatesToApply.length} 条规则：${template.templateId} / ${template.locale}`
+          : `AliMail 激活器：正在创建规则：${template.templateId} / ${template.locale}`;
+      showNotice(progressLabel, false, 5000);
+      await applyTemplate(template);
+      if (index < templatesToApply.length - 1) {
+        await sleep(420);
+      }
+    }
 
     const modeMessage =
       envelope.mode === "all"
-        ? `已同步 ${envelope.templates.length} 个模板，并激活当前模板。`
-        : "已激活当前模板。";
+        ? `已创建 ${templatesToApply.length} 条收信规则。`
+        : "已创建当前模板对应的收信规则。";
 
     showNotice(`AliMail 激活器：${modeMessage} 请在页面检查保存结果。`, false);
   }
