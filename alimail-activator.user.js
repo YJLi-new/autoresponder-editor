@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KATVR AliMail Auto Reply Activator
 // @namespace    https://yjli-new.github.io/autoresponder-editor/
-// @version      1.1.5
+// @version      1.1.6
 // @description  Read activation payload from URL and apply auto-reply settings in AliMail enterprise web.
 // @match        https://qiye.aliyun.com/*
 // @match        https://mail.aliyun.com/*
@@ -189,6 +189,11 @@
       throw new Error("模板数据无效");
     }
 
+    if (isRuleListPage() || looksLikeRulePage()) {
+      await applyTemplateToMailRule(template);
+      return;
+    }
+
     showNotice("AliMail 激活器：正在自动填写模板...");
     await ensureAutoReplyPanel();
     await sleep(500);
@@ -234,6 +239,67 @@
     showNotice("AliMail 激活器：未找到保存按钮，请手动点保存。", true);
   }
 
+  async function applyTemplateToMailRule(template) {
+    showNotice("AliMail 激活器：正在新建收信规则...");
+    await ensureMailRulePanel();
+    await sleep(400);
+
+    const createButton = await waitForClickable(["新建规则", "新建收信规则", "Create Rule", "New Rule"], 6000);
+    if (!createButton) {
+      throw new Error("已进入收信规则页，但未找到“新建规则”按钮。");
+    }
+    safeClick(createButton);
+    await sleep(900);
+
+    setFieldByLabel(["规则名称", "名称", "Rule Name", "Name"], template.ruleName || buildFallbackRuleName(template));
+
+    const keywordsApplied = await applyRuleKeywords(template);
+    if (!keywordsApplied) {
+      throw new Error("已进入收信规则编辑页，但未找到可填写的关键词条件输入框。");
+    }
+
+    const actionApplied = enableAutoReplyAction();
+    if (!actionApplied) {
+      throw new Error("已进入收信规则编辑页，但未找到“自动回复”动作。");
+    }
+    await sleep(400);
+
+    const bodyApplied =
+      setFieldByLabel(["自动回复", "回复内容", "正文", "Body", "Content"], template.bodyText || "") ||
+      setBody(template.bodyText || "");
+    if (!bodyApplied) {
+      throw new Error("已进入收信规则编辑页，但未找到自动回复内容输入框。");
+    }
+
+    await sleep(260);
+    const saveButton = findClickableByText(["确定", "保存", "创建", "OK", "Save"]);
+    if (saveButton) {
+      safeClick(saveButton);
+      return;
+    }
+
+    showNotice("AliMail 激活器：规则已填写，但未找到保存按钮，请手动点保存。", true);
+  }
+
+  async function ensureMailRulePanel() {
+    if (isRuleListPage()) {
+      return;
+    }
+
+    const steps = [
+      ["设置", "邮箱设置", "Settings"],
+      ["收信规则", "邮件规则", "过滤器规则", "Receiving Rules", "Mail Rules", "Filters"],
+    ];
+
+    for (const labels of steps) {
+      const target = await waitForClickable(labels, 2800);
+      if (target) {
+        safeClick(target);
+        await sleep(560);
+      }
+    }
+  }
+
   async function ensureAutoReplyPanel() {
     const steps = [
       ["设置", "邮箱设置", "Settings"],
@@ -247,6 +313,76 @@
         await sleep(520);
       }
     }
+  }
+
+  async function applyRuleKeywords(template) {
+    const hints = Array.isArray(template.keywordHints)
+      ? template.keywordHints.map((item) => String(item || "").trim()).filter(Boolean).slice(0, 8)
+      : [];
+    if (hints.length === 0) {
+      return false;
+    }
+
+    const matchFields = normalize(template.matchFields || "");
+    const targets = [];
+    if (matchFields.includes("subject")) {
+      targets.push(["主题", "Subject"]);
+    }
+    if (matchFields.includes("body")) {
+      targets.push(["正文", "邮件正文", "Body", "Content"]);
+    }
+    targets.push(["关键字", "关键词", "Keyword"]);
+
+    for (const labels of targets) {
+      const applied = await addKeywordsNearLabel(labels, hints);
+      if (applied) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  async function addKeywordsNearLabel(labels, values) {
+    const trigger = findClickableByText(labels);
+    if (trigger) {
+      safeClick(trigger);
+      await sleep(180);
+    }
+
+    const field =
+      findTextFieldNearLabel(labels) ||
+      findKeywordFieldByPlaceholder(labels) ||
+      findFirstVisible(
+        Array.from(document.querySelectorAll("input, textarea, [contenteditable='true']")).filter(isTextEntryElement),
+      );
+
+    if (!field) {
+      return false;
+    }
+
+    let applied = false;
+    values.forEach((value, index) => {
+      if (!value) return;
+      appendKeywordValue(field, value, index === 0);
+      applied = true;
+    });
+    return applied;
+  }
+
+  function enableAutoReplyAction() {
+    const actionTarget = findClickableByText(["自动回复", "回复邮件", "Auto Reply"]);
+    if (!actionTarget) {
+      return false;
+    }
+    safeClick(actionTarget);
+    return true;
+  }
+
+  function buildFallbackRuleName(template) {
+    const templateId = String(template.templateId || "KATVR_RULE").trim();
+    const locale = String(template.locale || "").trim();
+    return locale ? `${templateId} ${locale}` : templateId;
   }
 
   function applyScope(scope) {
@@ -326,6 +462,44 @@
     return findFirstVisible(container.querySelectorAll("input, textarea, [contenteditable='true']"));
   }
 
+  function findTextFieldNearLabel(labels) {
+    const allNodes = Array.from(document.querySelectorAll("label, span, div, p, td"));
+    const matched = allNodes.find((node) => {
+      const text = normalize(node.textContent || "");
+      return labels.some((label) => text.includes(normalize(label)));
+    });
+
+    if (!matched) return null;
+
+    const direct = findFirstVisible(
+      Array.from(
+        matched.querySelectorAll ? matched.querySelectorAll("input, textarea, [contenteditable='true']") : [],
+      ).filter(isTextEntryElement),
+    );
+    if (direct) return direct;
+
+    const container =
+      matched.closest(".form-item, .ant-form-item, .form-group, .setting-item, tr, li, div") ||
+      matched.parentElement;
+    if (!container) return null;
+
+    return findFirstVisible(Array.from(container.querySelectorAll("input, textarea, [contenteditable='true']")).filter(isTextEntryElement));
+  }
+
+  function findKeywordFieldByPlaceholder(labels) {
+    const labelNorms = labels.map((label) => normalize(label));
+    return findFirstVisible(
+      Array.from(document.querySelectorAll("input, textarea, [contenteditable='true']")).filter((element) => {
+        if (!isTextEntryElement(element)) return false;
+        const placeholder = normalize(
+          element.placeholder || element.getAttribute?.("aria-label") || element.getAttribute?.("data-placeholder") || "",
+        );
+        if (!placeholder) return false;
+        return labelNorms.some((label) => placeholder.includes(label));
+      }),
+    );
+  }
+
   function setInputValue(element, value) {
     const text = String(value);
     element.focus();
@@ -339,6 +513,42 @@
     element.dispatchEvent(new Event("input", { bubbles: true }));
     element.dispatchEvent(new Event("change", { bubbles: true }));
     element.blur();
+  }
+
+  function appendKeywordValue(element, value, overwrite) {
+    const text = String(value || "").trim();
+    if (!text) {
+      return;
+    }
+
+    element.focus();
+    if (element.matches("[contenteditable='true']")) {
+      if (overwrite) {
+        element.innerText = text;
+      } else {
+        element.innerText = text;
+      }
+    } else {
+      element.value = text;
+    }
+
+    element.dispatchEvent(new Event("input", { bubbles: true }));
+    element.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Enter",
+        code: "Enter",
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+    element.dispatchEvent(
+      new KeyboardEvent("keyup", {
+        key: "Enter",
+        code: "Enter",
+        bubbles: true,
+      }),
+    );
+    element.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
   async function waitForClickable(labels, timeoutMs) {
@@ -388,8 +598,22 @@
     return rect.width > 0 && rect.height > 0;
   }
 
+  function isTextEntryElement(element) {
+    if (!element || !isVisible(element)) return false;
+    if (element.matches("textarea, [contenteditable='true']")) {
+      return true;
+    }
+
+    const type = String(element.type || "text").toLowerCase();
+    return !["hidden", "checkbox", "radio", "button", "submit", "reset", "file", "range", "color"].includes(type);
+  }
+
   function normalize(text) {
     return String(text).trim().replace(/\s+/g, " ").toLowerCase();
+  }
+
+  function isRuleListPage() {
+    return String(window.location.pathname || "").includes("/setting/mail-filter-rule-list");
   }
 
   function looksLikeRulePage() {

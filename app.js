@@ -11,8 +11,49 @@ const LOCALE_LABELS = {
   "zh-CN": "中文",
   "en-US": "English",
 };
-const ALIMAIL_WEBMAIL_URL = "https://qiye.aliyun.com/alimail/entries/v5.1/mail/inbox/all";
+const ALIMAIL_WEBMAIL_URL = "https://qiye.aliyun.com/alimail/entries/v5.1/setting/mail-filter-rule-list";
 const ALIMAIL_WINDOW_NAME_PREFIX = "katvrAlimailActivate:";
+const DEFAULT_ALIMAIL_RULE_KEYWORD_HINTS_BY_GROUP_ID = {
+  TPL_SUPPORT_AFTERSALES_ACK: [
+    "after sales",
+    "warranty",
+    "dongle",
+    "spare parts",
+    "replacement parts",
+    "customer care",
+  ],
+  TPL_SDK_TECH_ACK: ["sdk", "api", "code", "unity", "unreal", "kat gateway", "kat i/o", "nexus"],
+  TPL_INVOICE_PAYMENT_ACK: [
+    "payment",
+    "invoice",
+    "proforma invoice",
+    "PI",
+    "bank account",
+    "wire transfer",
+  ],
+  TPL_SHIPPING_LOGISTICS_ACK: ["shipping", "freight", "delivery", "lead time", "forwarder", "EXW", "DDP"],
+  TPL_QUOTE_PRICING_ACK: ["quote", "quotation", "RFQ", "price", "pricing", "MOQ"],
+  TPL_ORDER_PROCUREMENT_ACK: ["order", "purchase", "PO", "purchase order", "bulk order", "refund status"],
+  TPL_EDU_TRAINING_ACK: ["education", "training", "university", "school", "classroom", "simulation training"],
+  TPL_B2B_BUSINESS_ACK: ["vr arcade", "commercial", "business inquiry", "reseller", "wholesale", "venue"],
+  TPL_PRODUCT_SELECTION_COMPARE_ACK: [
+    "compare",
+    "comparison",
+    "which model",
+    "difference between",
+    "product selection",
+  ],
+  TPL_WEBSITE_PRODUCT_ACK: [
+    "product inquiry",
+    "kat walk",
+    "vr treadmill",
+    "kat walk mini s",
+    "kat walk c2",
+    "kat pro",
+  ],
+  TPL_PARTNERSHIP_CHANNEL_ACK: ["partnership", "collab", "creator", "influencer", "distribution", "dealer"],
+  TPL_GENERAL_ACK: ["inquiry"],
+};
 const DEFAULT_KEYWORDS_REGEX_BY_GROUP_ID = {
   TPL_SUPPORT_AFTERSALES_ACK:
     "/(support-detail|professionalsupport|customer care|\\bafter[- ]?sales\\b|\\bwarranty\\b|\\bdongle\\b|\\bspare parts?\\b|\\breplacement parts?\\b|\\bshoe sensors?\\b|\\blost\\b.*\\b(sensor|shoe|dongle|part)\\b|\\bbroken\\b.*\\b(part|sensor|dongle|shoe)\\b)/i",
@@ -75,7 +116,7 @@ const DETAILED_PLUGIN_GUIDE_SECTIONS = [
       "手动登录一次阿里企业邮箱网页，然后刷新该页面，让脚本接管当前域名。",
       "回到编辑器，填写“指定邮箱（企业版账号）”，并把模板里的占位符实际信息补齐。",
       "点击 `一键在 AliMail 激活（有插件）`，等待浏览器打开 AliMail 页面。",
-      "如果页面出现 `AliMail 激活器：开始处理激活请求...`，说明插件已开始执行；最后检查内容是否已保存，并用测试邮件验收。",
+      "如果页面出现 `AliMail 激活器：开始处理激活请求...`，说明插件已开始执行；它会优先尝试新建“收信规则 -> 自动回复”规则。",
     ],
   },
   {
@@ -134,7 +175,7 @@ const DETAILED_PLUGIN_GUIDE_SECTIONS = [
     items: [
       "如果脚本运行正常，页面会出现提示：`AliMail 激活器：开始处理激活请求...`。",
       "脚本会尝试识别你当前登录的邮箱是否与编辑器里填写的目标邮箱一致。",
-      "随后脚本会尝试打开自动回复设置页、填写主题和正文，并在可能时自动点击保存。",
+      "随后脚本会尝试打开收信规则页、新建规则、填写关键词条件和自动回复内容，并在可能时自动点击保存。",
       "如果页面结构变化导致找不到某个按钮，脚本可能只能填写内容，最后一步需要你手动点保存。",
     ],
   },
@@ -142,7 +183,7 @@ const DETAILED_PLUGIN_GUIDE_SECTIONS = [
     title: "8. 激活完成后如何验收",
     items: [
       "页面出现 `AliMail 激活器：已激活当前模板。` 或类似成功提示。",
-      "进入 AliMail 自动回复设置，检查主题和正文是否已经是最终文字，而不是 `{{Our*}}` 占位符。",
+      "进入 AliMail 收信规则页，检查新建规则的关键词条件和自动回复内容是否已经是最终文字，而不是 `{{Our*}}` 占位符。",
       "用外部邮箱给目标邮箱发一封测试邮件，确认能收到最新自动回复。",
     ],
   },
@@ -151,7 +192,7 @@ const DETAILED_PLUGIN_GUIDE_SECTIONS = [
     items: [
       "如果 AliMail 页面完全没有出现 `AliMail 激活器` 提示，通常是脚本没启用、域名不匹配，或当前浏览器不是装脚本的那个浏览器。",
       "如果出现“检测到未填写占位符”的提示，说明你还有 `{{Our*}}` 没填，需要先回编辑器补完“占位符实际信息”。",
-      "如果脚本提示找不到自动回复入口或保存按钮，通常是 AliMail 页面结构变了；这时先手动保存，再反馈给维护者更新脚本。",
+      "如果脚本提示找不到收信规则入口、关键词输入框或保存按钮，通常是 AliMail 页面结构变了；这时先手动保存，再反馈给维护者更新脚本。",
       "如果一直被弹窗拦截，先在浏览器地址栏附近允许本站弹窗，再重新点击激活。",
     ],
   },
@@ -3038,6 +3079,10 @@ function buildAliMailActivationPayload(group, version) {
     templateId: group.groupId,
     locale: version.locale,
     category: group.category,
+    ruleName: `KATVR ${group.groupId} ${LOCALE_LABELS[version.locale] || version.locale}`,
+    matchFields: group.matchFields || "",
+    keywordsText: group.keywords || "",
+    keywordHints: getAliMailRuleKeywordHints(group),
     scope: version.scope || "external",
     subject: resolveTemplateSubject(version),
     bodyText: plainBody,
@@ -3049,6 +3094,23 @@ function buildAliMailActivationPayload(group, version) {
     endAt: version.endAt || null,
     generatedAt: new Date().toISOString(),
   };
+}
+
+function getAliMailRuleKeywordHints(group) {
+  const preset = DEFAULT_ALIMAIL_RULE_KEYWORD_HINTS_BY_GROUP_ID[group?.groupId];
+  if (Array.isArray(preset) && preset.length > 0) {
+    return preset.slice();
+  }
+
+  const text = String(group?.keywords || "");
+  const matches = text.match(/[A-Za-z0-9][A-Za-z0-9+/-]*(?: [A-Za-z0-9][A-Za-z0-9+/-]*)*/g) || [];
+  return Array.from(
+    new Set(
+      matches
+        .map((item) => item.trim())
+        .filter((item) => item.length >= 2 && item.length <= 40 && !/^i$/i.test(item)),
+    ),
+  ).slice(0, 8);
 }
 
 function renderManualGuide(targetMailbox, mode, warnings) {
