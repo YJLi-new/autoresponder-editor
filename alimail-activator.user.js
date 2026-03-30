@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KATVR AliMail Auto Reply Activator
 // @namespace    https://yjli-new.github.io/autoresponder-editor/
-// @version      1.1.3
+// @version      1.1.4
 // @description  Read activation payload from URL and apply auto-reply settings in AliMail enterprise web.
 // @match        https://qiye.aliyun.com/*
 // @match        https://mail.aliyun.com/*
@@ -15,12 +15,12 @@
   "use strict";
 
   const WINDOW_NAME_PREFIX = "katvrAlimailActivate:";
-  const encoded = readActivationParam();
-  if (!encoded) {
+  const activation = readActivationParam();
+  if (!activation.encoded) {
     return;
   }
 
-  const rawPayload = parsePayload(encoded);
+  const rawPayload = parsePayload(activation.encoded);
   const envelope = normalizeEnvelope(rawPayload);
   if (!envelope) {
     showNotice("AliMail 激活器：参数解析失败", true);
@@ -36,7 +36,10 @@
   function readActivationParam() {
     const fromWindowName = readActivationFromWindowName();
     if (fromWindowName) {
-      return fromWindowName;
+      return {
+        encoded: fromWindowName,
+        source: "window.name",
+      };
     }
 
     const hash = String(window.location.hash || "").replace(/^#/, "");
@@ -44,12 +47,18 @@
       const hashParams = new URLSearchParams(hash);
       const fromHash = hashParams.get("alimailActivate");
       if (fromHash) {
-        return fromHash;
+        return {
+          encoded: fromHash,
+          source: "hash",
+        };
       }
     }
 
     const search = new URLSearchParams(window.location.search);
-    return search.get("alimailActivate");
+    return {
+      encoded: search.get("alimailActivate") || "",
+      source: "query",
+    };
   }
 
   function readActivationFromWindowName() {
@@ -114,7 +123,7 @@
   }
 
   async function run(envelope) {
-    showNotice("AliMail 激活器：开始处理激活请求...");
+    showNotice(`AliMail 激活器：开始处理激活请求（来源：${activation.source}）...`);
 
     if (envelope.targetMailbox) {
       const matched = await detectMailbox(envelope.targetMailbox, 12000);
@@ -195,8 +204,17 @@
       await sleep(140);
     }
 
-    setFieldByLabel(["主题", "Subject"], template.subject || "");
-    setBody(template.bodyText || "");
+    const subjectApplied = setFieldByLabel(["主题", "Subject"], template.subject || "");
+    const bodyApplied = setBody(template.bodyText || "");
+
+    if (!subjectApplied && !bodyApplied) {
+      if (looksLikeRulePage()) {
+        throw new Error(
+          "已读取激活包，但当前页面更像“收信规则 / 邮件规则”界面。现有插件仍在寻找“自动回复 / 假期回复”面板，因此不会改动规则。",
+        );
+      }
+      throw new Error("已读取激活包，但未找到可填写的主题或正文输入框。");
+    }
 
     if (template.startAt && template.endAt) {
       setFieldByLabel(["开始", "Start"], template.startAt);
@@ -243,12 +261,12 @@
   }
 
   function setBody(text) {
-    if (!text) return;
+    if (!text) return false;
 
     const textarea = findFirstVisible(document.querySelectorAll("textarea"));
     if (textarea) {
       setInputValue(textarea, text);
-      return;
+      return true;
     }
 
     const rich = findFirstVisible(document.querySelectorAll('[contenteditable="true"]'));
@@ -256,16 +274,19 @@
       rich.focus();
       rich.innerText = text;
       rich.dispatchEvent(new Event("input", { bubbles: true }));
+      return true;
     }
+
+    return false;
   }
 
   function setFieldByLabel(labels, value) {
-    if (!value) return;
+    if (!value) return false;
 
     const field = findInputNearLabel(labels);
     if (field) {
       setInputValue(field, value);
-      return;
+      return true;
     }
 
     const candidate = findFirstVisible(
@@ -276,7 +297,10 @@
 
     if (candidate) {
       setInputValue(candidate, value);
+      return true;
     }
+
+    return false;
   }
 
   function findInputNearLabel(labels) {
@@ -365,6 +389,13 @@
 
   function normalize(text) {
     return String(text).trim().replace(/\s+/g, " ").toLowerCase();
+  }
+
+  function looksLikeRulePage() {
+    const bodyText = normalize(document.body?.innerText || "");
+    return ["收信规则", "邮件规则", "过滤器规则", "mail rules", "filters"].some((label) =>
+      bodyText.includes(normalize(label)),
+    );
   }
 
   function sleep(ms) {
