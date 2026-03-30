@@ -12,6 +12,7 @@ const LOCALE_LABELS = {
   "en-US": "English",
 };
 const ALIMAIL_WEBMAIL_URL = "https://qiye.aliyun.com/alimail/entries/v5.1/mail/inbox/all";
+const ALIMAIL_WINDOW_NAME_PREFIX = "katvrAlimailActivate:";
 const DEFAULT_KEYWORDS_REGEX_BY_GROUP_ID = {
   TPL_SUPPORT_AFTERSALES_ACK:
     "/(support-detail|professionalsupport|customer care|\\bafter[- ]?sales\\b|\\bwarranty\\b|\\bdongle\\b|\\bspare parts?\\b|\\breplacement parts?\\b|\\bshoe sensors?\\b|\\blost\\b.*\\b(sensor|shoe|dongle|part)\\b|\\bbroken\\b.*\\b(part|sensor|dongle|shoe)\\b)/i",
@@ -2879,14 +2880,16 @@ async function activateInAliMail() {
     copiedPacket = false;
   }
 
-  const targetUrl = buildAliMailActivationUrl(envelope);
-  const opened = window.open(targetUrl, "_blank", "noopener,noreferrer");
+  const encodedActivationEnvelope = encodeActivationEnvelope(envelope);
+  const targetUrl = buildAliMailActivationUrl(encodedActivationEnvelope);
+  const opened = openAliMailWindow(targetUrl, encodedActivationEnvelope);
 
   if (!opened) {
     const useCurrentTab = window.confirm(
       "浏览器拦截了新窗口。是否在当前页打开 AliMail 并继续激活？（当前页内容已自动保存）",
     );
     if (useCurrentTab) {
+      window.name = `${ALIMAIL_WINDOW_NAME_PREFIX}${encodedActivationEnvelope}`;
       window.location.assign(targetUrl);
       return;
     }
@@ -2994,9 +2997,8 @@ function buildAliMailActivationEnvelope(config) {
   };
 }
 
-function buildAliMailActivationUrl(envelope) {
-  const payload = encodeActivationEnvelope(envelope);
-  return `${ALIMAIL_WEBMAIL_URL}#alimailActivate=${payload}`;
+function buildAliMailActivationUrl(encodedPayload) {
+  return `${ALIMAIL_WEBMAIL_URL}#alimailActivate=${encodedPayload}`;
 }
 
 function encodeActivationEnvelope(envelope) {
@@ -3007,6 +3009,27 @@ function encodeActivationEnvelope(envelope) {
     binary += String.fromCharCode(byte);
   });
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function openAliMailWindow(targetUrl, encodedPayload) {
+  const opened = window.open("", "_blank");
+  if (!opened) {
+    return null;
+  }
+
+  try {
+    opened.name = `${ALIMAIL_WINDOW_NAME_PREFIX}${encodedPayload}`;
+  } catch (_error) {
+    // Ignore window.name write failures and keep hash fallback.
+  }
+
+  try {
+    opened.location.replace(targetUrl);
+  } catch (_error) {
+    opened.location.href = targetUrl;
+  }
+
+  return opened;
 }
 
 function buildAliMailActivationPayload(group, version) {

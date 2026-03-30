@@ -1,10 +1,12 @@
 // ==UserScript==
 // @name         KATVR AliMail Auto Reply Activator
 // @namespace    https://yjli-new.github.io/autoresponder-editor/
-// @version      1.1.2
+// @version      1.1.3
 // @description  Read activation payload from URL and apply auto-reply settings in AliMail enterprise web.
 // @match        https://qiye.aliyun.com/*
 // @match        https://mail.aliyun.com/*
+// @match        https://mail.qiye.aliyun.com/*
+// @include      https://mail.qiye.aliyun.com:8443/*
 // @grant        none
 // @run-at       document-idle
 // ==/UserScript==
@@ -12,6 +14,7 @@
 (function () {
   "use strict";
 
+  const WINDOW_NAME_PREFIX = "katvrAlimailActivate:";
   const encoded = readActivationParam();
   if (!encoded) {
     return;
@@ -31,6 +34,11 @@
   });
 
   function readActivationParam() {
+    const fromWindowName = readActivationFromWindowName();
+    if (fromWindowName) {
+      return fromWindowName;
+    }
+
     const hash = String(window.location.hash || "").replace(/^#/, "");
     if (hash) {
       const hashParams = new URLSearchParams(hash);
@@ -42,6 +50,15 @@
 
     const search = new URLSearchParams(window.location.search);
     return search.get("alimailActivate");
+  }
+
+  function readActivationFromWindowName() {
+    const value = String(window.name || "");
+    if (!value.startsWith(WINDOW_NAME_PREFIX)) {
+      return "";
+    }
+
+    return value.slice(WINDOW_NAME_PREFIX.length).trim();
   }
 
   function parsePayload(base64UrlText) {
@@ -90,6 +107,9 @@
     hashParams.delete("alimailActivate");
     const nextHash = hashParams.toString();
     url.hash = nextHash ? `#${nextHash}` : "";
+    if (String(window.name || "").startsWith(WINDOW_NAME_PREFIX)) {
+      window.name = "";
+    }
     window.history.replaceState({}, "", url.toString());
   }
 
