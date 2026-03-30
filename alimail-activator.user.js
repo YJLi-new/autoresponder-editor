@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KATVR AliMail Auto Reply Activator
 // @namespace    https://yjli-new.github.io/autoresponder-editor/
-// @version      1.1.8
+// @version      1.1.9
 // @description  Read activation payload from URL and apply auto-reply settings in AliMail enterprise web.
 // @match        https://qiye.aliyun.com/*
 // @match        https://mail.aliyun.com/*
@@ -256,9 +256,10 @@
       throw new Error("已点击“新建收信规则”，但未等到规则编辑表单出现。");
     }
 
-    const nameApplied = setMailRuleName(form, template.ruleName || buildFallbackRuleName(template));
+    const ruleName = template.ruleName || buildFallbackRuleName(template);
+    const nameApplied = setMailRuleName(form, ruleName);
     if (!nameApplied) {
-      throw new Error("已进入收信规则编辑页，但未找到“规则名称”输入框。");
+      throw new Error("已进入收信规则编辑页，但未能成功写入“规则名称”。");
     }
 
     const keywordsApplied = await applyRuleKeywords(template, form);
@@ -290,6 +291,10 @@
       findClickableWithin(form, ["确定", "保存", "创建", "OK", "Save"]);
     if (saveButton) {
       safeClick(saveButton);
+      const submission = await confirmMailRuleSubmission(form, ruleName, 5000);
+      if (!submission.ok) {
+        throw new Error(submission.message || "收信规则提交后未能确认保存成功。");
+      }
       return;
     }
 
@@ -590,13 +595,32 @@
     if (element.matches("[contenteditable='true']")) {
       element.innerText = text;
     } else {
-      element.value = text;
+      const ownSetter = Object.getOwnPropertyDescriptor(element, "value")?.set;
+      const prototype = Object.getPrototypeOf(element);
+      const protoSetter = prototype ? Object.getOwnPropertyDescriptor(prototype, "value")?.set : null;
+      const setter = protoSetter || ownSetter;
+      if (setter) {
+        setter.call(element, text);
+      } else {
+        element.value = text;
+      }
     }
 
-    element.dispatchEvent(new Event("input", { bubbles: true }));
+    try {
+      element.dispatchEvent(
+        new InputEvent("input", {
+          bubbles: true,
+          cancelable: true,
+          data: text,
+          inputType: "insertText",
+        }),
+      );
+    } catch (_error) {
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+    }
     element.dispatchEvent(new Event("change", { bubbles: true }));
     element.blur();
-    return true;
+    return readElementTextValue(element) === text;
   }
 
   function appendKeywordValue(element, value, overwrite) {
@@ -633,6 +657,63 @@
       }),
     );
     element.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  async function confirmMailRuleSubmission(form, ruleName, timeoutMs) {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      const validationError = findMailRuleValidationError(form);
+      if (validationError) {
+        return {
+          ok: false,
+          message: validationError,
+        };
+      }
+
+      if (!document.body.contains(form) || !isVisible(form)) {
+        return {
+          ok: true,
+        };
+      }
+
+      const matchingRow = Array.from(document.querySelectorAll("td, div, span"))
+        .find((node) => isVisible(node) && normalize(node.textContent || "") === normalize(ruleName));
+      if (matchingRow) {
+        return {
+          ok: true,
+        };
+      }
+
+      await sleep(220);
+    }
+
+    return {
+      ok: false,
+      message: "已点击保存，但未确认规则已创建成功，请检查规则列表。",
+    };
+  }
+
+  function findMailRuleValidationError(form) {
+    const candidates = [
+      ...Array.from(form.querySelectorAll(".ant-form-item-explain-error, .ant-form-item-explain, .ant-form-item-extra")),
+      ...Array.from(document.querySelectorAll(".ant-message, .ant-notification, .ant-alert, [role='alert']")),
+    ];
+
+    const matched = candidates.find((node) => {
+      if (!isVisible(node)) return false;
+      const text = normalize(node.textContent || "");
+      return text.includes("不能为空") || text.includes("请填写") || text.includes("错误码");
+    });
+
+    return matched ? String(matched.textContent || "").trim() : "";
+  }
+
+  function readElementTextValue(element) {
+    if (!element) return "";
+    if (element.matches("[contenteditable='true']")) {
+      return String(element.innerText || "").trim();
+    }
+    return String(element.value || "").trim();
   }
 
   async function waitForClickable(labels, timeoutMs) {
